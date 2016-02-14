@@ -1,0 +1,2 @@
+GLUON_SITE_FEEDS='hannover'
+PACKAGES_HANNOVER_REPO=https://github.com/freifunkh/gluon-packages.git

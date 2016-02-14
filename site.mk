@@ -20,12 +20,13 @@ GLUON_SITE_PACKAGES := \
 	gluon-respondd \
 	gluon-setup-mode \
 	gluon-status-page \
+	ffh-dist-upgrade \
 	haveged \
 	iptables \
 	iwinfo
 
 
-DEFAULT_GLUON_RELEASE := 0.12a-$(shell date '+%Y%m%d')
+DEFAULT_GLUON_RELEASE := 0.11r-$(shell date '+%Y%m%d')
 
 # Allow overriding the release number from the command line
 GLUON_RELEASE ?= $(DEFAULT_GLUON_RELEASE)
