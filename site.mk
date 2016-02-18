@@ -20,7 +20,6 @@ GLUON_SITE_PACKAGES := \
 	gluon-respondd \
 	gluon-setup-mode \
 	gluon-status-page \
-	ffh-dist-upgrade \
 	haveged \
 	iptables \
 	iwinfo
