@@ -135,6 +135,8 @@ GLUON_SITE_PACKAGES += \
 	gdb
 endif
 
+DEFAULT_GLUON_RELEASE := 0.15a-$(shell date '+%Y%m%d')
+
 # Allow overriding the release number from the command line
 GLUON_RELEASE ?= $(DEFAULT_GLUON_RELEASE)
 GLUON_PRIORITY ?= 0
@@ -142,9 +144,4 @@ GLUON_LANGS ?= de en fr
 GLUON_REGION ?= eu
 GLUON_ATH10K_MESH ?= 11s
 
-# DEFAULT_GLUON_RELEASE := 0.13a-$(shell date '+%Y%m%d')
-DEFAULT_GLUON_RELEASE := 0.14m-20171019
 GLUON_BRANCH ?= stable
-
-export GLUON_BRANCH
-
