@@ -21,5 +21,6 @@ mkdir logs
 
 make update
 
+# maybe switch here to a screen session ;)
 make V=s GLUON_TARGET=ar71xx-generic > logs/$(date -Is)_ar71xx-generic.log
 ```
