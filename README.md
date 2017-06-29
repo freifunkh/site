@@ -14,7 +14,8 @@ curl https://paste.irrelefant.net/Eet3Uoth.txt | git am
 git clone https://github.com/freifunkh/site
 
 # if you want to test packages in ffh-packages, you
-# need to adjust PACKAGES_HANNOVER_COMMIT in site/modules here
+# need to adjust PACKAGES_HANNOVER_COMMIT to the
+# lastest commit id in site/modules now
 vi site/modules
 
 mkdir logs
