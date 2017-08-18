@@ -22,7 +22,9 @@ GLUON_SITE_PACKAGES := \
 	gluon-status-page \
 	haveged \
 	iptables \
-	iwinfo
+	iwinfo \
+	ffho-autoupdater-wifi-fallback \
+	ffho-luci-autoupdater-wifi-fallback
 
 # support the USB stack
 USB_PACKAGES_BASIC := \
