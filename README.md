@@ -8,7 +8,7 @@ git checkout v2016.2.x
 
 # respondd patches
 git cherry-pick 9a06a9865120747fa5b2d3179936e3b7b169deab
-curl https://paste.irrelefant.net/Eet3Uoth.txt | git am
+Für alle Patches in site/patches: git am <patch>
 
 # clone site conf
 git clone https://github.com/freifunkh/site
