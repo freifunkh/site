@@ -10,7 +10,7 @@ GLUON_SITE_PACKAGES := \
 	gluon-ebtables-filter-multicast \
 	gluon-ebtables-filter-ra-dhcp \
 	gluon-luci-admin \
-	gluon-luci-autoupdater \
+	ffho-luci-autoupdater-wifi-fallback \
 	gluon-luci-portconfig \
 	gluon-luci-private-wifi \
 	gluon-luci-wifi-config \
@@ -23,8 +23,7 @@ GLUON_SITE_PACKAGES := \
 	haveged \
 	iptables \
 	iwinfo \
-	ffho-autoupdater-wifi-fallback \
-	ffho-luci-autoupdater-wifi-fallback
+	ffho-autoupdater-wifi-fallback 
 
 # support the USB stack
 USB_PACKAGES_BASIC := \
@@ -137,7 +136,7 @@ GLUON_REGION ?= eu
 GLUON_ATH10K_MESH ?= 11s
 
 # DEFAULT_GLUON_RELEASE := 0.13a-$(shell date '+%Y%m%d')
-DEFAULT_GLUON_RELEASE := 0.14g-20170818
+DEFAULT_GLUON_RELEASE := 0.14g-20170820
 GLUON_BRANCH ?= stable
 
 export GLUON_BRANCH
