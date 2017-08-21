@@ -12,9 +12,6 @@ git clone https://github.com/freifunkh/site
 # apply site patches
 git am site/patches/*
 
-# respondd patch from master
-git cherry-pick 9a06a9865120747fa5b2d3179936e3b7b169deab
-
 # if you want to test packages in ffh-packages, you
 # need to adjust PACKAGES_HANNOVER_COMMIT to the
 # lastest commit id in site/modules now
