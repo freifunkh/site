@@ -10,7 +10,7 @@ git checkout v2016.2.x
 git clone https://github.com/freifunkh/site
 
 # apply site patches
-cat site/patches/* | git am
+git am site/patches/*
 
 # respondd patch from master
 git cherry-pick 9a06a9865120747fa5b2d3179936e3b7b169deab
