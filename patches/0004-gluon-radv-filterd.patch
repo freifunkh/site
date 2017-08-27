@@ -1,0 +1,2078 @@
+From 1a52ff40b9658eaad78a75e38cbe4c640634231d Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Sat, 30 Jul 2016 00:19:06 +0200
+Subject: [PATCH 01/22] Add package gluon-radv-filterd
+
+This package drops all incoming router advertisements except for the
+default router with the best metric according to B.A.T.M.A.N. advanced.
+
+Note that advertisements originating from the node itself (for example
+via gluon-radvd) are not affected.
+---
+ package/gluon-radv-filterd/Makefile                |  46 ++
+ package/gluon-radv-filterd/README.md               |  28 ++
+ package/gluon-radv-filterd/check_site.lua          |   3 +
+ .../files/etc/config/gluon-radv-filterd            |   4 +
+ .../files/etc/init.d/gluon-radv-filterd            |  34 ++
+ .../files/lib/gluon/ebtables/400-radv-filterd      |   3 +
+ .../lib/gluon/upgrade/300-gluon-radv-filterd       |  11 +
+ package/gluon-radv-filterd/src/Makefile            |   4 +
+ .../gluon-radv-filterd/src/gluon-radv-filterd.c    | 513 +++++++++++++++++++++
+ 9 files changed, 646 insertions(+)
+ create mode 100644 package/gluon-radv-filterd/Makefile
+ create mode 100644 package/gluon-radv-filterd/README.md
+ create mode 100644 package/gluon-radv-filterd/check_site.lua
+ create mode 100644 package/gluon-radv-filterd/files/etc/config/gluon-radv-filterd
+ create mode 100755 package/gluon-radv-filterd/files/etc/init.d/gluon-radv-filterd
+ create mode 100644 package/gluon-radv-filterd/files/lib/gluon/ebtables/400-radv-filterd
+ create mode 100644 package/gluon-radv-filterd/luasrc/lib/gluon/upgrade/300-gluon-radv-filterd
+ create mode 100644 package/gluon-radv-filterd/src/Makefile
+ create mode 100644 package/gluon-radv-filterd/src/gluon-radv-filterd.c
+
+diff --git a/package/gluon-radv-filterd/Makefile b/package/gluon-radv-filterd/Makefile
+new file mode 100644
+index 000000000..fbad5b4d5
+--- /dev/null
++++ b/package/gluon-radv-filterd/Makefile
+@@ -0,0 +1,46 @@
++include $(TOPDIR)/rules.mk
++
++PKG_NAME:=gluon-radv-filterd
++PKG_VERSION:=1
++PKG_RELEASE:=1
++
++PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
++
++include $(INCLUDE_DIR)/package.mk
++
++define Package/gluon-radv-filterd
++  SECTION:=gluon
++  CATEGORY:=Gluon
++  TITLE:=Filter IPv6 router advertisements
++  DEPENDS:=+gluon-ebtables
++endef
++
++define Package/gluon-radv-filterd/description
++	Gluon community wifi mesh firmware framework: filter IPv6 router advertisements
++endef
++
++define Build/Prepare
++	mkdir -p $(PKG_BUILD_DIR)
++	$(CP) ./src/* $(PKG_BUILD_DIR)/
++endef
++
++define Build/Configure
++endef
++
++define Build/Compile
++	CFLAGS="$(TARGET_CFLAGS)" CPPFLAGS="$(TARGET_CPPFLAGS)" $(MAKE) -C $(PKG_BUILD_DIR) $(TARGET_CONFIGURE_OPTS)
++endef
++
++define Package/gluon-radv-filterd/install
++	$(CP) ./files/* $(1)/
++
++	$(INSTALL_DIR) $(1)/usr/sbin/
++	$(INSTALL_BIN) $(PKG_BUILD_DIR)/gluon-radv-filterd $(1)/usr/sbin/
++endef
++
++define Package/gluon-radv-filterd/postinst
++#!/bin/sh
++$(call GluonCheckSite,check_site.lua)
++endef
++
++$(eval $(call BuildPackage,gluon-radv-filterd))
+diff --git a/package/gluon-radv-filterd/README.md b/package/gluon-radv-filterd/README.md
+new file mode 100644
+index 000000000..01e104e08
+--- /dev/null
++++ b/package/gluon-radv-filterd/README.md
+@@ -0,0 +1,28 @@
++gluon-radv-filterd
++==================
++This package drops all incoming router advertisements except for the
++default router with the best metric according to B.A.T.M.A.N. advanced.
++
++Note that advertisements originating from the node itself (for example
++via gluon-radvd) are not affected and considered at all.
++
++"Best" router
++-------------
++The best router is determined by the TQ that is reported for its originator by
++B.A.T.M.A.N. advanced. If, for some reason, another gateway with a better TQ
++appears or an existing gateway increases its TQ above that of the chosen
++gateway, the chosen gateway will remain selected until the better gateway has a
++TQ value at least X higher than the selected gateway. This is called
++hysteresis, and X can be specified on the commandline/via UCI/the site.conf and
++defaults to 20 (just as for the IPv4 gateway selection feature built into
++B.A.T.M.A.N. advanced).
++
++"Local" routers
++---------------
++The package has functionality to assign "local" routers, i.e. those connected
++via cable or WLAN instead of via the mesh (technically: appearing in the
++`transtable_local`), a fake TQ of 512 so that they are always preferred.
++However, if used together with the `gluon-ebtables-filter-ra-dhcp` package,
++these router advertisements are filtered anyway and reach neither the node nor
++any other client. You currently have to disable the package or insert custom
++ebtables rules in order to use local routers.
+diff --git a/package/gluon-radv-filterd/check_site.lua b/package/gluon-radv-filterd/check_site.lua
+new file mode 100644
+index 000000000..242804bcf
+--- /dev/null
++++ b/package/gluon-radv-filterd/check_site.lua
+@@ -0,0 +1,3 @@
++if need_table('radv_filterd', nil, false) then
++    need_number('radv_filterd.threshold')
++end
+diff --git a/package/gluon-radv-filterd/files/etc/config/gluon-radv-filterd b/package/gluon-radv-filterd/files/etc/config/gluon-radv-filterd
+new file mode 100644
+index 000000000..32e1bbb90
+--- /dev/null
++++ b/package/gluon-radv-filterd/files/etc/config/gluon-radv-filterd
+@@ -0,0 +1,4 @@
++config filterd
++	option iface 'br-client'
++	option chain 'RADV_FILTER'
++	option threshold '20'
+diff --git a/package/gluon-radv-filterd/files/etc/init.d/gluon-radv-filterd b/package/gluon-radv-filterd/files/etc/init.d/gluon-radv-filterd
+new file mode 100755
+index 000000000..8fc08b1eb
+--- /dev/null
++++ b/package/gluon-radv-filterd/files/etc/init.d/gluon-radv-filterd
+@@ -0,0 +1,34 @@
++#!/bin/sh /etc/rc.common
++
++USE_PROCD=1
++START=50
++DAEMON=/usr/sbin/gluon-radv-filterd
++
++validate_filterd_section() {
++    uci_validate_section gluon-radv-filterd filterd "${1}" \
++            'iface:string' \
++            'chain:string:RADV_FILTER' \
++            'threshold:uinteger:20'
++}
++
++start_service() {
++    config_load gluon-radv-filterd
++    config_foreach start_filterd filterd
++}
++
++start_filterd() {
++    local iface chain threshold
++    validate_filterd_section "$1"
++
++    procd_open_instance
++    procd_set_param command $DAEMON -i "$iface" -c "$chain" -t $threshold
++    procd_set_param respawn ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
++    procd_set_param netdev br-client
++    procd_set_param stderr 1
++    procd_close_instance
++}
++
++service_triggers() {
++    procd_add_reload_trigger "gluon-radv-filterd"
++    procd_add_validation "validate_filterd_section"
++}
+diff --git a/package/gluon-radv-filterd/files/lib/gluon/ebtables/400-radv-filterd b/package/gluon-radv-filterd/files/lib/gluon/ebtables/400-radv-filterd
+new file mode 100644
+index 000000000..178084d41
+--- /dev/null
++++ b/package/gluon-radv-filterd/files/lib/gluon/ebtables/400-radv-filterd
+@@ -0,0 +1,3 @@
++chain('RADV_FILTER', 'DROP')
++rule 'FORWARD -p IPv6 -i bat0 --ip6-protocol ipv6-icmp --ip6-icmp-type router-advertisement -j RADV_FILTER'
++rule 'RADV_FILTER -j ACCEPT'
+diff --git a/package/gluon-radv-filterd/luasrc/lib/gluon/upgrade/300-gluon-radv-filterd b/package/gluon-radv-filterd/luasrc/lib/gluon/upgrade/300-gluon-radv-filterd
+new file mode 100644
+index 000000000..e177d3f5a
+--- /dev/null
++++ b/package/gluon-radv-filterd/luasrc/lib/gluon/upgrade/300-gluon-radv-filterd
+@@ -0,0 +1,11 @@
++#!/usr/bin/lua
++
++local site = require 'gluon.site_config'
++local uci = (require 'luci.model.uci').cursor()
++
++if site.radv_filterd and site.radv_filterd.threshold then
++    uci:foreach('gluon-radv-filterd', 'filterd', function(section)
++        uci:set('gluon-radv-filterd', section['.name'], 'threshold', site.radv_filterd.threshold)
++    end)
++    uci:save('gluon-radv-filterd')
++end
+diff --git a/package/gluon-radv-filterd/src/Makefile b/package/gluon-radv-filterd/src/Makefile
+new file mode 100644
+index 000000000..652c67035
+--- /dev/null
++++ b/package/gluon-radv-filterd/src/Makefile
+@@ -0,0 +1,4 @@
++all: gluon-radv-filterd
++
++gluon-radv-filterd: gluon-radv-filterd.c
++	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -Wall -o $@ $^ $(LDLIBS)
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+new file mode 100644
+index 000000000..91b5dd4a7
+--- /dev/null
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -0,0 +1,513 @@
++#define _GNU_SOURCE
++#include <error.h>
++#include <errno.h>
++#include <signal.h>
++#include <stdarg.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <time.h>
++#include <unistd.h>
++
++#include <sys/socket.h>
++#include <sys/select.h>
++#include <sys/types.h>
++#include <sys/wait.h>
++
++#include <net/if.h>
++
++#include <linux/filter.h>
++#include <linux/if_packet.h>
++#include <linux/if_ether.h>
++#include <linux/limits.h>
++
++#include <netinet/icmp6.h>
++#include <netinet/ip6.h>
++
++// Recheck TQs after this time even if no RA was received
++#define MAX_INTERVAL 60
++
++// Recheck TQs at most this often, even if new RAs were received (they won't
++// become the preferred routers until the TQs have been rechecked)
++// Also, the first update will take at least this long
++#define MIN_INTERVAL 5
++
++// max execution time of a single ebtables call in nanoseconds
++#define EBTABLES_TIMEOUT 1e8 // 100ms
++
++// TQ value assigned to local routers
++#define LOCAL_TQ 512
++
++#define BUFSIZE 1500
++
++#define DEBUGFS "/sys/kernel/debug/batman_adv/%s/"
++#define ORIGINATORS DEBUGFS "originators"
++#define TRANSTABLE_GLOBAL DEBUGFS "transtable_global"
++#define TRANSTABLE_LOCAL DEBUGFS "transtable_local"
++
++#define F_MAC "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx"
++#define F_MAC_IGN "%*2x:%*2x:%*2x:%*2x:%*2x:%*2x"
++#define F_MAC_VAR(var) var[0], var[1], var[2], var[3], var[4], var[5]
++
++#ifdef DEBUG
++#define CHECK(stmt) \
++    if(!(stmt)) { \
++        fprintf(stderr, "check failed: " #stmt "\n"); \
++        goto check_failed; \
++    }
++#define DEBUG_MSG(msg, ...) fprintf(stderr, msg "\n", ##__VA_ARGS__)
++#else
++#define CHECK(stmt) if(!(stmt)) goto check_failed;
++#define DEBUG_MSG(msg, ...) do {} while(0)
++#endif
++
++#ifndef ARRAY_SIZE
++#define ARRAY_SIZE(A) (sizeof(A)/sizeof(A[0]))
++#endif
++
++typedef uint8_t macaddr_t[ETH_ALEN];
++
++struct list_item {
++	struct list *next;
++};
++
++#define foreach(item, list) \
++	for(item = list; item != NULL; item = item->next)
++
++struct router {
++	struct router *next;
++	macaddr_t src;
++	time_t eol;
++	macaddr_t originator;
++	uint16_t tq;
++};
++
++struct global {
++	int sock;
++	struct router *routers;
++	const char *mesh_iface;
++	const char *chain;
++	uint16_t max_tq;
++	uint16_t hysteresis_thresh;
++	struct router *best_router;
++} G = {
++	.mesh_iface = "bat0",
++};
++
++
++static void cleanup() {
++	struct router *router;
++	close(G.sock);
++
++	while (G.routers != NULL) {
++		router = G.routers;
++		G.routers = router->next;
++		free(router);
++	}
++}
++
++static void usage(const char *msg) {
++	if (msg != NULL && *msg != '\0') {
++		fprintf(stderr, "ERROR: %s\n\n", msg);
++	}
++	fprintf(stderr,
++		"Usage: %s [-m <mesh_iface>] [-t <thresh>] -c <chain> -i <iface>\n\n"
++		"  -m <mesh_iface>  B.A.T.M.A.N. advanced mesh interface used to get metric\n"
++		"                   information (\"TQ\") for the available gateways. Default: bat0\n"
++		"  -t <thresh>      Minimum TQ difference required to switch the gateway.\n"
++		"                   Default: 0\n"
++		"  -c <chain>       ebtables chain that should be managed by the daemon. The\n"
++		"                   chain already has to exist on program invocation and should\n"
++		"                   have a DROP policy. It will be flushed by the program!\n"
++		"  -i <iface>       Interface to listen on for router advertisements. Should be\n"
++		"                   <mesh_iface> or a bridge on top of it, as no metric\n"
++		"                   information will be available for hosts on other interfaces.\n\n",
++		program_invocation_short_name);
++	cleanup();
++	if (msg == NULL)
++		exit(EXIT_SUCCESS);
++	else
++		exit(EXIT_FAILURE);
++}
++
++#define exit_errmsg(message, ...) { \
++	fprintf(stderr, message "\n", ##__VA_ARGS__); \
++	cleanup(); \
++	exit(1); \
++	}
++
++static inline void exit_errno(const char *message) {
++	cleanup();
++	error(1, errno, "error: %s", message);
++}
++
++static inline void warn_errno(const char *message) {
++	error(0, errno, "warning: %s", message);
++}
++
++static int init_packet_socket(unsigned int ifindex) {
++	// generated by tcpdump -i tun "icmp6 and ip6[40] = 134" -dd
++	// Important: Generate on TUN interface (because the socket is SOCK_DGRAM)!
++	struct sock_filter radv_filter_code[] = {
++		{ 0x30, 0, 0, 0x00000000 },
++		{ 0x54, 0, 0, 0x000000f0 },
++		{ 0x15, 0, 8, 0x00000060 },
++		{ 0x30, 0, 0, 0x00000006 },
++		{ 0x15, 3, 0, 0x0000003a },
++		{ 0x15, 0, 5, 0x0000002c },
++		{ 0x30, 0, 0, 0x00000028 },
++		{ 0x15, 0, 3, 0x0000003a },
++		{ 0x30, 0, 0, 0x00000028 },
++		{ 0x15, 0, 1, 0x00000086 },
++		{ 0x06, 0, 0, 0x0000ffff },
++		{ 0x06, 0, 0, 0x00000000 },
++	};
++
++	struct sock_fprog radv_filter = {
++	    .len = ARRAY_SIZE(radv_filter_code),
++	    .filter = radv_filter_code,
++	};
++
++	int sock = socket(AF_PACKET, SOCK_DGRAM|SOCK_CLOEXEC, ETH_P_IPV6);
++	if (sock < 0)
++		exit_errno("can't open packet socket");
++	setsockopt(sock, SOL_SOCKET, SO_ATTACH_FILTER, &radv_filter, sizeof(radv_filter));
++
++	struct sockaddr_ll bind_iface = {
++		.sll_family = AF_PACKET,
++		.sll_protocol = ETH_P_IPV6,
++		.sll_ifindex = ifindex,
++	};
++	bind(sock, (struct sockaddr *)&bind_iface, sizeof(bind_iface));
++
++	return sock;
++}
++
++static void parse_cmdline(int argc, char *argv[]) {
++	int c;
++	unsigned int ifindex;
++	unsigned long int threshold;
++	char *endptr;
++	while ((c = getopt(argc, argv, "c:hi:m:t:")) != -1) {
++		switch (c) {
++			case 'i':
++				if (G.sock != 0)
++					usage("-i given more than once");
++				ifindex = if_nametoindex(optarg);
++				if (ifindex == 0)
++					exit_errmsg("Unknown interface: %s", optarg);
++				G.sock = init_packet_socket(ifindex);
++				break;
++			case 'm':
++				G.mesh_iface = optarg;
++				break;
++			case 'c':
++				G.chain = optarg;
++				break;
++			case 't':
++				threshold = strtoul(optarg, &endptr, 10);
++				if (*endptr != '\0')
++					exit_errmsg("Threshold must be a number: %s", optarg);
++				if (threshold >= LOCAL_TQ)
++					exit_errmsg("Threshold too large: %ld (max is %d)", threshold, LOCAL_TQ);
++				G.hysteresis_thresh = (uint16_t) threshold;
++				break;
++			case 'h':
++				usage(NULL);
++				break;
++			default:
++				usage("");
++				break;
++		}
++	}
++}
++
++static void handle_ra(int sock) {
++	struct sockaddr_ll src;
++	unsigned int addr_size = sizeof(src);
++	size_t len;
++	uint8_t buffer[BUFSIZE] __attribute__((aligned(8)));
++	struct ip6_hdr *pkt;
++	struct ip6_ext *ext;
++	struct nd_router_advert *ra;
++	uint8_t ext_type;
++
++	len = recvfrom(sock, buffer, BUFSIZE, 0, (struct sockaddr *)&src, &addr_size);
++
++	// skip IPv6 headers, ensuring packet is long enough
++	CHECK(len > sizeof(struct ip6_hdr));
++	pkt = (struct ip6_hdr *)buffer;
++	CHECK(len >= ntohs(pkt->ip6_plen) + sizeof(struct ip6_hdr));
++	ext_type = pkt->ip6_nxt;
++	ext = (void*)pkt + sizeof(struct ip6_hdr);
++	while (ext_type != IPPROTO_ICMPV6) {
++		CHECK((void*)ext < (void*)pkt + sizeof(struct ip6_hdr) + len);
++		CHECK(ext->ip6e_len > 0);
++		ext_type = ext->ip6e_nxt;
++		ext = (void*)ext + ext->ip6e_len;
++	}
++
++	// partially parse router advertisement
++	CHECK((void*)ext + sizeof(struct nd_router_advert) <= (void*)pkt + sizeof(struct ip6_hdr) + len);
++	ra = (struct nd_router_advert *) ext;
++	CHECK(ra->nd_ra_type == ND_ROUTER_ADVERT);
++	CHECK(ra->nd_ra_code == 0);
++	// we only want default routers
++	CHECK(ra->nd_ra_router_lifetime > 0);
++
++	DEBUG_MSG("received valid RA from " F_MAC, F_MAC_VAR(src.sll_addr));
++
++	// update list of known routers
++	struct router *router;
++	foreach(router, G.routers) {
++		if (!memcmp(router->src, src.sll_addr, sizeof(macaddr_t))) {
++			break;
++		}
++	}
++	if (!router) {
++		router = malloc(sizeof(struct router));
++		memcpy(router->src, src.sll_addr, 8);
++		router->next = G.routers;
++		G.routers = router;
++	}
++	router->eol = time(NULL) + ra->nd_ra_router_lifetime;
++
++check_failed:
++	return;
++}
++
++static void expire_routers() {
++	struct router **prev_ptr = &G.routers;
++	struct router *router;
++	time_t now = time(NULL);
++
++	foreach(router, G.routers) {
++		if (router->eol < now) {
++			DEBUG_MSG("router " F_MAC " expired", F_MAC_VAR(router->src));
++			*prev_ptr = router->next;
++			free(router);
++		} else {
++			prev_ptr = &router->next;
++		}
++	}
++}
++
++static void update_tqs() {
++	FILE *f;
++	struct router *router;
++	char path[PATH_MAX];
++	char *line = NULL;
++	size_t len = 0;
++	uint8_t tq;
++	macaddr_t mac_a, mac_b;
++
++	// reset values
++	foreach(router, G.routers) {
++		router->tq = 0;
++		memset(router->originator, 0, sizeof(macaddr_t));
++	}
++
++	// TODO: Currently, we iterate over the whole list of routers all the
++	// time. Maybe it would be a good idea to sort routers that already
++	// have the current piece of information to the back. That way, we
++	// could abort as soon as we hit the first router with the current
++	// information filled in.
++
++	// translate all router's MAC addresses to originators simultaneously
++	snprintf(path, PATH_MAX, TRANSTABLE_GLOBAL, G.mesh_iface);
++	f = fopen(path, "r");
++	while (getline(&line, &len, f) != -1) {
++		if (sscanf(line, " * " F_MAC " (%*3u) via " F_MAC " (%*3u) (0x%*4x) [%*3c]",
++				F_MAC_VAR(&mac_a), F_MAC_VAR(&mac_b)) != 12)
++			continue;
++
++		foreach(router, G.routers) {
++			if (!memcmp(router->src, mac_a, sizeof(macaddr_t))) {
++				memcpy(router->originator, mac_b, sizeof(macaddr_t));
++				break; // foreach
++			}
++		}
++	}
++	fclose(f);
++
++	// look up TQs of originators
++	G.max_tq = 0;
++	snprintf(path, PATH_MAX, ORIGINATORS, G.mesh_iface);
++	f = fopen(path, "r");
++	while (getline(&line, &len, f) != -1) {
++		if (sscanf(line, F_MAC " %*fs (%hhu) " F_MAC_IGN "[ %*s]: " F_MAC_IGN " (%*3u)",
++				F_MAC_VAR(&mac_a), &tq) != 7)
++			continue;
++
++		foreach(router, G.routers) {
++			if (!memcmp(router->originator, mac_a, sizeof(macaddr_t))) {
++				router->tq = tq;
++				if (tq > G.max_tq)
++					G.max_tq = tq;
++				break; // foreach
++			}
++		}
++	}
++	fclose(f);
++
++	// if all routers have a TQ value, we don't need to check translocal
++	foreach(router, G.routers) {
++		if (router->tq == 0)
++			break;
++	}
++	if (router != NULL) {
++		// rate local routers (if present) the highest
++		snprintf(path, PATH_MAX, TRANSTABLE_LOCAL, G.mesh_iface);
++		f = fopen(path, "r");
++		while (getline(&line, &len, f) != -1) {
++			if (sscanf(line, " * " F_MAC "[%*5s] %*f", F_MAC_VAR(&mac_a)) != 6)
++				continue;
++
++			foreach(router, G.routers) {
++				if (!memcmp(router->src, mac_a, sizeof(macaddr_t))) {
++					router->tq = LOCAL_TQ;
++					G.max_tq = LOCAL_TQ;
++					break; // foreach
++				}
++			}
++		}
++		fclose(f);
++	}
++
++	foreach(router, G.routers) {
++		if (router->tq == 0) {
++			fprintf(stderr, "didn't find TQ for non-local " F_MAC "\n", F_MAC_VAR(router->src));
++		}
++	}
++
++	free(line);
++}
++
++static int fork_execvp_timeout(struct timespec *timeout, const char *file, const char *const argv[]) {
++	int ret;
++	pid_t child;
++	siginfo_t info;
++	sigset_t signals;
++	sigemptyset(&signals);
++	sigaddset(&signals, SIGCHLD);
++
++	child = fork();
++	if (!child) {
++		// casting discards const, but should be safe
++		// (see http://stackoverflow.com/q/36925388)
++		execvp(file, (char**) argv);
++		error(1, errno, "can't execvp(\"%s\", ...)", file);
++	}
++
++	sigprocmask(SIG_BLOCK, &signals, NULL);
++	ret = sigtimedwait(&signals, &info, timeout);
++	sigprocmask(SIG_UNBLOCK, &signals, NULL);
++
++	if (ret == SIGCHLD) {
++		if (info.si_pid != child) {
++			cleanup();
++			error_at_line(1, 0, __FILE__, __LINE__,
++				"BUG: We received a SIGCHLD from a child we didn't spawn (expected PID %d, got %d)",
++				child, info.si_pid);
++		}
++
++		waitpid(child, NULL, 0);
++
++		return info.si_status;
++	}
++
++	if (ret < 0 && errno == EAGAIN)
++		error(0, 0, "warning: child %d took too long, killing", child);
++	else if (ret < 0)
++		warn_errno("sigtimedwait failed, killing child");
++	else
++		error_at_line(1, 0, __FILE__, __LINE__,
++				"BUG: sigtimedwait() return some other signal than SIGCHLD: %d",
++				ret);
++
++	kill(child, SIGKILL);
++	kill(child, SIGCONT);
++	waitpid(child, NULL, 0);
++	return -1;
++}
++
++static void update_ebtables() {
++	struct timespec timeout = {
++		.tv_nsec = EBTABLES_TIMEOUT,
++	};
++	char mac[18];
++	struct router *router;
++
++	if (G.best_router && G.best_router->tq >= G.max_tq - G.hysteresis_thresh) {
++		DEBUG_MSG(F_MAC " is still good enough with TQ=%d (max_tq=%d), not executing ebtables",
++			F_MAC_VAR(G.best_router->src),
++			G.best_router->tq,
++			G.max_tq);
++		return;
++	}
++
++	foreach(router, G.routers) {
++		if (router->tq == G.max_tq) {
++			snprintf(mac, sizeof(mac), F_MAC, F_MAC_VAR(router->src));
++			break;
++		}
++	}
++	DEBUG_MSG("Determined %s as new best router with TQ=%d", mac, G.max_tq);
++	G.best_router = router;
++
++	if (fork_execvp_timeout(&timeout, "ebtables", (const char *[])
++			{ "ebtables", "-F", G.chain, NULL }))
++		error(0, 0, "warning: flushing ebtables chain %s failed, not adding a new rule", G.chain);
++	else if (fork_execvp_timeout(&timeout, "ebtables", (const char *[])
++			{ "ebtables", "-A", G.chain, "-s", mac, "-j", "ACCEPT", NULL }))
++		error(0, 0, "warning: adding new rule to ebtables chain %s failed", G.chain);
++}
++
++int main(int argc, char *argv[]) {
++	int retval;
++	fd_set rfds;
++	struct timeval tv;
++	time_t last_update = time(NULL);
++
++	parse_cmdline(argc, argv);
++
++	if (G.sock == 0)
++		usage("No interface set!");
++
++	if (G.chain == NULL)
++		usage("No chain set!");
++
++	while (1) {
++		FD_ZERO(&rfds);
++		FD_SET(G.sock, &rfds);
++
++		tv.tv_sec = MAX_INTERVAL;
++		tv.tv_usec = 0;
++		retval = select(G.sock + 1, &rfds, NULL, NULL, &tv);
++
++		if (retval < 0)
++			exit_errno("select() failed");
++		else if (retval) {
++			if (FD_ISSET(G.sock, &rfds)) {
++				handle_ra(G.sock);
++			}
++		}
++		else
++			DEBUG_MSG("select() timeout expired");
++
++		if (G.routers != NULL && last_update <= time(NULL) - MIN_INTERVAL) {
++			expire_routers();
++
++			// all routers could have expired, check again
++			if (G.routers != NULL) {
++				update_tqs();
++				update_ebtables();
++				last_update = time(NULL);
++			}
++		}
++	}
++
++	cleanup();
++	return 0;
++}
+
+From c0c8ea9bf86a26c3416d2716407e6d4bee9c368a Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Sat, 26 Nov 2016 12:52:23 +0100
+Subject: [PATCH 02/22] gluon-radv-filterd: Update originators only if one is
+ unknown
+
+---
+ .../gluon-radv-filterd/src/gluon-radv-filterd.c    | 37 ++++++++++++++--------
+ 1 file changed, 23 insertions(+), 14 deletions(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index 91b5dd4a7..af1b32079 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -3,6 +3,7 @@
+ #include <errno.h>
+ #include <signal.h>
+ #include <stdarg.h>
++#include <stdbool.h>
+ #include <stdio.h>
+ #include <stdint.h>
+ #include <stdlib.h>
+@@ -300,12 +301,18 @@ static void update_tqs() {
+ 	char *line = NULL;
+ 	size_t len = 0;
+ 	uint8_t tq;
++	bool update_originators = false;
++	int i;
+ 	macaddr_t mac_a, mac_b;
+ 
+-	// reset values
++	// reset TQs
+ 	foreach(router, G.routers) {
+ 		router->tq = 0;
+-		memset(router->originator, 0, sizeof(macaddr_t));
++		for (i = 0; i < 6; i++)
++			if (router->originator[i] != 0)
++				break;
++		if (i >= 6)
++			update_originators = true;
+ 	}
+ 
+ 	// TODO: Currently, we iterate over the whole list of routers all the
+@@ -314,22 +321,24 @@ static void update_tqs() {
+ 	// could abort as soon as we hit the first router with the current
+ 	// information filled in.
+ 
+-	// translate all router's MAC addresses to originators simultaneously
+-	snprintf(path, PATH_MAX, TRANSTABLE_GLOBAL, G.mesh_iface);
+-	f = fopen(path, "r");
+-	while (getline(&line, &len, f) != -1) {
+-		if (sscanf(line, " * " F_MAC " (%*3u) via " F_MAC " (%*3u) (0x%*4x) [%*3c]",
+-				F_MAC_VAR(&mac_a), F_MAC_VAR(&mac_b)) != 12)
+-			continue;
++	if (update_originators) {
++		// translate all router's MAC addresses to originators simultaneously
++		snprintf(path, PATH_MAX, TRANSTABLE_GLOBAL, G.mesh_iface);
++		f = fopen(path, "r");
++		while (getline(&line, &len, f) != -1) {
++			if (sscanf(line, " * " F_MAC " (%*3u) via " F_MAC " (%*3u) (0x%*4x) [%*3c]",
++					F_MAC_VAR(&mac_a), F_MAC_VAR(&mac_b)) != 12)
++				continue;
+ 
+-		foreach(router, G.routers) {
+-			if (!memcmp(router->src, mac_a, sizeof(macaddr_t))) {
+-				memcpy(router->originator, mac_b, sizeof(macaddr_t));
+-				break; // foreach
++			foreach(router, G.routers) {
++				if (!memcmp(router->src, mac_a, sizeof(macaddr_t))) {
++					memcpy(router->originator, mac_b, sizeof(macaddr_t));
++					break; // foreach
++				}
+ 			}
+ 		}
++		fclose(f);
+ 	}
+-	fclose(f);
+ 
+ 	// look up TQs of originators
+ 	G.max_tq = 0;
+
+From c6292f4513546bf7cda85a4177bb4054e512e857 Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Sat, 26 Nov 2016 12:53:12 +0100
+Subject: [PATCH 03/22] gluon-radv-filterd: Work with newer batman-adv versions
+
+---
+ package/gluon-radv-filterd/src/gluon-radv-filterd.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index af1b32079..cc9441a21 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -326,7 +326,9 @@ static void update_tqs() {
+ 		snprintf(path, PATH_MAX, TRANSTABLE_GLOBAL, G.mesh_iface);
+ 		f = fopen(path, "r");
+ 		while (getline(&line, &len, f) != -1) {
+-			if (sscanf(line, " * " F_MAC " (%*3u) via " F_MAC " (%*3u) (0x%*4x) [%*3c]",
++			if (sscanf(line, " * " F_MAC " %*d (%*3u) via " F_MAC " (%*3u) (0x%*4x) [%*3c]",
++					F_MAC_VAR(&mac_a), F_MAC_VAR(&mac_b)) != 12
++				&& sscanf(line, " * " F_MAC " (%*3u) via " F_MAC " (%*3u) (0x%*4x) [%*3c]",
+ 					F_MAC_VAR(&mac_a), F_MAC_VAR(&mac_b)) != 12)
+ 				continue;
+ 
+
+From c9da468a94307f6f68fad4bf3c5ddb9161452570 Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Sat, 26 Nov 2016 12:59:47 +0100
+Subject: [PATCH 04/22] gluon-radv-filterd: Fix upgrade script permissions and
+ compilation
+
+---
+ package/gluon-radv-filterd/Makefile                                   | 4 +++-
+ .../luasrc/lib/gluon/upgrade/300-gluon-radv-filterd                   | 0
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+ mode change 100644 => 100755 package/gluon-radv-filterd/luasrc/lib/gluon/upgrade/300-gluon-radv-filterd
+
+diff --git a/package/gluon-radv-filterd/Makefile b/package/gluon-radv-filterd/Makefile
+index fbad5b4d5..623bf27df 100644
+--- a/package/gluon-radv-filterd/Makefile
++++ b/package/gluon-radv-filterd/Makefile
+@@ -6,7 +6,7 @@ PKG_RELEASE:=1
+ 
+ PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
+ 
+-include $(INCLUDE_DIR)/package.mk
++include $(GLUONDIR)/include/package.mk
+ 
+ define Package/gluon-radv-filterd
+   SECTION:=gluon
+@@ -29,10 +29,12 @@ endef
+ 
+ define Build/Compile
+ 	CFLAGS="$(TARGET_CFLAGS)" CPPFLAGS="$(TARGET_CPPFLAGS)" $(MAKE) -C $(PKG_BUILD_DIR) $(TARGET_CONFIGURE_OPTS)
++	$(call GluonSrcDiet,./luasrc,$(PKG_BUILD_DIR)/luadest/)
+ endef
+ 
+ define Package/gluon-radv-filterd/install
+ 	$(CP) ./files/* $(1)/
++	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
+ 
+ 	$(INSTALL_DIR) $(1)/usr/sbin/
+ 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/gluon-radv-filterd $(1)/usr/sbin/
+diff --git a/package/gluon-radv-filterd/luasrc/lib/gluon/upgrade/300-gluon-radv-filterd b/package/gluon-radv-filterd/luasrc/lib/gluon/upgrade/300-gluon-radv-filterd
+old mode 100644
+new mode 100755
+
+From 76f28f8c3067f6c39fabea7406945bca76959d58 Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Thu, 8 Dec 2016 18:53:54 +0100
+Subject: [PATCH 05/22] gluon-radv-filterd: Add license to source file
+
+---
+ .../gluon-radv-filterd/src/gluon-radv-filterd.c    | 25 ++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index cc9441a21..8b702f57c 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -1,3 +1,28 @@
++/*
++   Copyright (c) 2016 Jan-Philipp Litza <janphilipp@litza.de>
++   All rights reserved.
++
++   Redistribution and use in source and binary forms, with or without
++   modification, are permitted provided that the following conditions are met:
++
++   1. Redistributions of source code must retain the above copyright notice,
++   this list of conditions and the following disclaimer.
++   2. Redistributions in binary form must reproduce the above copyright notice,
++   this list of conditions and the following disclaimer in the documentation
++   and/or other materials provided with the distribution.
++
++   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
++   FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
++   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
++   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++*/
++
+ #define _GNU_SOURCE
+ #include <error.h>
+ #include <errno.h>
+
+From bc3c8b3cc695aa1d604b5ca20ed011ae93b22dae Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Fri, 9 Dec 2016 20:13:35 +0100
+Subject: [PATCH 06/22] gluon-radv-filterd: Fix use-after-free when best router
+ expires
+
+---
+ package/gluon-radv-filterd/src/gluon-radv-filterd.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index 8b702f57c..3e0895291 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -312,6 +312,8 @@ static void expire_routers() {
+ 		if (router->eol < now) {
+ 			DEBUG_MSG("router " F_MAC " expired", F_MAC_VAR(router->src));
+ 			*prev_ptr = router->next;
++			if (G.best_router == router)
++				G.best_router = NULL;
+ 			free(router);
+ 		} else {
+ 			prev_ptr = &router->next;
+
+From 3230a7f79da9f64af8dd3e494ba6df0c8801000b Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Fri, 9 Dec 2016 20:15:15 +0100
+Subject: [PATCH 07/22] gluon-radv-filterd: Add more debugging messages and
+ more detailed errors
+
+---
+ package/gluon-radv-filterd/src/gluon-radv-filterd.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index 3e0895291..7748e48c9 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -361,6 +361,7 @@ static void update_tqs() {
+ 
+ 			foreach(router, G.routers) {
+ 				if (!memcmp(router->src, mac_a, sizeof(macaddr_t))) {
++					DEBUG_MSG("Found originator for " F_MAC ", it's " F_MAC, F_MAC_VAR(router->src), F_MAC_VAR(mac_b));
+ 					memcpy(router->originator, mac_b, sizeof(macaddr_t));
+ 					break; // foreach
+ 				}
+@@ -380,6 +381,7 @@ static void update_tqs() {
+ 
+ 		foreach(router, G.routers) {
+ 			if (!memcmp(router->originator, mac_a, sizeof(macaddr_t))) {
++				DEBUG_MSG("Found TQ for router " F_MAC " (originator " F_MAC "), it's %d", F_MAC_VAR(router->src), F_MAC_VAR(router->originator), tq);
+ 				router->tq = tq;
+ 				if (tq > G.max_tq)
+ 					G.max_tq = tq;
+@@ -404,6 +406,7 @@ static void update_tqs() {
+ 
+ 			foreach(router, G.routers) {
+ 				if (!memcmp(router->src, mac_a, sizeof(macaddr_t))) {
++					DEBUG_MSG("Found router " F_MAC " in transtable_local, assigning TQ %d", F_MAC_VAR(router->src), LOCAL_TQ);
+ 					router->tq = LOCAL_TQ;
+ 					G.max_tq = LOCAL_TQ;
+ 					break; // foreach
+@@ -415,7 +418,18 @@ static void update_tqs() {
+ 
+ 	foreach(router, G.routers) {
+ 		if (router->tq == 0) {
+-			fprintf(stderr, "didn't find TQ for non-local " F_MAC "\n", F_MAC_VAR(router->src));
++			for (i = 0; i < 6; i++)
++				if (router->originator[i] != 0)
++					break;
++			if (i >= 6)
++				fprintf(stderr,
++					"Unable to find router " F_MAC " in transtable_{global,local}\n",
++					F_MAC_VAR(router->src));
++			else
++				fprintf(stderr,
++					"Unable to find TQ for originator " F_MAC " (router " F_MAC ")\n",
++					F_MAC_VAR(router->originator),
++					F_MAC_VAR(router->src));
+ 		}
+ 	}
+ 
+
+From 2789a9456de4739b29e13cd90e9698a4c73a6c99 Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Fri, 9 Dec 2016 20:15:37 +0100
+Subject: [PATCH 08/22] gluon-radv-filterd: Use fscanf() instead of getline() &
+ sscanf() for BATMAN data
+
+This reduces the average CPU consumption (on a WDR4300) from 3% to 1%.
+
+Also, this commit adds error messages when the parsing fails and makes matching
+more flexible after all relevant fields have been found.
+---
+ .../gluon-radv-filterd/src/gluon-radv-filterd.c    | 40 ++++++++++++++--------
+ 1 file changed, 26 insertions(+), 14 deletions(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index 7748e48c9..08f1b463e 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -352,12 +352,11 @@ static void update_tqs() {
+ 		// translate all router's MAC addresses to originators simultaneously
+ 		snprintf(path, PATH_MAX, TRANSTABLE_GLOBAL, G.mesh_iface);
+ 		f = fopen(path, "r");
+-		while (getline(&line, &len, f) != -1) {
+-			if (sscanf(line, " * " F_MAC " %*d (%*3u) via " F_MAC " (%*3u) (0x%*4x) [%*3c]",
+-					F_MAC_VAR(&mac_a), F_MAC_VAR(&mac_b)) != 12
+-				&& sscanf(line, " * " F_MAC " (%*3u) via " F_MAC " (%*3u) (0x%*4x) [%*3c]",
+-					F_MAC_VAR(&mac_a), F_MAC_VAR(&mac_b)) != 12)
+-				continue;
++		// skip header
++		while (fgetc(f) != '\n');
++		while (fgetc(f) != '\n');
++		while (fscanf(f, " %*[*+] " F_MAC "%*[0-9 -] (%*3u) via " F_MAC " %*[^]]]\n",
++				F_MAC_VAR(&mac_a), F_MAC_VAR(&mac_b)) == 12) {
+ 
+ 			foreach(router, G.routers) {
+ 				if (!memcmp(router->src, mac_a, sizeof(macaddr_t))) {
+@@ -367,6 +366,10 @@ static void update_tqs() {
+ 				}
+ 			}
+ 		}
++		if (!feof(f)) {
++			getline(&line, &len, f);
++			fprintf(stderr, "Parsing transtable_global aborted at this line: %s\n", line);
++		}
+ 		fclose(f);
+ 	}
+ 
+@@ -374,10 +377,11 @@ static void update_tqs() {
+ 	G.max_tq = 0;
+ 	snprintf(path, PATH_MAX, ORIGINATORS, G.mesh_iface);
+ 	f = fopen(path, "r");
+-	while (getline(&line, &len, f) != -1) {
+-		if (sscanf(line, F_MAC " %*fs (%hhu) " F_MAC_IGN "[ %*s]: " F_MAC_IGN " (%*3u)",
+-				F_MAC_VAR(&mac_a), &tq) != 7)
+-			continue;
++	// skip header
++	while (fgetc(f) != '\n');
++	while (fgetc(f) != '\n');
++	while (fscanf(f, F_MAC " %*fs (%hhu) " F_MAC_IGN " [ %*[^]]]: " F_MAC_IGN " (%*3u)\n",
++			F_MAC_VAR(&mac_a), &tq) == 7) {
+ 
+ 		foreach(router, G.routers) {
+ 			if (!memcmp(router->originator, mac_a, sizeof(macaddr_t))) {
+@@ -389,6 +393,10 @@ static void update_tqs() {
+ 			}
+ 		}
+ 	}
++	if (!feof(f)) {
++		getline(&line, &len, f);
++		fprintf(stderr, "Parsing originators aborted at this line: %s\n", line);
++	}
+ 	fclose(f);
+ 
+ 	// if all routers have a TQ value, we don't need to check translocal
+@@ -400,10 +408,10 @@ static void update_tqs() {
+ 		// rate local routers (if present) the highest
+ 		snprintf(path, PATH_MAX, TRANSTABLE_LOCAL, G.mesh_iface);
+ 		f = fopen(path, "r");
+-		while (getline(&line, &len, f) != -1) {
+-			if (sscanf(line, " * " F_MAC "[%*5s] %*f", F_MAC_VAR(&mac_a)) != 6)
+-				continue;
+-
++		// skip header
++		while (fgetc(f) != '\n');
++		while (fgetc(f) != '\n');
++		while (fscanf(f, " * " F_MAC " [%*5s] %*f", F_MAC_VAR(&mac_a)) == 6) {
+ 			foreach(router, G.routers) {
+ 				if (!memcmp(router->src, mac_a, sizeof(macaddr_t))) {
+ 					DEBUG_MSG("Found router " F_MAC " in transtable_local, assigning TQ %d", F_MAC_VAR(router->src), LOCAL_TQ);
+@@ -413,6 +421,10 @@ static void update_tqs() {
+ 				}
+ 			}
+ 		}
++		if (!feof(f)) {
++			getline(&line, &len, f);
++			fprintf(stderr, "Parsing transtable_local aborted at this line: %s\n", line);
++		}
+ 		fclose(f);
+ 	}
+ 
+
+From 15988a2f0812327324a66ba19cd97f0ed5e96114 Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Fri, 9 Dec 2016 20:24:01 +0100
+Subject: [PATCH 09/22] gluon-radv-filterd: Tweak constants
+
+As I have seen instances of ebtables being killed with a timeout of 100ms,
+increasing it to 500ms.
+
+Also, to ease the straint on the CPU, increasing minimum time between TQ checks
+to 15 seconds.
+---
+ package/gluon-radv-filterd/src/gluon-radv-filterd.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index 08f1b463e..57ea89595 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -57,10 +57,10 @@
+ // Recheck TQs at most this often, even if new RAs were received (they won't
+ // become the preferred routers until the TQs have been rechecked)
+ // Also, the first update will take at least this long
+-#define MIN_INTERVAL 5
++#define MIN_INTERVAL 15
+ 
+ // max execution time of a single ebtables call in nanoseconds
+-#define EBTABLES_TIMEOUT 1e8 // 100ms
++#define EBTABLES_TIMEOUT 5e8 // 500ms
+ 
+ // TQ value assigned to local routers
+ #define LOCAL_TQ 512
+
+From baa27a4761deec40ebf076f95992f9d790f5c8b0 Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Fri, 9 Dec 2016 20:29:11 +0100
+Subject: [PATCH 10/22] gluon-radv-filterd: Always output a message when
+ choosing new router
+
+---
+ package/gluon-radv-filterd/src/gluon-radv-filterd.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index 57ea89595..56e90e19a 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -517,7 +517,16 @@ static void update_ebtables() {
+ 			break;
+ 		}
+ 	}
+-	DEBUG_MSG("Determined %s as new best router with TQ=%d", mac, G.max_tq);
++	if (G.best_router)
++		fprintf(stderr, "Switching from " F_MAC " (TQ=%d) to %s (TQ=%d)\n",
++			F_MAC_VAR(G.best_router->src),
++			G.best_router->tq,
++			mac,
++			G.max_tq);
++	else
++		fprintf(stderr, "Switching to %s (TQ=%d)\n",
++			mac,
++			G.max_tq);
+ 	G.best_router = router;
+ 
+ 	if (fork_execvp_timeout(&timeout, "ebtables", (const char *[])
+
+From 75360ef0e3c2375567235e16c630f74ce17e77af Mon Sep 17 00:00:00 2001
+From: Julian Labus <julian@labus-online.de>
+Date: Thu, 15 Dec 2016 13:26:29 +0100
+Subject: [PATCH 11/22] gluon-radv-filterd: updated socket filter
+
+---
+ .../gluon-radv-filterd/src/gluon-radv-filterd.c    | 27 ++++++++--------------
+ 1 file changed, 10 insertions(+), 17 deletions(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index 56e90e19a..848cd7a5c 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -29,6 +29,7 @@
+ #include <signal.h>
+ #include <stdarg.h>
+ #include <stdbool.h>
++#include <stddef.h>
+ #include <stdio.h>
+ #include <stdint.h>
+ #include <stdlib.h>
+@@ -173,21 +174,11 @@ static inline void warn_errno(const char *message) {
+ }
+ 
+ static int init_packet_socket(unsigned int ifindex) {
+-	// generated by tcpdump -i tun "icmp6 and ip6[40] = 134" -dd
+-	// Important: Generate on TUN interface (because the socket is SOCK_DGRAM)!
+ 	struct sock_filter radv_filter_code[] = {
+-		{ 0x30, 0, 0, 0x00000000 },
+-		{ 0x54, 0, 0, 0x000000f0 },
+-		{ 0x15, 0, 8, 0x00000060 },
+-		{ 0x30, 0, 0, 0x00000006 },
+-		{ 0x15, 3, 0, 0x0000003a },
+-		{ 0x15, 0, 5, 0x0000002c },
+-		{ 0x30, 0, 0, 0x00000028 },
+-		{ 0x15, 0, 3, 0x0000003a },
+-		{ 0x30, 0, 0, 0x00000028 },
+-		{ 0x15, 0, 1, 0x00000086 },
+-		{ 0x06, 0, 0, 0x0000ffff },
+-		{ 0x06, 0, 0, 0x00000000 },
++		BPF_STMT(BPF_LD|BPF_B|BPF_ABS, sizeof(struct ip6_hdr) + offsetof(struct icmp6_hdr, icmp6_type)),
++		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, ND_ROUTER_ADVERT, 1, 0),
++		BPF_STMT(BPF_RET|BPF_K, 0),
++		BPF_STMT(BPF_RET|BPF_K, 0xffffffff),
+ 	};
+ 
+ 	struct sock_fprog radv_filter = {
+@@ -195,14 +186,16 @@ static int init_packet_socket(unsigned int ifindex) {
+ 	    .filter = radv_filter_code,
+ 	};
+ 
+-	int sock = socket(AF_PACKET, SOCK_DGRAM|SOCK_CLOEXEC, ETH_P_IPV6);
++	int sock = socket(AF_PACKET, SOCK_DGRAM|SOCK_CLOEXEC, htons(ETH_P_IPV6));
+ 	if (sock < 0)
+ 		exit_errno("can't open packet socket");
+-	setsockopt(sock, SOL_SOCKET, SO_ATTACH_FILTER, &radv_filter, sizeof(radv_filter));
++	int ret = setsockopt(sock, SOL_SOCKET, SO_ATTACH_FILTER, &radv_filter, sizeof(radv_filter));
++	if (ret < 0)
++		exit_errno("can't attach socket filter");
+ 
+ 	struct sockaddr_ll bind_iface = {
+ 		.sll_family = AF_PACKET,
+-		.sll_protocol = ETH_P_IPV6,
++		.sll_protocol = htons(ETH_P_IPV6),
+ 		.sll_ifindex = ifindex,
+ 	};
+ 	bind(sock, (struct sockaddr *)&bind_iface, sizeof(bind_iface));
+
+From 410464cd23c77b23e3cc69f64b31a0e421894caa Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Wed, 8 Feb 2017 17:05:25 +0100
+Subject: [PATCH 12/22] gluon-radv-filterd: Avoid use of GLUONDIR variable
+
+---
+ package/gluon-radv-filterd/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/package/gluon-radv-filterd/Makefile b/package/gluon-radv-filterd/Makefile
+index 623bf27df..88f79736b 100644
+--- a/package/gluon-radv-filterd/Makefile
++++ b/package/gluon-radv-filterd/Makefile
+@@ -6,7 +6,7 @@ PKG_RELEASE:=1
+ 
+ PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
+ 
+-include $(GLUONDIR)/include/package.mk
++include ../gluon.mk
+ 
+ define Package/gluon-radv-filterd
+   SECTION:=gluon
+
+From 0f4b6786d2cfe3bb918c9452cd46008228ec6fc7 Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Wed, 8 Feb 2017 17:05:52 +0100
+Subject: [PATCH 13/22] gluon-radv-filterd: Ship with own implementation of
+ error()
+
+---
+ package/gluon-radv-filterd/src/gluon-radv-filterd.c | 19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index 848cd7a5c..b85a20845 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -24,7 +24,6 @@
+ */
+ 
+ #define _GNU_SOURCE
+-#include <error.h>
+ #include <errno.h>
+ #include <signal.h>
+ #include <stdarg.h>
+@@ -123,6 +122,18 @@ struct global {
+ };
+ 
+ 
++static void error(int status, int errnum, char *message, ...) {
++	va_list ap;
++	va_start(ap, message);
++	fflush(stdout);
++	vfprintf(stderr, message, ap);
++	if (errnum)
++		fprintf(stderr, ": %s", strerror(errnum));
++	fprintf(stderr, "\n");
++	if (status)
++		exit(status);
++}
++
+ static void cleanup() {
+ 	struct router *router;
+ 	close(G.sock);
+@@ -464,7 +475,7 @@ static int fork_execvp_timeout(struct timespec *timeout, const char *file, const
+ 	if (ret == SIGCHLD) {
+ 		if (info.si_pid != child) {
+ 			cleanup();
+-			error_at_line(1, 0, __FILE__, __LINE__,
++			error(1, 0,
+ 				"BUG: We received a SIGCHLD from a child we didn't spawn (expected PID %d, got %d)",
+ 				child, info.si_pid);
+ 		}
+@@ -479,8 +490,8 @@ static int fork_execvp_timeout(struct timespec *timeout, const char *file, const
+ 	else if (ret < 0)
+ 		warn_errno("sigtimedwait failed, killing child");
+ 	else
+-		error_at_line(1, 0, __FILE__, __LINE__,
+-				"BUG: sigtimedwait() return some other signal than SIGCHLD: %d",
++		error(1, 0,
++				"BUG: sigtimedwait() returned some other signal than SIGCHLD: %d",
+ 				ret);
+ 
+ 	kill(child, SIGKILL);
+
+From 954451e630ea61084be2dc62bfd6303884ff5226 Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Thu, 9 Feb 2017 19:29:24 +0100
+Subject: [PATCH 14/22] gluon-radv-filterd: Add respondd module reporting the
+ chosen gateway
+
+---
+ package/gluon-radv-filterd/Makefile                |  9 ++---
+ package/gluon-radv-filterd/src/Makefile            |  5 ++-
+ .../gluon-radv-filterd/src/gluon-radv-filterd.c    |  9 +----
+ package/gluon-radv-filterd/src/mac.h               |  8 ++++
+ package/gluon-radv-filterd/src/respondd.c          | 45 ++++++++++++++++++++++
+ 5 files changed, 63 insertions(+), 13 deletions(-)
+ create mode 100644 package/gluon-radv-filterd/src/mac.h
+ create mode 100644 package/gluon-radv-filterd/src/respondd.c
+
+diff --git a/package/gluon-radv-filterd/Makefile b/package/gluon-radv-filterd/Makefile
+index 88f79736b..fcf5c5521 100644
+--- a/package/gluon-radv-filterd/Makefile
++++ b/package/gluon-radv-filterd/Makefile
+@@ -12,11 +12,7 @@ define Package/gluon-radv-filterd
+   SECTION:=gluon
+   CATEGORY:=Gluon
+   TITLE:=Filter IPv6 router advertisements
+-  DEPENDS:=+gluon-ebtables
+-endef
+-
+-define Package/gluon-radv-filterd/description
+-	Gluon community wifi mesh firmware framework: filter IPv6 router advertisements
++  DEPENDS:=+gluon-ebtables +libgluonutil
+ endef
+ 
+ define Build/Prepare
+@@ -38,6 +34,9 @@ define Package/gluon-radv-filterd/install
+ 
+ 	$(INSTALL_DIR) $(1)/usr/sbin/
+ 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/gluon-radv-filterd $(1)/usr/sbin/
++
++	$(INSTALL_DIR) $(1)/lib/gluon/respondd
++	$(CP) $(PKG_BUILD_DIR)/respondd.so $(1)/lib/gluon/respondd/radv-filterd.so
+ endef
+ 
+ define Package/gluon-radv-filterd/postinst
+diff --git a/package/gluon-radv-filterd/src/Makefile b/package/gluon-radv-filterd/src/Makefile
+index 652c67035..82a2bace1 100644
+--- a/package/gluon-radv-filterd/src/Makefile
++++ b/package/gluon-radv-filterd/src/Makefile
+@@ -1,4 +1,7 @@
+-all: gluon-radv-filterd
++all: gluon-radv-filterd respondd.so
+ 
+ gluon-radv-filterd: gluon-radv-filterd.c
+ 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -Wall -o $@ $^ $(LDLIBS)
++
++respondd.so: respondd.c
++	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared -fPIC -D_GNU_SOURCE -o $@ $^ $(LDLIBS) -lgluonutil
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index b85a20845..eeef8328d 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -45,12 +45,13 @@
+ 
+ #include <linux/filter.h>
+ #include <linux/if_packet.h>
+-#include <linux/if_ether.h>
+ #include <linux/limits.h>
+ 
+ #include <netinet/icmp6.h>
+ #include <netinet/ip6.h>
+ 
++#include "mac.h"
++
+ // Recheck TQs after this time even if no RA was received
+ #define MAX_INTERVAL 60
+ 
+@@ -72,10 +73,6 @@
+ #define TRANSTABLE_GLOBAL DEBUGFS "transtable_global"
+ #define TRANSTABLE_LOCAL DEBUGFS "transtable_local"
+ 
+-#define F_MAC "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx"
+-#define F_MAC_IGN "%*2x:%*2x:%*2x:%*2x:%*2x:%*2x"
+-#define F_MAC_VAR(var) var[0], var[1], var[2], var[3], var[4], var[5]
+-
+ #ifdef DEBUG
+ #define CHECK(stmt) \
+     if(!(stmt)) { \
+@@ -92,8 +89,6 @@
+ #define ARRAY_SIZE(A) (sizeof(A)/sizeof(A[0]))
+ #endif
+ 
+-typedef uint8_t macaddr_t[ETH_ALEN];
+-
+ struct list_item {
+ 	struct list *next;
+ };
+diff --git a/package/gluon-radv-filterd/src/mac.h b/package/gluon-radv-filterd/src/mac.h
+new file mode 100644
+index 000000000..4635a7b78
+--- /dev/null
++++ b/package/gluon-radv-filterd/src/mac.h
+@@ -0,0 +1,8 @@
++#include <stdint.h>
++#include <linux/if_ether.h>
++
++#define F_MAC "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx"
++#define F_MAC_IGN "%*2x:%*2x:%*2x:%*2x:%*2x:%*2x"
++#define F_MAC_VAR(var) var[0], var[1], var[2], var[3], var[4], var[5]
++
++typedef uint8_t macaddr_t[ETH_ALEN];
+diff --git a/package/gluon-radv-filterd/src/respondd.c b/package/gluon-radv-filterd/src/respondd.c
+new file mode 100644
+index 000000000..fe5ddbfef
+--- /dev/null
++++ b/package/gluon-radv-filterd/src/respondd.c
+@@ -0,0 +1,45 @@
++#include <respondd.h>
++
++#include <json-c/json.h>
++#include <libgluonutil.h>
++#include <stdio.h>
++
++#include "mac.h"
++
++static struct json_object * get_radv_filter() {
++	FILE *f = popen("exec ebtables -L RADV_FILTER", "r");
++	char *line = NULL;
++	size_t len = 0;
++	macaddr_t mac = { 0 };
++	struct json_object *ret = NULL;
++
++	if (!f)
++		return NULL;
++
++	while (getline(&line, &len, f) > 0) {
++		if (sscanf(line, "-s " F_MAC " -j ACCEPT\n", F_MAC_VAR(&mac)) == ETH_ALEN)
++			break;
++	}
++
++	pclose(f);
++
++	sprintf(line, F_MAC, F_MAC_VAR(mac));
++	ret = gluonutil_wrap_string(line);
++	free(line);
++	return ret;
++}
++
++static struct json_object * respondd_provider_statistics() {
++	struct json_object *ret = json_object_new_object();
++
++	struct json_object *radv_filter = get_radv_filter();
++	if (radv_filter)
++		json_object_object_add(ret, "gateway6", radv_filter);
++
++	return ret;
++}
++
++const struct respondd_provider_info respondd_providers[] = {
++	{"statistics", respondd_provider_statistics},
++	{}
++};
+
+From 7b4fd7a77836773971624aafe7a5a831c1414346 Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Mon, 6 Mar 2017 21:47:03 +0100
+Subject: [PATCH 15/22] gluon-radv-filterd: Fix and simplify originators
+ parsing
+
+Previously, only one nexthop was recognized. The parsing of the whole file
+failed immediately when two or more hops were possible for *any* originator (not
+only for one with a router behind it).
+
+This makes the parser ignore most of the line in the originators table.
+---
+ package/gluon-radv-filterd/src/gluon-radv-filterd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index eeef8328d..27bdd3384 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -379,7 +379,7 @@ static void update_tqs() {
+ 	// skip header
+ 	while (fgetc(f) != '\n');
+ 	while (fgetc(f) != '\n');
+-	while (fscanf(f, F_MAC " %*fs (%hhu) " F_MAC_IGN " [ %*[^]]]: " F_MAC_IGN " (%*3u)\n",
++	while (fscanf(f, F_MAC " %*fs (%hhu) %*[^\n]\n",
+ 			F_MAC_VAR(&mac_a), &tq) == 7) {
+ 
+ 		foreach(router, G.routers) {
+
+From 258ee4307dd3bf3c715e203ebff7b80c7873edff Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Fri, 31 Mar 2017 07:34:09 +0200
+Subject: [PATCH 16/22] gluon-radv-filterd: Refactor packet checking
+
+Move more to BPF code and do not try to parse extension headers in C that
+wouldn't have made it through BPF anyway.
+---
+ .../gluon-radv-filterd/src/gluon-radv-filterd.c    | 55 ++++++++++------------
+ 1 file changed, 25 insertions(+), 30 deletions(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index 27bdd3384..86ed5d657 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -48,6 +48,7 @@
+ #include <linux/limits.h>
+ 
+ #include <netinet/icmp6.h>
++#include <netinet/in.h>
+ #include <netinet/ip6.h>
+ 
+ #include "mac.h"
+@@ -181,10 +182,22 @@ static inline void warn_errno(const char *message) {
+ 
+ static int init_packet_socket(unsigned int ifindex) {
+ 	struct sock_filter radv_filter_code[] = {
++		// check that this is an ICMPv6 packet
++		BPF_STMT(BPF_LD|BPF_B|BPF_ABS, offsetof(struct ip6_hdr, ip6_nxt)),
++		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, IPPROTO_ICMPV6, 0, 7),
++		// check that this is a router advertisement
+ 		BPF_STMT(BPF_LD|BPF_B|BPF_ABS, sizeof(struct ip6_hdr) + offsetof(struct icmp6_hdr, icmp6_type)),
+-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, ND_ROUTER_ADVERT, 1, 0),
+-		BPF_STMT(BPF_RET|BPF_K, 0),
++		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, ND_ROUTER_ADVERT, 0, 5),
++		// check that the code field in the ICMPv6 header is 0
++		BPF_STMT(BPF_LD|BPF_B|BPF_ABS, sizeof(struct ip6_hdr) + offsetof(struct nd_router_advert, nd_ra_code)),
++		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, 0, 0, 3),
++		// check that this is a default route (lifetime > 0)
++		BPF_STMT(BPF_LD|BPF_B|BPF_ABS, sizeof(struct ip6_hdr) + offsetof(struct nd_router_advert, nd_ra_router_lifetime)),
++		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, 0, 1, 0),
++		// return true
+ 		BPF_STMT(BPF_RET|BPF_K, 0xffffffff),
++		// return false
++		BPF_STMT(BPF_RET|BPF_K, 0),
+ 	};
+ 
+ 	struct sock_fprog radv_filter = {
+@@ -252,34 +265,16 @@ static void handle_ra(int sock) {
+ 	struct sockaddr_ll src;
+ 	unsigned int addr_size = sizeof(src);
+ 	size_t len;
+-	uint8_t buffer[BUFSIZE] __attribute__((aligned(8)));
+-	struct ip6_hdr *pkt;
+-	struct ip6_ext *ext;
+-	struct nd_router_advert *ra;
+-	uint8_t ext_type;
+-
+-	len = recvfrom(sock, buffer, BUFSIZE, 0, (struct sockaddr *)&src, &addr_size);
+-
+-	// skip IPv6 headers, ensuring packet is long enough
+-	CHECK(len > sizeof(struct ip6_hdr));
+-	pkt = (struct ip6_hdr *)buffer;
+-	CHECK(len >= ntohs(pkt->ip6_plen) + sizeof(struct ip6_hdr));
+-	ext_type = pkt->ip6_nxt;
+-	ext = (void*)pkt + sizeof(struct ip6_hdr);
+-	while (ext_type != IPPROTO_ICMPV6) {
+-		CHECK((void*)ext < (void*)pkt + sizeof(struct ip6_hdr) + len);
+-		CHECK(ext->ip6e_len > 0);
+-		ext_type = ext->ip6e_nxt;
+-		ext = (void*)ext + ext->ip6e_len;
+-	}
++	struct {
++		struct ip6_hdr ip6;
++		struct nd_router_advert ra;
++	} pkt;
++
++	len = recvfrom(sock, &pkt, sizeof(pkt), 0, (struct sockaddr *)&src, &addr_size);
+ 
+-	// partially parse router advertisement
+-	CHECK((void*)ext + sizeof(struct nd_router_advert) <= (void*)pkt + sizeof(struct ip6_hdr) + len);
+-	ra = (struct nd_router_advert *) ext;
+-	CHECK(ra->nd_ra_type == ND_ROUTER_ADVERT);
+-	CHECK(ra->nd_ra_code == 0);
+-	// we only want default routers
+-	CHECK(ra->nd_ra_router_lifetime > 0);
++	// BPF already checked that this is an ICMPv6 RA of a default router
++	CHECK(len >= sizeof(pkt));
++	CHECK(ntohs(pkt.ip6.ip6_plen) + sizeof(struct ip6_hdr) >= sizeof(pkt));
+ 
+ 	DEBUG_MSG("received valid RA from " F_MAC, F_MAC_VAR(src.sll_addr));
+ 
+@@ -296,7 +291,7 @@ static void handle_ra(int sock) {
+ 		router->next = G.routers;
+ 		G.routers = router;
+ 	}
+-	router->eol = time(NULL) + ra->nd_ra_router_lifetime;
++	router->eol = time(NULL) + pkt.ra.nd_ra_router_lifetime;
+ 
+ check_failed:
+ 	return;
+
+From 60e69822220efcaae41a9babcc797e31948f1c7d Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Fri, 31 Mar 2017 07:41:36 +0200
+Subject: [PATCH 17/22] gluon-radv-filterd: Various small fixes due to
+ NeoRaider
+
+---
+ package/gluon-radv-filterd/Makefile                |  2 +-
+ package/gluon-radv-filterd/check_site.lua          |  2 +-
+ .../lib/gluon/upgrade/300-gluon-radv-filterd       | 10 +++----
+ .../gluon-radv-filterd/src/gluon-radv-filterd.c    | 31 ++++++++++++----------
+ package/gluon-radv-filterd/src/mac.h               |  1 +
+ package/gluon-radv-filterd/src/respondd.c          |  9 ++++---
+ 6 files changed, 30 insertions(+), 25 deletions(-)
+
+diff --git a/package/gluon-radv-filterd/Makefile b/package/gluon-radv-filterd/Makefile
+index fcf5c5521..444894ca8 100644
+--- a/package/gluon-radv-filterd/Makefile
++++ b/package/gluon-radv-filterd/Makefile
+@@ -24,7 +24,7 @@ define Build/Configure
+ endef
+ 
+ define Build/Compile
+-	CFLAGS="$(TARGET_CFLAGS)" CPPFLAGS="$(TARGET_CPPFLAGS)" $(MAKE) -C $(PKG_BUILD_DIR) $(TARGET_CONFIGURE_OPTS)
++	$(call Build/Compile/Default)
+ 	$(call GluonSrcDiet,./luasrc,$(PKG_BUILD_DIR)/luadest/)
+ endef
+ 
+diff --git a/package/gluon-radv-filterd/check_site.lua b/package/gluon-radv-filterd/check_site.lua
+index 242804bcf..bdd7364b5 100644
+--- a/package/gluon-radv-filterd/check_site.lua
++++ b/package/gluon-radv-filterd/check_site.lua
+@@ -1,3 +1,3 @@
+ if need_table('radv_filterd', nil, false) then
+-    need_number('radv_filterd.threshold')
++	need_number('radv_filterd.threshold')
+ end
+diff --git a/package/gluon-radv-filterd/luasrc/lib/gluon/upgrade/300-gluon-radv-filterd b/package/gluon-radv-filterd/luasrc/lib/gluon/upgrade/300-gluon-radv-filterd
+index e177d3f5a..99f4ccac5 100755
+--- a/package/gluon-radv-filterd/luasrc/lib/gluon/upgrade/300-gluon-radv-filterd
++++ b/package/gluon-radv-filterd/luasrc/lib/gluon/upgrade/300-gluon-radv-filterd
+@@ -1,11 +1,11 @@
+ #!/usr/bin/lua
+ 
+ local site = require 'gluon.site_config'
+-local uci = (require 'luci.model.uci').cursor()
++local uci = (require 'simple-uci').cursor()
+ 
+ if site.radv_filterd and site.radv_filterd.threshold then
+-    uci:foreach('gluon-radv-filterd', 'filterd', function(section)
+-        uci:set('gluon-radv-filterd', section['.name'], 'threshold', site.radv_filterd.threshold)
+-    end)
+-    uci:save('gluon-radv-filterd')
++	uci:foreach('gluon-radv-filterd', 'filterd', function(section)
++		uci:set('gluon-radv-filterd', section['.name'], 'threshold', site.radv_filterd.threshold)
++	end)
++	uci:save('gluon-radv-filterd')
+ end
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index 86ed5d657..39d65b7ae 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -62,7 +62,7 @@
+ #define MIN_INTERVAL 15
+ 
+ // max execution time of a single ebtables call in nanoseconds
+-#define EBTABLES_TIMEOUT 5e8 // 500ms
++#define EBTABLES_TIMEOUT 500000000 // 500ms
+ 
+ // TQ value assigned to local routers
+ #define LOCAL_TQ 512
+@@ -287,7 +287,7 @@ static void handle_ra(int sock) {
+ 	}
+ 	if (!router) {
+ 		router = malloc(sizeof(struct router));
+-		memcpy(router->src, src.sll_addr, 8);
++		memcpy(router->src, src.sll_addr, sizeof(router->src));
+ 		router->next = G.routers;
+ 		G.routers = router;
+ 	}
+@@ -325,14 +325,12 @@ static void update_tqs() {
+ 	bool update_originators = false;
+ 	int i;
+ 	macaddr_t mac_a, mac_b;
++	macaddr_t unspec = {};
+ 
+ 	// reset TQs
+ 	foreach(router, G.routers) {
+ 		router->tq = 0;
+-		for (i = 0; i < 6; i++)
+-			if (router->originator[i] != 0)
+-				break;
+-		if (i >= 6)
++		if (!memcmp(router->originator, unspec, sizeof(unspec)))
+ 			update_originators = true;
+ 	}
+ 
+@@ -347,8 +345,8 @@ static void update_tqs() {
+ 		snprintf(path, PATH_MAX, TRANSTABLE_GLOBAL, G.mesh_iface);
+ 		f = fopen(path, "r");
+ 		// skip header
+-		while (fgetc(f) != '\n');
+-		while (fgetc(f) != '\n');
++		while (fgetc(f) != '\n') {}
++		while (fgetc(f) != '\n') {}
+ 		while (fscanf(f, " %*[*+] " F_MAC "%*[0-9 -] (%*3u) via " F_MAC " %*[^]]]\n",
+ 				F_MAC_VAR(&mac_a), F_MAC_VAR(&mac_b)) == 12) {
+ 
+@@ -446,21 +444,26 @@ static int fork_execvp_timeout(struct timespec *timeout, const char *file, const
+ 	int ret;
+ 	pid_t child;
+ 	siginfo_t info;
+-	sigset_t signals;
++	sigset_t signals, oldsignals;
+ 	sigemptyset(&signals);
+ 	sigaddset(&signals, SIGCHLD);
+ 
+ 	child = fork();
+-	if (!child) {
++	if (child == 0) {
+ 		// casting discards const, but should be safe
+ 		// (see http://stackoverflow.com/q/36925388)
+ 		execvp(file, (char**) argv);
+-		error(1, errno, "can't execvp(\"%s\", ...)", file);
++		fprintf(stderr, "can't execvp(\"%s\", ...): %s\n", file, strerror(errno));
++		_exit(1);
++	}
++	else if (child < 0) {
++		perror("Failed to fork()");
++		return -1;
+ 	}
+ 
+-	sigprocmask(SIG_BLOCK, &signals, NULL);
++	sigprocmask(SIG_BLOCK, &signals, &oldsignals);
+ 	ret = sigtimedwait(&signals, &info, timeout);
+-	sigprocmask(SIG_UNBLOCK, &signals, NULL);
++	sigprocmask(SIG_SETMASK, &oldsignals, NULL);
+ 
+ 	if (ret == SIGCHLD) {
+ 		if (info.si_pid != child) {
+@@ -494,7 +497,7 @@ static void update_ebtables() {
+ 	struct timespec timeout = {
+ 		.tv_nsec = EBTABLES_TIMEOUT,
+ 	};
+-	char mac[18];
++	char mac[F_MAC_LEN + 1];
+ 	struct router *router;
+ 
+ 	if (G.best_router && G.best_router->tq >= G.max_tq - G.hysteresis_thresh) {
+diff --git a/package/gluon-radv-filterd/src/mac.h b/package/gluon-radv-filterd/src/mac.h
+index 4635a7b78..74715ac5f 100644
+--- a/package/gluon-radv-filterd/src/mac.h
++++ b/package/gluon-radv-filterd/src/mac.h
+@@ -2,6 +2,7 @@
+ #include <linux/if_ether.h>
+ 
+ #define F_MAC "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx"
++#define F_MAC_LEN 17
+ #define F_MAC_IGN "%*2x:%*2x:%*2x:%*2x:%*2x:%*2x"
+ #define F_MAC_VAR(var) var[0], var[1], var[2], var[3], var[4], var[5]
+ 
+diff --git a/package/gluon-radv-filterd/src/respondd.c b/package/gluon-radv-filterd/src/respondd.c
+index fe5ddbfef..1a40d31dd 100644
+--- a/package/gluon-radv-filterd/src/respondd.c
++++ b/package/gluon-radv-filterd/src/respondd.c
+@@ -10,8 +10,9 @@ static struct json_object * get_radv_filter() {
+ 	FILE *f = popen("exec ebtables -L RADV_FILTER", "r");
+ 	char *line = NULL;
+ 	size_t len = 0;
+-	macaddr_t mac = { 0 };
++	macaddr_t mac = {};
+ 	struct json_object *ret = NULL;
++	char macstr[F_MAC_LEN + 1] = "";
+ 
+ 	if (!f)
+ 		return NULL;
+@@ -20,12 +21,12 @@ static struct json_object * get_radv_filter() {
+ 		if (sscanf(line, "-s " F_MAC " -j ACCEPT\n", F_MAC_VAR(&mac)) == ETH_ALEN)
+ 			break;
+ 	}
++	free(line);
+ 
+ 	pclose(f);
+ 
+-	sprintf(line, F_MAC, F_MAC_VAR(mac));
+-	ret = gluonutil_wrap_string(line);
+-	free(line);
++	snprintf(macstr, sizeof(macstr), F_MAC, F_MAC_VAR(mac));
++	ret = gluonutil_wrap_string(macstr);
+ 	return ret;
+ }
+ 
+
+From 3269b3a9ed9d25fc8f10d364459e53524ab56c46 Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Fri, 31 Mar 2017 07:51:52 +0200
+Subject: [PATCH 18/22] gluon-radv-filterd: Remove all UCI options except
+ threshold
+
+---
+ package/gluon-radv-filterd/files/etc/config/gluon-radv-filterd | 2 --
+ package/gluon-radv-filterd/files/etc/init.d/gluon-radv-filterd | 4 +---
+ 2 files changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/package/gluon-radv-filterd/files/etc/config/gluon-radv-filterd b/package/gluon-radv-filterd/files/etc/config/gluon-radv-filterd
+index 32e1bbb90..7a7cdabad 100644
+--- a/package/gluon-radv-filterd/files/etc/config/gluon-radv-filterd
++++ b/package/gluon-radv-filterd/files/etc/config/gluon-radv-filterd
+@@ -1,4 +1,2 @@
+ config filterd
+-	option iface 'br-client'
+-	option chain 'RADV_FILTER'
+ 	option threshold '20'
+diff --git a/package/gluon-radv-filterd/files/etc/init.d/gluon-radv-filterd b/package/gluon-radv-filterd/files/etc/init.d/gluon-radv-filterd
+index 8fc08b1eb..4e1bc1795 100755
+--- a/package/gluon-radv-filterd/files/etc/init.d/gluon-radv-filterd
++++ b/package/gluon-radv-filterd/files/etc/init.d/gluon-radv-filterd
+@@ -6,8 +6,6 @@ DAEMON=/usr/sbin/gluon-radv-filterd
+ 
+ validate_filterd_section() {
+     uci_validate_section gluon-radv-filterd filterd "${1}" \
+-            'iface:string' \
+-            'chain:string:RADV_FILTER' \
+             'threshold:uinteger:20'
+ }
+ 
+@@ -21,7 +19,7 @@ start_filterd() {
+     validate_filterd_section "$1"
+ 
+     procd_open_instance
+-    procd_set_param command $DAEMON -i "$iface" -c "$chain" -t $threshold
++    procd_set_param command $DAEMON -i br-client -c RADV_FILTER -t $threshold
+     procd_set_param respawn ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
+     procd_set_param netdev br-client
+     procd_set_param stderr 1
+
+From 5fce0b59322a27a5478f5e0b437027fde6fa917e Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Sun, 30 Apr 2017 12:23:23 +0200
+Subject: [PATCH 19/22] gluon-radv-filterd: Seperate macros for printf() and
+ scanf()
+
+---
+ package/gluon-radv-filterd/src/gluon-radv-filterd.c | 6 +++---
+ package/gluon-radv-filterd/src/mac.h                | 3 ++-
+ package/gluon-radv-filterd/src/respondd.c           | 2 +-
+ 3 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index 39d65b7ae..b6804dbcc 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -348,7 +348,7 @@ static void update_tqs() {
+ 		while (fgetc(f) != '\n') {}
+ 		while (fgetc(f) != '\n') {}
+ 		while (fscanf(f, " %*[*+] " F_MAC "%*[0-9 -] (%*3u) via " F_MAC " %*[^]]]\n",
+-				F_MAC_VAR(&mac_a), F_MAC_VAR(&mac_b)) == 12) {
++				F_MAC_VAR_REF(mac_a), F_MAC_VAR_REF(mac_b)) == 12) {
+ 
+ 			foreach(router, G.routers) {
+ 				if (!memcmp(router->src, mac_a, sizeof(macaddr_t))) {
+@@ -373,7 +373,7 @@ static void update_tqs() {
+ 	while (fgetc(f) != '\n');
+ 	while (fgetc(f) != '\n');
+ 	while (fscanf(f, F_MAC " %*fs (%hhu) %*[^\n]\n",
+-			F_MAC_VAR(&mac_a), &tq) == 7) {
++			F_MAC_VAR_REF(mac_a), &tq) == 7) {
+ 
+ 		foreach(router, G.routers) {
+ 			if (!memcmp(router->originator, mac_a, sizeof(macaddr_t))) {
+@@ -403,7 +403,7 @@ static void update_tqs() {
+ 		// skip header
+ 		while (fgetc(f) != '\n');
+ 		while (fgetc(f) != '\n');
+-		while (fscanf(f, " * " F_MAC " [%*5s] %*f", F_MAC_VAR(&mac_a)) == 6) {
++		while (fscanf(f, " * " F_MAC " [%*5s] %*f", F_MAC_VAR_REF(mac_a)) == 6) {
+ 			foreach(router, G.routers) {
+ 				if (!memcmp(router->src, mac_a, sizeof(macaddr_t))) {
+ 					DEBUG_MSG("Found router " F_MAC " in transtable_local, assigning TQ %d", F_MAC_VAR(router->src), LOCAL_TQ);
+diff --git a/package/gluon-radv-filterd/src/mac.h b/package/gluon-radv-filterd/src/mac.h
+index 74715ac5f..189130977 100644
+--- a/package/gluon-radv-filterd/src/mac.h
++++ b/package/gluon-radv-filterd/src/mac.h
+@@ -4,6 +4,7 @@
+ #define F_MAC "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx"
+ #define F_MAC_LEN 17
+ #define F_MAC_IGN "%*2x:%*2x:%*2x:%*2x:%*2x:%*2x"
+-#define F_MAC_VAR(var) var[0], var[1], var[2], var[3], var[4], var[5]
++#define F_MAC_VAR(var) (var)[0], (var)[1], (var)[2], (var)[3], (var)[4], (var)[5]
++#define F_MAC_VAR_REF(var) &(var)[0], &(var)[1], &(var)[2], &(var)[3], &(var)[4], &(var)[5]
+ 
+ typedef uint8_t macaddr_t[ETH_ALEN];
+diff --git a/package/gluon-radv-filterd/src/respondd.c b/package/gluon-radv-filterd/src/respondd.c
+index 1a40d31dd..203185b63 100644
+--- a/package/gluon-radv-filterd/src/respondd.c
++++ b/package/gluon-radv-filterd/src/respondd.c
+@@ -18,7 +18,7 @@ static struct json_object * get_radv_filter() {
+ 		return NULL;
+ 
+ 	while (getline(&line, &len, f) > 0) {
+-		if (sscanf(line, "-s " F_MAC " -j ACCEPT\n", F_MAC_VAR(&mac)) == ETH_ALEN)
++		if (sscanf(line, "-s " F_MAC " -j ACCEPT\n", F_MAC_VAR_REF(mac)) == ETH_ALEN)
+ 			break;
+ 	}
+ 	free(line);
+
+From 3f4b01c18bf8ae9bb3b35318e4b38a2443ab8df9 Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Fri, 26 May 2017 23:16:24 +0200
+Subject: [PATCH 20/22] gluon-radv-filterd: Fix bug in BPF router lifetime
+ filter
+
+The router lifetime field actually is 2 bytes long, but we only checked
+the first one, thus falsely discarding RAs with router lifetime < 256
+seconds.
+---
+ package/gluon-radv-filterd/src/gluon-radv-filterd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index b6804dbcc..5a2075d4b 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -192,7 +192,7 @@ static int init_packet_socket(unsigned int ifindex) {
+ 		BPF_STMT(BPF_LD|BPF_B|BPF_ABS, sizeof(struct ip6_hdr) + offsetof(struct nd_router_advert, nd_ra_code)),
+ 		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, 0, 0, 3),
+ 		// check that this is a default route (lifetime > 0)
+-		BPF_STMT(BPF_LD|BPF_B|BPF_ABS, sizeof(struct ip6_hdr) + offsetof(struct nd_router_advert, nd_ra_router_lifetime)),
++		BPF_STMT(BPF_LD|BPF_H|BPF_ABS, sizeof(struct ip6_hdr) + offsetof(struct nd_router_advert, nd_ra_router_lifetime)),
+ 		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, 0, 1, 0),
+ 		// return true
+ 		BPF_STMT(BPF_RET|BPF_K, 0xffffffff),
+
+From cbad4d38902881617a13b72bbc5439fcd83d7521 Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Sun, 20 Aug 2017 14:25:54 +0200
+Subject: [PATCH 21/22] gluon-radv-filterd: rename error() -> error_message()
+
+---
+ package/gluon-radv-filterd/src/gluon-radv-filterd.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index 5a2075d4b..f660ae15f 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -118,7 +118,7 @@ struct global {
+ };
+ 
+ 
+-static void error(int status, int errnum, char *message, ...) {
++static void error_message(int status, int errnum, char *message, ...) {
+ 	va_list ap;
+ 	va_start(ap, message);
+ 	fflush(stdout);
+@@ -173,11 +173,11 @@ static void usage(const char *msg) {
+ 
+ static inline void exit_errno(const char *message) {
+ 	cleanup();
+-	error(1, errno, "error: %s", message);
++	error_message(1, errno, "error: %s", message);
+ }
+ 
+ static inline void warn_errno(const char *message) {
+-	error(0, errno, "warning: %s", message);
++	error_message(0, errno, "warning: %s", message);
+ }
+ 
+ static int init_packet_socket(unsigned int ifindex) {
+@@ -468,7 +468,7 @@ static int fork_execvp_timeout(struct timespec *timeout, const char *file, const
+ 	if (ret == SIGCHLD) {
+ 		if (info.si_pid != child) {
+ 			cleanup();
+-			error(1, 0,
++			error_message(1, 0,
+ 				"BUG: We received a SIGCHLD from a child we didn't spawn (expected PID %d, got %d)",
+ 				child, info.si_pid);
+ 		}
+@@ -479,11 +479,11 @@ static int fork_execvp_timeout(struct timespec *timeout, const char *file, const
+ 	}
+ 
+ 	if (ret < 0 && errno == EAGAIN)
+-		error(0, 0, "warning: child %d took too long, killing", child);
++		error_message(0, 0, "warning: child %d took too long, killing", child);
+ 	else if (ret < 0)
+ 		warn_errno("sigtimedwait failed, killing child");
+ 	else
+-		error(1, 0,
++		error_message(1, 0,
+ 				"BUG: sigtimedwait() returned some other signal than SIGCHLD: %d",
+ 				ret);
+ 
+@@ -528,10 +528,10 @@ static void update_ebtables() {
+ 
+ 	if (fork_execvp_timeout(&timeout, "ebtables", (const char *[])
+ 			{ "ebtables", "-F", G.chain, NULL }))
+-		error(0, 0, "warning: flushing ebtables chain %s failed, not adding a new rule", G.chain);
++		error_message(0, 0, "warning: flushing ebtables chain %s failed, not adding a new rule", G.chain);
+ 	else if (fork_execvp_timeout(&timeout, "ebtables", (const char *[])
+ 			{ "ebtables", "-A", G.chain, "-s", mac, "-j", "ACCEPT", NULL }))
+-		error(0, 0, "warning: adding new rule to ebtables chain %s failed", G.chain);
++		error_message(0, 0, "warning: adding new rule to ebtables chain %s failed", G.chain);
+ }
+ 
+ int main(int argc, char *argv[]) {
+
+From 41107b9508af3f088b9bb726ebf4aa8a95c70856 Mon Sep 17 00:00:00 2001
+From: Jan-Philipp Litza <janphilipp@litza.de>
+Date: Sun, 20 Aug 2017 14:33:27 +0200
+Subject: [PATCH 22/22] gluon-radv-filterd: Some minor fixes and cleanup
+
+---
+ package/gluon-radv-filterd/src/gluon-radv-filterd.c | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/package/gluon-radv-filterd/src/gluon-radv-filterd.c b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+index f660ae15f..18d6f3032 100644
+--- a/package/gluon-radv-filterd/src/gluon-radv-filterd.c
++++ b/package/gluon-radv-filterd/src/gluon-radv-filterd.c
+@@ -90,10 +90,6 @@
+ #define ARRAY_SIZE(A) (sizeof(A)/sizeof(A[0]))
+ #endif
+ 
+-struct list_item {
+-	struct list *next;
+-};
+-
+ #define foreach(item, list) \
+ 	for(item = list; item != NULL; item = item->next)
+ 
+@@ -422,10 +418,7 @@ static void update_tqs() {
+ 
+ 	foreach(router, G.routers) {
+ 		if (router->tq == 0) {
+-			for (i = 0; i < 6; i++)
+-				if (router->originator[i] != 0)
+-					break;
+-			if (i >= 6)
++			if (!memcmp(router->originator, unspec, sizeof(unspec)))
+ 				fprintf(stderr,
+ 					"Unable to find router " F_MAC " in transtable_{global,local}\n",
+ 					F_MAC_VAR(router->src));
+@@ -448,8 +441,10 @@ static int fork_execvp_timeout(struct timespec *timeout, const char *file, const
+ 	sigemptyset(&signals);
+ 	sigaddset(&signals, SIGCHLD);
+ 
++	sigprocmask(SIG_BLOCK, &signals, &oldsignals);
+ 	child = fork();
+ 	if (child == 0) {
++		sigprocmask(SIG_SETMASK, &oldsignals, NULL);
+ 		// casting discards const, but should be safe
+ 		// (see http://stackoverflow.com/q/36925388)
+ 		execvp(file, (char**) argv);
+@@ -461,7 +456,6 @@ static int fork_execvp_timeout(struct timespec *timeout, const char *file, const
+ 		return -1;
+ 	}
+ 
+-	sigprocmask(SIG_BLOCK, &signals, &oldsignals);
+ 	ret = sigtimedwait(&signals, &info, timeout);
+ 	sigprocmask(SIG_SETMASK, &oldsignals, NULL);
+ 
