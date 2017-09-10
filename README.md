@@ -22,7 +22,7 @@ mkdir logs
 make update
 
 # maybe switch here to a screen session ;)
-make V=s GLUON_TARGET=ar71xx-generic GLUON_BRANCH=stable > logs/$(date -Is)_ar71xx-generic.log
+make V=s GLUON_TARGET=ar71xx-generic GLUON_BRANCH=stable &> logs/$(date -Is)_ar71xx-generic.log
 
 ```
 
@@ -32,6 +32,6 @@ make V=s GLUON_TARGET=ar71xx-generic GLUON_BRANCH=stable > logs/$(date -Is)_ar71
 TARGETS="ar71xx-nand mpc85xx-generic x86-generic x86-kvm_guest x86-64 x86-xen_domu"
 
 for t in $TARGETS; do
-  make V=s GLUON_TARGET=${t} GLUON_BRANCH=stable > logs/$(date -Is)_${t}.log
+  make V=s GLUON_TARGET=${t} GLUON_BRANCH=stable &> logs/$(date -Is)_${t}.log
 done
 ```
