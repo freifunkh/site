@@ -35,3 +35,12 @@ for t in $TARGETS; do
   make V=s GLUON_TARGET=${t} GLUON_BRANCH=stable &> logs/$(date -Is)_${t}.log
 done
 ```
+
+# build for debugging purposes
+
+- Debugging symbols are not stripped while building. (At least you still need to compile the package with `-g` to get the debug symbols, but they are not stripped)
+- Packages `gdb`, `valgrind` and `strace` will be built in the image
+
+``` shell
+make V=s GLUON_DEBUG=1 GLUON_TARGET=x86-generic GLUON_BRANCH=stable &> logs/$(date -Is)_x86-generic.log
+```
