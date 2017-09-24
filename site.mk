@@ -11,19 +11,21 @@ GLUON_SITE_PACKAGES := \
 	gluon-ebtables-filter-ra-dhcp \
 	gluon-luci-admin \
 	ffho-luci-autoupdater-wifi-fallback \
+	ffho-autoupdater-wifi-fallback \
 	gluon-luci-portconfig \
 	gluon-luci-private-wifi \
 	gluon-luci-wifi-config \
 	gluon-next-node \
 	gluon-mesh-vpn-fastd \
 	gluon-radvd \
+ 	gluon-radv-filterd \
 	gluon-respondd \
 	gluon-setup-mode \
 	gluon-status-page \
 	haveged \
 	iptables \
 	iwinfo \
-	ffho-autoupdater-wifi-fallback 
+	gluon-ssid-changer
 
 # support the USB stack
 USB_PACKAGES_BASIC := \
