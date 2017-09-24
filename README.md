@@ -17,6 +17,9 @@ git am site/patches/*
 # lastest commit id in site/modules now
 vi site/modules
 
+# if you want to bump up the version number
+vi site/site.mk
+
 mkdir logs
 
 make update
