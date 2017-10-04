@@ -24,8 +24,7 @@ GLUON_SITE_PACKAGES := \
 	gluon-status-page \
 	haveged \
 	iptables \
-	iwinfo \
-	gluon-ssid-changer
+	iwinfo
 
 # support the USB stack
 USB_PACKAGES_BASIC := \
@@ -138,7 +137,7 @@ GLUON_REGION ?= eu
 GLUON_ATH10K_MESH ?= 11s
 
 # DEFAULT_GLUON_RELEASE := 0.13a-$(shell date '+%Y%m%d')
-DEFAULT_GLUON_RELEASE := 0.14k-20170924
+DEFAULT_GLUON_RELEASE := 0.14l-20171004
 GLUON_BRANCH ?= stable
 
 export GLUON_BRANCH

@@ -1,4 +1,4 @@
-GLUON_SITE_FEEDS='hannover ffho ssidchanger'
+GLUON_SITE_FEEDS='hannover ffho'
 PACKAGES_HANNOVER_REPO=https://github.com/freifunkh/ffh-packages
 PACKAGES_HANNOVER_COMMIT=00fa425b605ae95d094c8b7318ead4c199c0c21c
 
