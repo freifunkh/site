@@ -1,6 +1,6 @@
 From: Karsten Böddeker <freifunk@kb-light.de>
 Date: Sat, 23 Apr 2016 15:20:30 +0200
-Subject: openwrt: patch iw
+Subject: lede: patch iw
 
 diff --git a/patches/openwrt/1001-iw-patch-200-reduce-size-patch.patch b/patches/openwrt/1001-iw-patch-200-reduce-size-patch.patch
 new file mode 100644

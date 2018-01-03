@@ -9,9 +9,7 @@ GLUON_SITE_PACKAGES := \
 	gluon-config-mode-mesh-vpn \
 	gluon-ebtables-filter-multicast \
 	gluon-ebtables-filter-ra-dhcp \
-	ffho-luci-autoupdater-wifi-fallback \
 	gluon-web-admin \
-	gluon-web-autoupdater \
 	gluon-web-network \
 	gluon-web-private-wifi \
 	gluon-web-wifi-config \
@@ -23,7 +21,10 @@ GLUON_SITE_PACKAGES := \
 	gluon-status-page \
 	haveged \
 	iptables \
-	iwinfo
+	iwinfo \
+	ffho-autoupdater-wifi-fallback \
+	ffho-web-autoupdater
+# when removing ffho-web-autoupdater, remember to readd gluon-web-autoupdater again
 
 # support the USB stack
 USB_PACKAGES_BASIC := \
