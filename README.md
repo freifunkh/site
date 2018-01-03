@@ -4,7 +4,7 @@
 # clone gluon
 git clone https://github.com/freifunk-gluon/gluon
 cd gluon
-git checkout v2016.2.x
+git checkout master
 
 # clone site conf
 git clone https://github.com/freifunkh/site
