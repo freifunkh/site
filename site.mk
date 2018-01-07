@@ -20,6 +20,7 @@ GLUON_SITE_PACKAGES := \
 	gluon-respondd \
 	gluon-setup-mode \
 	gluon-status-page \
+	respondd-module-airtime \
 	haveged \
 	iptables \
 	iwinfo \
