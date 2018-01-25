@@ -1,0 +1,23 @@
+From c1991fdab5a5b4a516f804ab5cf056dc1ba29820 Mon Sep 17 00:00:00 2001
+From: lemoer <git@irrelefant.net>
+Date: Thu, 25 Jan 2018 21:13:38 +0000
+Subject: [PATCH] gluon-radv-filterd: update check_site.lua syntax to current
+ master branch
+
+---
+ package/gluon-radv-filterd/check_site.lua | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/package/gluon-radv-filterd/check_site.lua b/package/gluon-radv-filterd/check_site.lua
+index bdd7364b..21d542c7 100644
+--- a/package/gluon-radv-filterd/check_site.lua
++++ b/package/gluon-radv-filterd/check_site.lua
+@@ -1,3 +1,3 @@
+-if need_table('radv_filterd', nil, false) then
+-	need_number('radv_filterd.threshold')
++if need_table({'radv_filterd'}, nil, false) then
++	need_number({'radv_filterd', 'threshold'})
+ end
+-- 
+2.11.0
+
