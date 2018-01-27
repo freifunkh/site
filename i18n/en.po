@@ -17,6 +17,7 @@ msgstr ""
 
 msgid "gluon-config-mode:pubkey"
 msgstr ""
+"<p>"
 "This is your Freifunk node's public key. The node won't be able to "
 "connect to the mesh VPN until the key has been registered on the Freifunk "
 "Hannover servers. "
