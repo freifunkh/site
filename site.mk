@@ -9,7 +9,6 @@ GLUON_SITE_PACKAGES := \
 	gluon-config-mode-mesh-vpn \
 	gluon-ebtables-filter-multicast \
 	gluon-ebtables-filter-ra-dhcp \
-	gluon-ebtables-segment-mld \
 	gluon-web-admin \
 	gluon-web-network \
 	gluon-web-private-wifi \
