@@ -10,6 +10,7 @@ GLUON_SITE_PACKAGES := \
 	gluon-ebtables-filter-multicast \
 	gluon-ebtables-filter-ra-dhcp \
 	gluon-web-admin \
+	gluon-web-autoupdater \
 	gluon-web-network \
 	gluon-web-private-wifi \
 	gluon-web-wifi-config \
