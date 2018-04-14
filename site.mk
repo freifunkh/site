@@ -29,6 +29,8 @@ GLUON_SITE_PACKAGES := \
 	ffho-web-autoupdater
 # when removing ffho-web-autoupdater, remember to readd gluon-web-autoupdater again
 
+GLUON_MULTIDOMAIN = 1
+
 # support the USB stack
 USB_PACKAGES_BASIC := \
 	kmod-usb-core \
@@ -87,7 +89,7 @@ NIC_PACKAGES_NET := \
 	kmod-sky2 \
 	kmod-r8169 \
 	kmod-forcedeth \
-	kmod-8139too 
+	kmod-8139too
 
 TOOLS_PACKAGES := \
 	bash \
