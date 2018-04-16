@@ -1,4 +1,4 @@
-#!/usr/bin/env/python3
+#!/usr/bin/env python3
 
 import os
 import hashlib
@@ -13,7 +13,7 @@ domains = {
     11: { "names": { "lenthe": "Lenthe" } },
     12: { "names": { "steinhude": "Steinhude" } },
     13: { "names": { "springe": "Springe" } },
-    14: { "names": { "nordstadt": h+'nordstadt' } },
+    14: { "names": { "nordstadt": h+'Nordstadt' } },
     15: { "names": { "wunstorf": "Wunstorf", "neustadt": "Neustadt" } },
     16: { "names": {
         "wettbergen": h+'Wettbergen',
