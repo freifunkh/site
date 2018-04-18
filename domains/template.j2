@@ -15,10 +15,25 @@
 	prefix4 = '10.{{ id }}.0.0/16',
 	prefix6 = 'fdca:ffee:8:{{ id }}::/64',
 
+	dns = { servers = {
+		'fdca:ffee:8:{{ id }}::1001/64',
+		'fdca:ffee:8:{{ id }}::2001/64',
+		'fdca:ffee:8:{{ id }}::3001/64',
+		'fdca:ffee:8:{{ id }}::4001/64',
+		'fdca:ffee:8:{{ id }}::5001/64',
+		'fdca:ffee:8:{{ id }}::6001/64',
+		'fdca:ffee:8:{{ id }}::7001/64',
+		'fdca:ffee:8:{{ id }}::8001/64',
+		'fdca:ffee:8:{{ id }}::9001/64',
+		'fdca:ffee:8:{{ id }}::a001/64',
+	} },
+
+
 	next_node = {
 		ip4 = '10.{{ id }}.0.1',
 		ip6 = 'fdca:ffee:8:{{ id }}::1',
 		mac = '16:41:95:40:f8:dc',
+		name = { 'nextnode', 'nn', 'nextnode.ffh.zone', 'n.ffh.zone' },
 	},
 
 	wifi24 = {
