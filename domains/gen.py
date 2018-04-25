@@ -9,6 +9,7 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 h = "Hannover: "
 domains = {
+    0: { "names": { "legacy": "Legacy" } },
     10: { "names": { "hameln": "Hameln", "alfeld": "Alfeld" }, },
     11: { "names": { "lenthe": "Lenthe" } },
     12: { "names": { "steinhude": "Steinhude" } },
@@ -94,7 +95,8 @@ def render(id, names, seed, hide):
         id=id,
         names=names,
         seed=seed,
-        hide=hide
+        hide=hide,
+        str=str
     )
 
 if __name__ == '__main__':
