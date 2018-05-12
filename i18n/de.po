@@ -16,6 +16,17 @@ msgstr ""
 "Freifunk-Knoten. Fülle das folgende Formular deinen Vorstellungen "
 "entsprechend aus und sende es ab."
 
+msgid "gluon-config-mode:domain"
+msgstr "Domäne"
+
+msgid "gluon-config-mode:domain-select"
+msgstr ""
+"Hier musst du deine Standortzugehörigkeit festlegen. Wähle deine "
+"Stadt und gegebenenfalls den Stadtteil aus. Passt keine andere "
+"Option, wähle die Domäne \"Umland\" aus. Die Standortzugehörigkeit "
+"legt fest, mit welchen Freifunk Knoten sich dein Knoten verbinden "
+"kann (Mesh-Netz)."
+
 msgid "gluon-config-mode:pubkey"
 msgstr ""
 "<p>"

@@ -15,6 +15,16 @@ msgstr ""
 "Welcome the the setup wizard of your new Freifunk Hannover node. "
 "Please fill out the following form and transmit it."
 
+msgid "gluon-config-mode:domain"
+msgstr "Domain"
+
+msgid "gluon-config-mode:domain-select"
+msgstr ""
+"Here you have to define your location. Select your city and, if "
+"necessary, the district. If no other option fits, select the "
+"domain \"Umland\". The location determines with which "
+"wireless node your node can connect (mesh network)."
+
 msgid "gluon-config-mode:pubkey"
 msgstr ""
 "<p>"
