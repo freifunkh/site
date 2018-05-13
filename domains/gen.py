@@ -85,6 +85,7 @@ domains = {
         "lehrte": h+'Lehrte',
         "isernhagensued": h+'Isernhagen Süd',
     } },
+    22: { "names": { "umland": "Umland" } },
     99: { "names": { "leetfeld": "Leetfeld (1337, invalid)"}, "hide": True }
 }
 
