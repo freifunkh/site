@@ -86,10 +86,11 @@ domains = {
         "isernhagensued": h+'Isernhagen Süd',
     } },
     22: { "names": { "umland": "Umland" } },
+    23: { "names": { "special_port": "Special Port" }, "hide": True, "port": 500 },
     99: { "names": { "leetfeld": "Leetfeld (1337, invalid)"}, "hide": True }
 }
 
-def render(id, names, seed, hide):
+def render(id, names, seed, hide, port):
     j2_env = Environment(loader=FileSystemLoader(THIS_DIR),
                          trim_blocks=True)
     return j2_env.get_template('template.j2').render(
@@ -97,7 +98,8 @@ def render(id, names, seed, hide):
         names=names,
         seed=seed,
         hide=hide,
-        str=str
+        str=str,
+        port=port
     )
 
 if __name__ == '__main__':
@@ -112,6 +114,7 @@ if __name__ == '__main__':
         seed = hashlib.sha256(b'ffh-' + primary_code.encode('utf-8')).hexdigest()
 
         hide = values.get('hide', False)
+        port = values.get('port', 10000 + id)
 
         with open(THIS_DIR + '/' + primary_code + '.conf', 'w') as f:
-            f.write(render(id, names, seed, hide))
+            f.write(render(id, names, seed, hide, port))
