@@ -47,7 +47,7 @@
 
 	wifi5 = {
 		ap = { ssid = 'hannover.freifunk.net', },
-		mesh = { id = 'ffh_mesh{{ '' if id == 0 else '_' + str(id) }}', },
+		mesh = { id = 'ffh-mesh{{ '' if id == 0 else '-' + str(id) }}', },
 	},
 
 	mesh_vpn = { fastd = { groups = { backbone = { peers = {
