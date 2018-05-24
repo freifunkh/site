@@ -28,10 +28,11 @@
 		'fdca:ffee:8:{{ id }}::a001',
 	} },
 
+{% if id == 0 %}
 	mesh = {
-		vxlan = {{ 'true' if id != 0 else 'false' }},
+		vxlan = false,
 	},
-
+{% endif %}
 
 	next_node = {
 		ip4 = '10.{{ id if id != 0 else 2 }}.0.1',
