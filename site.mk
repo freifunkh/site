@@ -22,6 +22,7 @@ GLUON_SITE_PACKAGES := \
 	gluon-respondd \
 	gluon-setup-mode \
 	gluon-status-page \
+	gluon-status-page-mesh-batman-adv \
 	respondd-module-airtime \
 	haveged \
 	iptables \
