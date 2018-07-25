@@ -66,7 +66,6 @@ domains = {
         "kirchrode": h+'Kirchrode',
         "anderten": h+'Anderten',
         "wuelferode": h+'Wülferode',
-        "anderten": h+'Anderten',
         "laatzen": h+'Laatzen',
         "pattensen": h+'Pattensen'
     } },
