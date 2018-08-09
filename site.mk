@@ -28,7 +28,8 @@ GLUON_SITE_PACKAGES := \
 	iptables \
 	iwinfo \
 	ffho-autoupdater-wifi-fallback \
-	ffho-web-autoupdater
+	ffho-web-autoupdater \
+	ffh-autoupdater-to-domain
 # when removing ffho-web-autoupdater, remember to readd gluon-web-autoupdater again
 
 GLUON_MULTIDOMAIN = 1
