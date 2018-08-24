@@ -16,6 +16,16 @@ msgstr ""
 "Freifunk. Remplissez le formulaire suivant en fonction de vos besoins "
 "et enregistrez le. "
 
+msgid "gluon-config-mode:domain"
+msgstr "Domaine"
+
+msgid "gluon-config-mode:domain-select"
+msgstr ""
+"Ici, vous devez définir votre emplacement. Sélectionnez votre ville "
+"et, si nécessaire, le quartier. Si aucune autre option ne convient, "
+"sélectionnez le domaine \"Umland\". L'emplacement détermine avec quel "
+"nœud sans fil votre nœud peut se connecter (réseau maillé)."
+
 msgid "gluon-config-mode:pubkey"
 msgstr ""
 "<p>"

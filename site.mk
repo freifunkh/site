@@ -7,6 +7,7 @@ GLUON_SITE_PACKAGES := \
 	gluon-config-mode-geo-location \
 	gluon-config-mode-hostname \
 	gluon-config-mode-mesh-vpn \
+	gluon-config-mode-domain-select \
 	gluon-ebtables-filter-multicast \
 	gluon-ebtables-filter-ra-dhcp \
 	gluon-web-admin \
@@ -21,13 +22,17 @@ GLUON_SITE_PACKAGES := \
 	gluon-respondd \
 	gluon-setup-mode \
 	gluon-status-page \
+	gluon-status-page-mesh-batman-adv \
 	respondd-module-airtime \
 	haveged \
 	iptables \
 	iwinfo \
 	ffho-autoupdater-wifi-fallback \
-	ffho-web-autoupdater
+	ffho-web-autoupdater \
+	ffh-autoupdater-to-domain
 # when removing ffho-web-autoupdater, remember to readd gluon-web-autoupdater again
+
+GLUON_MULTIDOMAIN = 1
 
 # support the USB stack
 USB_PACKAGES_BASIC := \
@@ -87,7 +92,7 @@ NIC_PACKAGES_NET := \
 	kmod-sky2 \
 	kmod-r8169 \
 	kmod-forcedeth \
-	kmod-8139too 
+	kmod-8139too
 
 TOOLS_PACKAGES := \
 	bash \
