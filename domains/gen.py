@@ -22,7 +22,7 @@ domains = {
         "muehlenberg": h+"Mühlenberg",
         "bornum": h+"Bornum",
         "ricklingen": h+"Ricklingen",
-        "barsinghausen": h+"Barsinghausen",
+        "barsinghausen": "Barsinghausen",
         "davenstedt": h+"Davenstedt",
         "ahlem": h+"Ahlem",
         "badenstedt": h+"Badenstedt"
@@ -35,7 +35,14 @@ domains = {
         "calenbergerneustadt": h+'Calenberger Neustadt'
     } },
     18: { "names": {
-        "garbsen": h+'Garbsen',
+        "garbsen": 'Garbsen',
+        "langenhagen": 'Langenhagen',
+        "seelze": 'Seelze',
+        "isernhagen": 'Isernhagen',
+        "burgdorf": 'Burgdorf',
+        "burgwedel": 'Burgwedel',
+        "uetze": 'Uetze',
+        "langenhagen": 'Langenhagen',
         "stoecken": h+'Stöcken',
         "marienwerder": h+'Marienwerder',
         "ledeburg": h+'Ledeburg',
@@ -45,7 +52,6 @@ domains = {
         "vahrenwald": h+'Vahrenwald',
         "herrenhausen": h+'Herrenhausen',
         "leinhausen": h+'Leinhausen',
-        "langenhagen": h+'Langenhagen',
         "vinnhorst": h+'Vinnhorst',
         "brinkhafen": h+'Brinkhafen'
     } },
@@ -66,8 +72,10 @@ domains = {
         "kirchrode": h+'Kirchrode',
         "anderten": h+'Anderten',
         "wuelferode": h+'Wülferode',
-        "laatzen": h+'Laatzen',
-        "pattensen": h+'Pattensen'
+        "laatzen": 'Laatzen',
+        "sehnde": 'Sehnde',
+        "sarstedt": 'Starstedt',
+        "pattensen": 'Pattensen'
     } },
     21: { "names": {
         "heideviertel": h+'Heideviertel',
@@ -81,10 +89,17 @@ domains = {
         "vahrenheide": h+'Vahrenheide',
         "list": h+'List',
         "oststadt": h+'Oststadt',
-        "lehrte": h+'Lehrte',
+        "lehrte": 'Lehrte',
         "isernhagensued": h+'Isernhagen Süd',
     } },
-    22: { "names": { "umland": "Umland" } },
+    22: { "names": {
+        "umland": "Umland",
+        "wennigsen": "Wennigsen",
+        "gehrden": "Gehrden",
+        "hemmingen": "Hemmingen",
+        "ronnenberg": "Ronnenberg",
+        "peine-west": "Peine-West"
+	  } },
     23: { "names": { "special_port": "Special Port" }, "hide": True, "port": 500 },
     99: { "names": { "leetfeld": "Leetfeld (1337, invalid)"}, "hide": True }
 }
