@@ -24,12 +24,14 @@ GLUON_SITE_PACKAGES := \
 	gluon-status-page \
 	gluon-status-page-mesh-batman-adv \
 	respondd-module-airtime \
+	gluon-segment-mover \
+	ecdsautils \
 	haveged \
 	iptables \
 	iwinfo \
 	ffho-autoupdater-wifi-fallback \
 	ffho-web-autoupdater \
-	ffh-autoupdater-to-domain
+	ffh-segment-mover
 # when removing ffho-web-autoupdater, remember to readd gluon-web-autoupdater again
 
 GLUON_MULTIDOMAIN = 1
