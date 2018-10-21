@@ -30,8 +30,7 @@ GLUON_SITE_PACKAGES := \
 	iptables \
 	iwinfo \
 	ffho-autoupdater-wifi-fallback \
-	ffho-web-autoupdater \
-	ffh-segment-mover
+	ffho-web-autoupdater
 # when removing ffho-web-autoupdater, remember to readd gluon-web-autoupdater again
 
 GLUON_MULTIDOMAIN = 1
