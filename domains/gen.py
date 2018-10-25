@@ -74,7 +74,7 @@ domains = {
         "wuelferode": h+'Wülferode',
         "laatzen": 'Laatzen',
         "sehnde": 'Sehnde',
-        "sarstedt": 'Starstedt',
+        "sarstedt": 'Sarstedt',
         "pattensen": 'Pattensen'
     } },
     21: { "names": {
