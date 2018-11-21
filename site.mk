@@ -24,7 +24,6 @@ GLUON_SITE_PACKAGES := \
 	gluon-status-page \
 	gluon-status-page-mesh-batman-adv \
 	respondd-module-airtime \
-	# ecdsautils \ # was needed for segment-mover
 	haveged \
 	iptables \
 	iwinfo \
