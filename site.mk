@@ -1,34 +1,29 @@
+GLUON_FEATURES := \
+	autoupdater \
+	config-mode-domain-select \
+	config-mode-geo-location-osm \
+	ebtables-filter-multicast \
+	ebtables-filter-ra-dhcp \
+	ebtables-limit-arp \
+	mesh-batman-adv-15 \
+	mesh-vpn-fastd \
+	radv-filterd \
+	radvd \
+	respondd \
+	setup-mode \
+	status-page \
+	web-advanced \
+	web-private-wifi \
+	web-wizard
+
 GLUON_SITE_PACKAGES := \
-	gluon-mesh-batman-adv-15 \
-	gluon-autoupdater \
-	gluon-config-mode-autoupdater \
-	gluon-config-mode-contact-info \
-	gluon-config-mode-core \
-	gluon-config-mode-geo-location \
-	gluon-config-mode-geo-location-osm \
-	gluon-config-mode-hostname \
-	gluon-config-mode-mesh-vpn \
-	gluon-config-mode-domain-select \
-	gluon-ebtables-filter-multicast \
-	gluon-ebtables-filter-ra-dhcp \
-	gluon-web-admin \
-	gluon-web-network \
-	gluon-web-private-wifi \
-	gluon-web-wifi-config \
-	gluon-web-mesh-vpn-fastd \
-	gluon-mesh-vpn-fastd \
-	gluon-radvd \
- 	gluon-radv-filterd \
-	gluon-respondd \
-	gluon-setup-mode \
-	gluon-status-page \
-	gluon-status-page-mesh-batman-adv \
-	respondd-module-airtime \
+	-gluon-web-autoupdater \
+	ffho-autoupdater-wifi-fallback \
+	ffho-web-autoupdater \
 	haveged \
 	iptables \
 	iwinfo \
-	ffho-autoupdater-wifi-fallback \
-	ffho-web-autoupdater
+	respondd-module-airtime
 # when removing ffho-web-autoupdater, remember to readd gluon-web-autoupdater again
 
 GLUON_MULTIDOMAIN = 1
@@ -36,7 +31,8 @@ GLUON_MULTIDOMAIN = 1
 # support the USB stack
 USB_PACKAGES_BASIC := \
 	kmod-usb-core \
-	kmod-usb2
+	kmod-usb2 \
+	kmod-usb-hid
 
 # FAT32 Support for USB
 USB_PACKAGES_STORAGE := \
