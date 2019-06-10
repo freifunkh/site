@@ -96,8 +96,7 @@ TOOLS_PACKAGES := \
 	iperf \
 	iperf3 \
 	socat \
-	usbutils \
-	qemu-ga
+	usbutils
 
 ifeq ($(GLUON_TARGET),x86-generic)
 GLUON_SITE_PACKAGES += \
