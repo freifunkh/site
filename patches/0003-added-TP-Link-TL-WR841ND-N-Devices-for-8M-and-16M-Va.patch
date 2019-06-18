@@ -1,20 +1,20 @@
-From e67704f52ae2d7ffb7d6c5c7d5392c7a152171f0 Mon Sep 17 00:00:00 2001
+From 4f557b3d95b2dd6d301f6b5c0d34d1635826d0d8 Mon Sep 17 00:00:00 2001
 From: Dark4MD <github.web@manu.li>
-Date: Fri, 22 Feb 2019 22:49:26 +0100
+Date: Tue, 18 Jun 2019 10:30:59 +0200
 Subject: [PATCH] added TP-Link TL-WR841ND/N Devices for 8M and 16M Variants
 
 ---
  ...nk-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch | 116 +++++++++++++++++++++
- targets/ar71xx-generic                             |  11 ++
- 2 files changed, 127 insertions(+)
- create mode 100755 patches/openwrt/0012-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
+ targets/ar71xx-generic                             |  13 +++
+ 2 files changed, 129 insertions(+)
+ create mode 100755 patches/openwrt/0022-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
  mode change 100644 => 100755 targets/ar71xx-generic
 
-diff --git a/patches/openwrt/0012-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch b/patches/openwrt/0012-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
+diff --git a/patches/openwrt/0022-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch b/patches/openwrt/0022-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
 new file mode 100755
-index 00000000..c4186788
+index 00000000..52190675
 --- /dev/null
-+++ b/patches/openwrt/0012-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
++++ b/patches/openwrt/0022-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
 @@ -0,0 +1,116 @@
 +From 2734fb40ac15f8db6eadbbd9e3438b7077876424 Mon Sep 17 00:00:00 2001
 +From: Dark4MD <github.web@manu.li>
@@ -135,26 +135,28 @@ index 00000000..c4186788
 diff --git a/targets/ar71xx-generic b/targets/ar71xx-generic
 old mode 100644
 new mode 100755
-index bd028dfa..0b914582
+index e2951f5b..720e2b17
 --- a/targets/ar71xx-generic
 +++ b/targets/ar71xx-generic
-@@ -250,6 +250,17 @@ fi
- device tp-link-re450 re450-v1
- packages $ATH10K_PACKAGES
+@@ -323,6 +323,19 @@ device('tp-link-re450', 're450-v1', {
+ 	packages = ATH10K_PACKAGES,
+ })
  
-+device tp-link-tl-wr841n-nd-mod-8m-v8 tl-wr841-v8-8m
-+device tp-link-tl-wr841n-nd-mod-8m-v9 tl-wr841-v9-8m
-+device tp-link-tl-wr841n-nd-mod-8m-v10 tl-wr841-v10-8m
-+device tp-link-tl-wr841n-nd-mod-8m-v11 tl-wr841-v11-8m
-+factory -squashfs-factory${GLUON_REGION:+-${GLUON_REGION}} .bin
++device('tp-link-tl-wr841n-nd-mod-8m-v8', 'tl-wr841-v8-8m')
++device('tp-link-tl-wr841n-nd-mod-8m-v9', 'tl-wr841-v9-8m')
++device('tp-link-tl-wr841n-nd-mod-8m-v10', 'tl-wr841-v10-8m')
++device('tp-link-tl-wr841n-nd-mod-8m-v11', 'tl-wr841-v11-8m')
++	factory = '-squashfs-factory' .. tplink_region_suffix,
++})
 +
-+device tp-link-tl-wr841n-nd-mod-16m-v8 tl-wr841-v8-16m
-+device tp-link-tl-wr841n-nd-mod-16m-v9 tl-wr841-v9-16m
-+device tp-link-tl-wr841n-nd-mod-16m-v10 tl-wr841-v10-16m
-+device tp-link-tl-wr841n-nd-mod-16m-v11 tl-wr841-v11-16m
-+factory -squashfs-factory${GLUON_REGION:+-${GLUON_REGION}} .bin
++device('tp-link-tl-wr841n-nd-mod-16m-v8', 'tl-wr841-v8-16m')
++device('tp-link-tl-wr841n-nd-mod-16m-v9', 'tl-wr841-v9-16m')
++device('tp-link-tl-wr841n-nd-mod-16m-v10', 'tl-wr841-v10-16m')
++device('tp-link-tl-wr841n-nd-mod-16m-v11', 'tl-wr841-v11-16m')
++	factory = '-squashfs-factory' .. tplink_region_suffix,
++})
  
- # Ubiquiti
+ -- Ubiquiti
  
 -- 
 2.11.0
