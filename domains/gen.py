@@ -15,7 +15,7 @@ domains = {
     12: { "names": { "steinhude": "Steinhude" } },
     13: { "names": { "springe": "Springe" } },
     14: { "names": { "nordstadt": h+'Nordstadt' } },
-    15: { "names": { "wunstorf": "Wunstorf", "neustadt": "Neustadt" } },
+    15: { "names": { "wunstorf": "Wunstorf", "neustadt": "Neustadt", "nienburg": "Landkreis Nienburg/Weser" } },
     16: { "names": {
         "wettbergen": h+'Wettbergen',
         "oberricklingen": h+"Oberricklingen",
