@@ -13,7 +13,7 @@ domains = {
     10: { "names": { "hameln": "Hameln", "alfeld": "Alfeld" }, },
     11: { "names": { "lenthe": "Lenthe" } },
     12: { "names": { "steinhude": "Steinhude" } },
-    13: { "names": { "springe": "Springe", "obernkirchen": "Obernkirchen" } },
+    13: { "names": { "springe": "Springe" } },
     14: { "names": { "nordstadt": h+'Nordstadt' } },
     15: { "names": { "wunstorf": "Wunstorf", "neustadt": "Neustadt" } },
     16: { "names": {
@@ -53,8 +53,7 @@ domains = {
         "herrenhausen": h+'Herrenhausen',
         "leinhausen": h+'Leinhausen',
         "vinnhorst": h+'Vinnhorst',
-        "brinkhafen": h+'Brinkhafen',
-        "schwarmstedt": 'Schwarmstedt'
+        "brinkhafen": h+'Brinkhafen'
     } },
     19: { "names": {
         "mitte": h+'Mitte',
