@@ -23,6 +23,8 @@ GLUON_SITE_PACKAGES := \
 	haveged \
 	iptables \
 	iwinfo \
+	gluon-segment-mover \
+	ecdsautils \
 	respondd-module-airtime
 # when removing ffho-web-autoupdater, remember to readd gluon-web-autoupdater again
 
