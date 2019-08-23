@@ -31,6 +31,15 @@
 {% if id == 0 %}
 	mesh = {
 		vxlan = false,
+		batman_adv = {
+			routing_algo = 'BATMAN_IV',
+		},
+	},
+{% else %}
+	mesh = {
+		batman_adv = {
+			routing_algo = 'BATMAN_IV',
+		},
 	},
 {% endif %}
 
