@@ -32,18 +32,18 @@ index 00000000..52190675
 +--- a/target/linux/ar71xx/base-files/lib/ar71xx.sh
 ++++ b/target/linux/ar71xx/base-files/lib/ar71xx.sh
 +@@ -255,6 +255,12 @@ tplink_board_detect() {
-+ 
-+ 		[ "$hwid" = '08410002' -a "$mid" = '00000002' ] && hwver=' v1.5'
-+ 		;;
++
++		[ "$hwid" = '08410002' -a "$mid" = '00000002' ] && hwver=' v1.5'
++		;;
 ++	"084108"*)
 ++		model="TP-Link TL-WR841N/ND Mod (8M)"
 ++		;;
 ++	"084116"*)
 ++		model="TP-Link TL-WR841N/ND Mod (16M)"
 ++		;;
-+ 	"084200"*)
-+ 		model="TP-Link TL-WR842N/ND"
-+ 		;;
++	"084200"*)
++		model="TP-Link TL-WR842N/ND"
++		;;
 +diff --git a/target/linux/ar71xx/image/generic-tp-link.mk b/target/linux/ar71xx/image/generic-tp-link.mk
 +old mode 100644
 +new mode 100755
