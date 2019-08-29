@@ -76,7 +76,8 @@ domains = {
         "laatzen": 'Laatzen',
         "sehnde": 'Sehnde',
         "sarstedt": 'Sarstedt',
-        "pattensen": 'Pattensen'
+        "pattensen": 'Pattensen',
+        "hildesheim": 'Hildesheim'
     } },
     21: { "names": {
         "heideviertel": h+'Heideviertel',
