@@ -23,7 +23,8 @@ GLUON_SITE_PACKAGES := \
 	haveged \
 	iptables \
 	iwinfo \
-	respondd-module-airtime
+	respondd-module-airtime \
+	ffh-cli-scripts
 # when removing ffho-web-autoupdater, remember to readd gluon-web-autoupdater again
 
 GLUON_MULTIDOMAIN = 1
