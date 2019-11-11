@@ -1,6 +1,6 @@
 GLUON_SITE_FEEDS='hannover ffho'
 PACKAGES_HANNOVER_REPO=https://github.com/freifunkh/ffh-packages
-PACKAGES_HANNOVER_COMMIT=e8d97507a9c7aaff1a48c8dc3dccba4a5d0d4727
+PACKAGES_HANNOVER_COMMIT=80a664b42fcd9b436c39e98ea67fd6e96a3dcaf2
 
 PACKAGES_FFHO_REPO=https://git.ffho.net/FreifunkHochstift/ffho-packages.git
 PACKAGES_FFHO_BRANCH=master
