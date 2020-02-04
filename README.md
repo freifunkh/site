@@ -25,17 +25,17 @@ mkdir logs
 make update
 
 # maybe switch here to a screen session ;)
-make V=s GLUON_TARGET=ar71xx-generic GLUON_BRANCH=stable &> logs/$(date -Is)_ar71xx-generic.log
+make V=s GLUON_TARGET=ar71xx-generic &> logs/$(date -Is)_ar71xx-generic.log
 
 ```
 
 # build all targets
 
 ``` shell
-TARGETS="ar71xx-nand mpc85xx-generic x86-generic x86-kvm_guest x86-64 x86-xen_domu"
+TARGETS="ar71xx-generic ar71xx-tiny ar71xx-nand ar71xx-mikrotik ath79-generic brcm2708-bcm2708 brcm2708-bcm2709 brcm2708-bcm2710 ipq40xx-generic ipq806x-generic lantiq-xrx200 lantiq-xway mpc85xx-generic mpc85xx-p1020 mvebu-cortexa9 ramips-mt7620 ramips-mt7621 ramips-mt76x8 ramips-rt305x sunxi-cortexa7 x86-64 x86-generic x86-geode"
 
 for t in $TARGETS; do
-  make V=s GLUON_TARGET=${t} GLUON_BRANCH=stable &> logs/$(date -Is)_${t}.log
+  make V=s GLUON_TARGET=${t} &> logs/$(date -Is)_${t}.log
 done
 ```
 
@@ -45,5 +45,5 @@ done
 - Packages `gdb`, `valgrind` and `strace` will be built in the image
 
 ``` shell
-make V=s GLUON_DEBUG=1 GLUON_TARGET=x86-generic GLUON_BRANCH=stable &> logs/$(date -Is)_x86-generic.log
+make V=s GLUON_DEBUG=1 GLUON_TARGET=x86-generic &> logs/$(date -Is)_x86-generic.log
 ```
