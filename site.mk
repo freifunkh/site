@@ -1,3 +1,8 @@
+##	GLUON_FEATURES
+#		Specify Gluon features/packages to enable;
+#		Gluon will automatically enable a set of packages
+#		depending on the combination of features listed
+
 GLUON_FEATURES := \
 	autoupdater \
 	config-mode-domain-select \
@@ -16,6 +21,14 @@ GLUON_FEATURES := \
 	web-private-wifi \
 	web-wizard
 
+##	GLUON_SITE_PACKAGES
+#		Specify additional Gluon/OpenWrt packages to include here;
+#		A minus sign may be prepended to remove a packages from the
+#		selection that would be enabled by default or due to the
+#		chosen feature flags
+
+##	When removing ffho-web-autoupdater, remember to readd gluon-web-autoupdater again
+
 GLUON_SITE_PACKAGES := \
 	-gluon-web-autoupdater \
 	ffho-autoupdater-wifi-fallback \
@@ -27,7 +40,9 @@ GLUON_SITE_PACKAGES := \
 	ecdsautils \
 	respondd-module-airtime \
 	ffh-cli-scripts
-# when removing ffho-web-autoupdater, remember to readd gluon-web-autoupdater again
+
+##	GLUON_MULTIDOMAIN
+#		Build gluon with multidomain support.
 
 GLUON_MULTIDOMAIN = 1
 
@@ -128,13 +143,36 @@ GLUON_SITE_PACKAGES += \
 	gdb
 endif
 
-DEFAULT_GLUON_RELEASE := 1.0-$(shell date '+%Y%m%d')
+##	DEFAULT_GLUON_RELEASE
+#		version string to use for images
+#		gluon relies on
+#			opkg compare-versions "$1" '>>' "$2"
+#		to decide if a version is newer or not.
 
-# Allow overriding the release number from the command line
+DEFAULT_GLUON_RELEASE := exp-$(shell date '+%Y%m%d')
+
+# Variables set with ?= can be overwritten from the command line
+
+##	GLUON_RELEASE
+#		call make with custom GLUON_RELEASE flag, to use your own release version scheme.
+#		e.g.:
+#			$ make images GLUON_RELEASE=23.42+5
+#		would generate images named like this:
+#			gluon-ff%site_code%-23.42+5-%router_model%.bin
+
 GLUON_RELEASE ?= $(DEFAULT_GLUON_RELEASE)
+
+# Default priority for updates.
 GLUON_PRIORITY ?= 0
-GLUON_LANGS ?= de en fr
+
+# Region code required for some images; supported values: us eu
 GLUON_REGION ?= eu
-GLUON_ATH10K_MESH ?= 11s
+
+# Languages to include
+GLUON_LANGS ?= en de
+
+# Do not build images for deprecated devices
 GLUON_DEPRECATED ?= upgrade
-GLUON_BRANCH ?= stable
+
+# Set default branch for building custom images
+GLUON_BRANCH ?= experimental
