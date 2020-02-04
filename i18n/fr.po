@@ -43,6 +43,12 @@ msgstr ""
 "<%= pubkey %>"
 "</div>"
 
+msgid "gluon-config-mode:novpn"
+msgstr ""
+"<p>Vous avez choisi de <strong>ne pas utiliser</strong> "
+"le réseau VPN. Votre nœud ne pourra se connecter au réseau Freifunk que si "
+"d'autres nœuds à portée ont déjà une connexion.</p>"
+
 msgid "gluon-config-mode:reboot"
 msgstr ""
 "<p>Votre nœud est en train de redémarrer et va ensuite essayer de se connecter "
@@ -52,4 +58,25 @@ msgstr ""
 "<p>Pour retrouver cette page de configuration,  appuyez pendant le "
 "fonctionnement normal pour 10 secondes sur le bouton reset. L'appareil va ensuite "
 "redémarrer en mode configuration.</p> "
-"<p>Amusez-vous avec votre nœud et à découvrir le réseau Freifunk!</p> "
+"<p>Amusez-vous avec votre nœud et à découvrir le réseau Freifunk Hannover!</p> "
+
+# Leave empty to use the default text, which can be found in:
+# package/gluon-config-mode-hostname/i18n/
+msgid "gluon-config-mode:hostname-help"
+msgstr ""
+
+# Leave empty to use the default text, which can be found in:
+# package/gluon-config-mode-geo-location/i18n/
+msgid "gluon-config-mode:geo-location-help"
+msgstr ""
+
+msgid "gluon-config-mode:altitude-label"
+msgstr ""
+
+# Leave empty to use the default text, which can be found in:
+# package/gluon-config-mode-contact-info/i18n/
+msgid "gluon-config-mode:contact-help"
+msgstr ""
+
+msgid "gluon-config-mode:contact-note"
+msgstr ""
