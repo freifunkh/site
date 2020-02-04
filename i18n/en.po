@@ -33,12 +33,19 @@ msgstr ""
 "Hannover servers. "
 "To register the key send it together with your node's name (<em><%=pcdata(hostname)%></em>) to "
 "<a href=\"mailto:keys@hannover.freifunk.net?subject=<%=urlencode(hostname)%>'s%20key&amp;body=#<%=urlencode(hostname)%>%0A<%=pubkey%>\">keys@hannover.freifunk.net</a>."
+"Of course, your e-mail address will be treated confidentially and will not be passed on.</p>"
 "</p>"
 "<div class=\"the-key\">"
 " # <%=pcdata(hostname)%>"
 " <br />"
 "<%= pubkey %>"
 "</div>"
+
+msgid "gluon-config-mode:novpn"
+msgstr ""
+"<p>You have selected <strong>not</strong> to use the mesh VPN. "
+"Your node will only be able to connect to the Freifunk network if other nodes "
+"in reach already have a connection.</p>"
 
 msgid "gluon-config-mode:reboot"
 msgstr ""
@@ -49,4 +56,25 @@ msgstr ""
 "<p>To get back to this configuration interface, press the reset button for "
 "10 seconds during normal operation. The device will then reboot into config "
 "mode.</p>"
-"<p>Have fun with your node and exploring the Freifunk network!</p>"
+"<p>Have fun with your node and exploring the Freifunk Hannover network!</p>"
+
+# Leave empty to use the default text, which can be found in:
+# package/gluon-config-mode-hostname/i18n/
+msgid "gluon-config-mode:hostname-help"
+msgstr ""
+
+# Leave empty to use the default text, which can be found in:
+# package/gluon-config-mode-geo-location/i18n/
+msgid "gluon-config-mode:geo-location-help"
+msgstr ""
+
+msgid "gluon-config-mode:altitude-label"
+msgstr ""
+
+# Leave empty to use the default text, which can be found in:
+# package/gluon-config-mode-contact-info/i18n/
+msgid "gluon-config-mode:contact-help"
+msgstr ""
+
+msgid "gluon-config-mode:contact-note"
+msgstr ""
