@@ -103,7 +103,7 @@ index 00000000..52190675
 ++
 ++define Device/tl-wr841-v9-16m
 ++  $(Device/tplink-16mlzma)
-++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (16M v9
+++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (16M) v9
 ++  BOARDNAME := TL-WR841N-v9
 ++  DEVICE_PROFILE := TLWR84116M
 ++  TPLINK_HWID := 0x08411609
