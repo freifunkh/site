@@ -119,6 +119,7 @@ TOOLS_PACKAGES := \
 ifeq ($(GLUON_TARGET),x86-generic)
 GLUON_SITE_PACKAGES += \
 	kmod-usb-hid \
+	ip-full \	
 	$(NIC_PACKAGES_NET) \
 	$(USB_PACKAGES_BASIC) \
 	$(USB_PACKAGES_STORAGE) \
@@ -129,6 +130,7 @@ endif
 ifeq ($(GLUON_TARGET),x86-64)
 GLUON_SITE_PACKAGES += \
 	kmod-usb-hid \
+	ip-full \
 	$(NIC_PACKAGES_NET) \
 	$(USB_PACKAGES_BASIC) \
 	$(USB_PACKAGES_STORAGE) \
