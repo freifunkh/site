@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
+import argparse
 import os
 import hashlib
+import json
 from jinja2 import Environment, FileSystemLoader
 
 # Capture our current directory
@@ -106,6 +108,29 @@ domains = {
     99: { "names": { "leetfeld": "Leetfeld (1337, invalid)"}, "hide": True }
 }
 
+def generate_domaincode_file(outpath=None):
+    """
+    Generate a json dict within a json dict beneath the key "domaincodes".
+    The k-v-pairs within represent the association between bat-device and
+    domaincode.
+    The only argument is the full path of the json file to generate.
+    This solution is expected to be temporary and is matter to be removed,
+    as soon as https://github.com/freifunk-gluon/gluon/issues/1974
+    is both decided on and implemented in gluon.
+    """
+    if None is outpath:
+        outpath="{}/domaincodes.json".format(THIS_DIR)
+
+    interface_pattern="bat{}"
+    domaincode_pattern="dom{}"
+
+    outdict = {"domaincodes": {}}
+    for ids in domains:
+        outdict["domaincodes"][interface_pattern.format(ids)]=domaincode_pattern.format(ids)
+
+    with open(outpath, 'w') as json_file:
+        json.dump(outdict, json_file)
+
 def render(id, names, seed, hide, port):
     j2_env = Environment(loader=FileSystemLoader(THIS_DIR),
                          trim_blocks=True)
@@ -120,6 +145,18 @@ def render(id, names, seed, hide, port):
 
 if __name__ == '__main__':
 
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dcf', nargs='?', default="NOT_GIVEN", metavar='DCF_PATH')
+
+    args = parser.parse_args()
+
+    # if --dcf is given generate the domaincode-file
+    if "NOT_GIVEN" != args.dcf:
+        generate_domaincode_file(args.dcf)
+        exit()
+
+    # else head back to usual business and generate dom.confs
     for id, values in domains.items():
         primary_code = 'dom' + str(id)
         primary_name = 'Domain ' + str(id)
