@@ -4,7 +4,6 @@ import argparse
 import os
 import hashlib
 import json
-from jinja2 import Environment, FileSystemLoader
 
 # Capture our current directory
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -108,6 +107,7 @@ domains = {
     99: { "names": { "leetfeld": "Leetfeld (1337, invalid)"}, "hide": True }
 }
 
+
 def generate_domaincode_file(outpath=None):
     """
     Generate a json dict within a json dict beneath the key "domaincodes".
@@ -119,19 +119,23 @@ def generate_domaincode_file(outpath=None):
     is both decided on and implemented in gluon.
     """
     if None is outpath:
-        outpath="{}/domaincodes.json".format(THIS_DIR)
+        outpath = "{}/domaincodes.json".format(THIS_DIR)
 
-    interface_pattern="bat{}"
-    domaincode_pattern="dom{}"
+    interface_pattern = "bat{}"
+    domaincode_pattern = "dom{}"
 
     outdict = {"domaincodes": {}}
     for ids in domains:
-        outdict["domaincodes"][interface_pattern.format(ids)]=domaincode_pattern.format(ids)
+        outdict["domaincodes"][interface_pattern.format(ids)]\
+                = domaincode_pattern.format(ids)
 
     with open(outpath, 'w') as json_file:
         json.dump(outdict, json_file)
 
+
 def render(id, names, seed, hide, port):
+    from jinja2 import Environment, FileSystemLoader
+
     j2_env = Environment(loader=FileSystemLoader(THIS_DIR),
                          trim_blocks=True)
     return j2_env.get_template('template.j2').render(
@@ -143,11 +147,11 @@ def render(id, names, seed, hide, port):
         port=port
     )
 
+
 if __name__ == '__main__':
-
-
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dcf', nargs='?', default="NOT_GIVEN", metavar='DCF_PATH')
+    parser.add_argument('--dcf', nargs='?',
+                        default="NOT_GIVEN", metavar='DCF_PATH')
 
     args = parser.parse_args()
 
