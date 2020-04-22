@@ -1,20 +1,20 @@
-From 6d36ed9d00f4f301819958e049e3c5f573cb2a23 Mon Sep 17 00:00:00 2001
+From ed474f03e387879276a25991b569e1b0bcb83869 Mon Sep 17 00:00:00 2001
 From: Dark4MD <github.web@manu.li>
-Date: Tue, 18 Jun 2019 10:30:59 +0200
-Subject: [PATCH] added TP-Link TL-WR841ND/N Devices for 8M and 16M Variants
+Date: Sun, 19 Apr 2020 16:39:18 +0200
+Subject: [PATCH 1/1] added TP-Link TL-WR841ND/N Devices for 8M and 16M
+ Variants
 
 ---
- ...nk-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch | 116 +++++++++++++++++++++
- targets/ar71xx-generic                             |  31 ++++++
+ ...-WR841ND-N-Devices-for-8M-and-16M-Va.patch | 116 ++++++++++++++++++
+ targets/ar71xx-generic                        |  31 +++++
  2 files changed, 147 insertions(+)
- create mode 100755 patches/openwrt/0022-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
- mode change 100644 => 100755 targets/ar71xx-generic
+ create mode 100644 patches/openwrt/0010-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
 
-diff --git a/patches/openwrt/0022-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch b/patches/openwrt/0022-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
-new file mode 100755
-index 00000000..52190675
+diff --git a/patches/openwrt/0010-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch b/patches/openwrt/0010-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
+new file mode 100644
+index 00000000..bd01fb1f
 --- /dev/null
-+++ b/patches/openwrt/0022-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
++++ b/patches/openwrt/0010-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
 @@ -0,0 +1,116 @@
 +From 2734fb40ac15f8db6eadbbd9e3438b7077876424 Mon Sep 17 00:00:00 2001
 +From: Dark4MD <github.web@manu.li>
@@ -133,13 +133,11 @@ index 00000000..52190675
 +2.11.0
 +
 diff --git a/targets/ar71xx-generic b/targets/ar71xx-generic
-old mode 100644
-new mode 100755
-index 9f62917f..1bc4cef8
+index 04d798ab..8792e1fe 100644
 --- a/targets/ar71xx-generic
 +++ b/targets/ar71xx-generic
-@@ -347,6 +347,37 @@ device('tp-link-re450', 're450-v1', {
- 	packages = ATH10K_PACKAGES,
+@@ -361,6 +361,37 @@ device('tp-link-re450', 're450-v1', {
+ 	class = 'tiny', -- Only 6M of usable Firmware space
  })
  
 +device('tp-link-tl-wr841n-nd-mod-8m-v8', 'tl-wr841-v8-8m', {
@@ -177,5 +175,5 @@ index 9f62917f..1bc4cef8
  -- Ubiquiti
  
 -- 
-2.11.0
+2.26.0.windows.1
 
