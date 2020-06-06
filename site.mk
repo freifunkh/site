@@ -34,7 +34,6 @@ GLUON_SITE_PACKAGES := \
 	ffho-autoupdater-wifi-fallback \
 	ffho-web-autoupdater \
 	haveged \
-	iptables \
 	iwinfo \
 	gluon-segment-mover \
 	ecdsautils \
