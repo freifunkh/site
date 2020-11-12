@@ -41,6 +41,10 @@ GLUON_SITE_PACKAGES := \
 	respondd-module-airtime \
 	ffh-cli-scripts
 
+
+GLUON_SITE_PACKAGES_standard := \
+	iperf3
+
 ##	GLUON_MULTIDOMAIN
 #		Build gluon with multidomain support.
 
