@@ -19,7 +19,8 @@ GLUON_FEATURES := \
 	status-page \
 	web-advanced \
 	web-private-wifi \
-	web-wizard
+	web-wizard \
+	mesh-vpn-wireguard-vxlan
 
 ##	GLUON_SITE_PACKAGES
 #		Specify additional Gluon/OpenWrt packages to include here;
