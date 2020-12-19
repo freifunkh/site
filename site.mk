@@ -30,8 +30,11 @@ GLUON_FEATURES := \
 
 ##	When removing ffho-web-autoupdater, remember to readd gluon-web-autoupdater again
 
+##	mesh-vpn-wireguard-vxlan does conatin copy-paste-code from gluon-config-mode-mesh-vpn, whichs breaks the build process
+
 GLUON_SITE_PACKAGES := \
 	-gluon-web-autoupdater \
+	-gluon-config-mode-mesh-vpn \
 	ffho-autoupdater-wifi-fallback \
 	ffho-web-autoupdater \
 	haveged \
