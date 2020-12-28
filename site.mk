@@ -177,7 +177,7 @@ GLUON_REGION ?= eu
 GLUON_LANGS ?= de en fr
 
 # Do not build images for deprecated devices
-GLUON_DEPRECATED ?= upgrade
+GLUON_DEPRECATED ?= 0
 
 # Set default branch for building custom images
 GLUON_BRANCH ?= experimental
