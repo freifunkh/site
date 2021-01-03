@@ -134,7 +134,7 @@ def generate_domaincode_file(outpath=None):
         json.dump(outdict, json_file)
 
 
-def render(id, names, seed, hide, port):
+def render(id, names, seed, hide, port, wgport):
     from jinja2 import Environment, FileSystemLoader
 
     j2_env = Environment(loader=FileSystemLoader(THIS_DIR),
@@ -145,7 +145,8 @@ def render(id, names, seed, hide, port):
         seed=seed,
         hide=hide,
         str=str,
-        port=port
+        port=port,
+        wgport=wgport
     )
 
 
@@ -173,6 +174,7 @@ if __name__ == '__main__':
 
         hide = values.get('hide', False)
         port = values.get('port', 10000 + id)
+        wgport = values.get('wgport', 51800 + id)
 
         with open(THIS_DIR + '/' + primary_code + '.conf', 'w') as f:
-            f.write(render(id, names, seed, hide, port))
+            f.write(render(id, names, seed, hide, port, wgport))
