@@ -11,7 +11,7 @@ GLUON_FEATURES := \
 	ebtables-filter-ra-dhcp \
 	ebtables-limit-arp \
 	mesh-batman-adv-15 \
-	mesh-vpn-fastd \
+	mesh-vpn-tunneldigger \
 	radv-filterd \
 	radvd \
 	respondd \
@@ -30,9 +30,7 @@ GLUON_FEATURES := \
 ##	When removing ffho-web-autoupdater, remember to readd gluon-web-autoupdater again
 
 GLUON_SITE_PACKAGES := \
-	-gluon-web-autoupdater \
-	ffho-autoupdater-wifi-fallback \
-	ffho-web-autoupdater \
+	gluon-web-autoupdater \
 	haveged \
 	iwinfo \
 	gluon-segment-mover \

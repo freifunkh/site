@@ -144,7 +144,8 @@ def render(id, names, seed, hide, port):
         seed=seed,
         hide=hide,
         str=str,
-        port=port
+        port=port,
+        l2tp_port=port+1000,
     )
 
 
