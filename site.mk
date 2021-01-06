@@ -5,6 +5,7 @@
 
 GLUON_FEATURES := \
 	autoupdater \
+	authorized-keys \
 	config-mode-domain-select \
 	config-mode-geo-location-osm \
 	ebtables-filter-multicast \
