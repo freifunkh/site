@@ -175,4 +175,4 @@ GLUON_LANGS ?= de en fr
 GLUON_DEPRECATED ?= upgrade
 
 # Set default branch for building custom images
-GLUON_BRANCH ?= experimental
+GLUON_BRANCH ?= next
