@@ -1,0 +1,88 @@
+From 660566dbd66015765e6b66e3f8519c33f473c6ad Mon Sep 17 00:00:00 2001
+From: Sebastian Schaper <openwrt@sebastianschaper.net>
+Date: Thu, 4 Feb 2021 21:38:14 +0100
+Subject: [PATCH] ath79-generic: add support for a few D-Link devices
+
+fixed factory image suffix (.img) for D-Link DAP devices
+
+Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
+---
+ targets/ath79-generic | 55 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
+
+diff --git a/targets/ath79-generic b/targets/ath79-generic
+index 38388ec6..71b7bfc3 100644
+--- a/targets/ath79-generic
++++ b/targets/ath79-generic
+@@ -22,6 +22,14 @@ local ATH10K_PACKAGES_QCA9888 = {
+ 	'-ath10k-firmware-qca9888-ct',
+ }
+ 
++local ATH10K_PACKAGES_QCA9980 = {
++	'kmod-ath10k',
++	'-kmod-ath10k-ct',
++	'-kmod-ath10k-ct-smallbuffers',
++	'ath10k-firmware-qca99x0',
++	'-ath10k-firmware-qca99x0-ct',
++}
++
+ -- devolo
+ 
+ device('devolo-wifi-pro-1200e', 'devolo_dvl1200e', {
+@@ -54,6 +62,53 @@ device('devolo-wifi-pro-1750x', 'devolo_dvl1750x', {
+ 	factory = false,
+ })
+ 
++-- D-Link
++
++device('dlink-dap-1330-a1', 'dlink_dap-1330-a1')
++
++device('dlink-dap-1365-a1', 'dlink_dap-1365-a1')
++
++device('dlink-dap-2230-a1', 'dlink_dap-2230-a1', {
++	factory_ext = '.img',
++})
++
++device('dlink-dap-2660-a1', 'dlink_dap-2660-a1', {
++	factory_ext = '.img',
++	packages = ATH10K_PACKAGES_QCA9880,
++})
++
++device('dlink-dap-2680-a1', 'dlink_dap-2680-a1', {
++	factory_ext = '.img',
++	packages = ATH10K_PACKAGES_QCA9980,
++})
++
++device('dlink-dap-2695-a1', 'dlink_dap-2695-a1', {
++	factory_ext = '.img',
++	packages = ATH10K_PACKAGES_QCA9880,
++})
++
++device('dlink-dap-3320-a1', 'dlink_dap-3320-a1', {
++	factory_ext = '.img',
++})
++
++device('dlink-dch-g020-a1', 'dlink_dch-g020-a1')
++
++device('dlink-dir-842-c1', 'dlink_dir-842-c1', {
++	packages = ATH10K_PACKAGES_QCA9888,
++})
++
++device('dlink-dir-842-c1', 'dlink_dir-842-c2', {
++	packages = ATH10K_PACKAGES_QCA9888,
++})
++
++device('dlink-dir-842-c1', 'dlink_dir-842-c3', {
++	packages = ATH10K_PACKAGES_QCA9888,
++})
++
++device('dlink-dir-859-a1', 'dlink_dir-859-a1', {
++	packages = ATH10K_PACKAGES_QCA9880,
++})
++
+ -- GL.iNet
+ 
+ device('gl.inet-gl-ar300m-lite', 'glinet_gl-ar300m-lite', {
+-- 
+2.25.1
+
