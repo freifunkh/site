@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# coding: utf8
 
 import argparse
 import os
@@ -10,8 +11,8 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 h = "Hannover: "
 domains = {
-    0: { "names": { "legacy": "Legacy" } },
-    10: { "names": { "hameln": "Hameln", "alfeld": "Alfeld" }, },
+    0: { "names": { "legacy": "Legacy" }, "hide": True },
+    10: { "names": { "hameln": "Hameln", "alfeld": "Alfeld", "unconfigured": "Bitte auswählen" }, },
     11: { "names": { "lenthe": "Lenthe" } },
     12: { "names": { "steinhude": "Steinhude" } },
     13: { "names": { "springe": "Springe", "obernkirchen": "Obernkirchen" } },
