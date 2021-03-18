@@ -1,9 +1,10 @@
-From 660566dbd66015765e6b66e3f8519c33f473c6ad Mon Sep 17 00:00:00 2001
+From 049702deaeb03abb5352acf656fd59d9908e91d8 Mon Sep 17 00:00:00 2001
 From: Sebastian Schaper <openwrt@sebastianschaper.net>
 Date: Thu, 4 Feb 2021 21:38:14 +0100
 Subject: [PATCH] ath79-generic: add support for a few D-Link devices
 
-fixed factory image suffix (.img) for D-Link DAP devices
+- fixed factory image suffix (.img) for D-Link DAP devices
+- fixed build for DIR-842 revisions C2 and C3
 
 Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
 ---
@@ -11,7 +12,7 @@ Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
  1 file changed, 55 insertions(+)
 
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index 38388ec6..71b7bfc3 100644
+index 38388ec6..b66b2d84 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
 @@ -22,6 +22,14 @@ local ATH10K_PACKAGES_QCA9888 = {
@@ -68,11 +69,11 @@ index 38388ec6..71b7bfc3 100644
 +	packages = ATH10K_PACKAGES_QCA9888,
 +})
 +
-+device('dlink-dir-842-c1', 'dlink_dir-842-c2', {
++device('dlink-dir-842-c2', 'dlink_dir-842-c2', {
 +	packages = ATH10K_PACKAGES_QCA9888,
 +})
 +
-+device('dlink-dir-842-c1', 'dlink_dir-842-c3', {
++device('dlink-dir-842-c3', 'dlink_dir-842-c3', {
 +	packages = ATH10K_PACKAGES_QCA9888,
 +})
 +
