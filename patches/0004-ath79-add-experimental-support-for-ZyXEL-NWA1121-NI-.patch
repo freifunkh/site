@@ -1,4 +1,4 @@
-From 328ff0919ff07284a6a0c881c935868a88505814 Mon Sep 17 00:00:00 2001
+From 68ff78badfd9ed6ce850eabf3922b3d888a632a9 Mon Sep 17 00:00:00 2001
 From: Sebastian Schaper <openwrt@sebastianschaper.net>
 Date: Thu, 18 Mar 2021 19:33:04 +0100
 Subject: [PATCH] ath79: add experimental support for ZyXEL NWA1121-NI /
@@ -14,8 +14,8 @@ Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
 ---
  ...h79-add-support-for-ZyXEL-NWA1121-NI.patch | 289 ++++++++++++++++++
  ...h79-add-support-for-ZyXEL-NWA1123-NI.patch | 273 +++++++++++++++++
- targets/ath79-generic                         |   6 +
- 3 files changed, 568 insertions(+)
+ targets/ath79-generic                         |  10 +
+ 3 files changed, 572 insertions(+)
  create mode 100644 patches/openwrt/0025-ath79-add-support-for-ZyXEL-NWA1121-NI.patch
  create mode 100644 patches/openwrt/0026-ath79-add-support-for-ZyXEL-NWA1123-NI.patch
 
@@ -594,19 +594,23 @@ index 00000000..d33043f3
 +2.25.1
 +
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index 246baabc..5724b98a 100644
+index 246baabc..06aeccea 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
-@@ -94,3 +94,9 @@ device('tp-link-cpe220-v3', 'tplink_cpe220-v3')
+@@ -94,3 +94,13 @@ device('tp-link-cpe220-v3', 'tplink_cpe220-v3')
  device('tp-link-tl-wdr3600-v1', 'tplink_tl-wdr3600-v1')
  
  device('tp-link-tl-wdr4300-v1', 'tplink_tl-wdr4300-v1')
 +
 +-- ZyXEL
 +
-+device('zyxel-nwa1121-ni', 'zyxel_nwa1121-ni')
++device('zyxel-nwa1121-ni', 'zyxel_nwa1121-ni', {
++	factory_ext = '-AABJ.bin',
++})
 +
-+device('zyxel-nwa1123-ni', 'zyxel_nwa1123-ni')
++device('zyxel-nwa1123-ni', 'zyxel_nwa1123-ni', {
++	factory_ext = '-AAEO.bin',
++})
 -- 
 2.25.1
 
