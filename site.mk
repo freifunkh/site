@@ -14,6 +14,7 @@ GLUON_FEATURES := \
 	mesh-batman-adv-15 \
 	mesh-vpn-fastd \
 	radv-filterd \
+	acme \
 	radvd \
 	respondd \
 	setup-mode \
