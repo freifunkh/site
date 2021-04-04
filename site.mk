@@ -15,6 +15,7 @@ GLUON_FEATURES := \
 	mesh-vpn-fastd \
 	radv-filterd \
 	acme \
+	controller \
 	radvd \
 	respondd \
 	setup-mode \
