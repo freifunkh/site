@@ -1,0 +1,33 @@
+From 334911ba9b5ee001745a77c37363e27fc3bb8d5e Mon Sep 17 00:00:00 2001
+From: Sebastian Schaper <openwrt@sebastianschaper.net>
+Date: Thu, 22 Apr 2021 22:44:51 +0200
+Subject: [PATCH] ramips: add experimental support for Cudy WR-1300
+
+- fix factory = false
+
+Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
+---
+ targets/ramips-mt7621 | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/targets/ramips-mt7621 b/targets/ramips-mt7621
+index 356af6ea..ab173ea1 100644
+--- a/targets/ramips-mt7621
++++ b/targets/ramips-mt7621
+@@ -10,6 +10,13 @@ device('asus-rt-ac57u', 'asus_rt-ac57u', {
+ device('d-link-dir-860l-b1', 'dlink_dir-860l-b1')
+ 
+ 
++-- Cudy
++
++device('cudy-wr1300', 'cudy_wr1300', {
++	factory = false,
++})
++
++
+ -- Netgear
+ 
+ device('netgear-ex6150', 'netgear_ex6150', {
+-- 
+2.25.1
+
