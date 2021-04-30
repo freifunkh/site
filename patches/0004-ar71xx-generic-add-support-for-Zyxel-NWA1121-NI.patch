@@ -1,0 +1,250 @@
+From dec1b8fd9f0ea26a2e94c93f98f3fd2cbbc8c83d Mon Sep 17 00:00:00 2001
+From: Vincent Wiemann <vincent.wiemann@ironai.com>
+Date: Sat, 22 Jun 2019 00:39:03 +0200
+Subject: [PATCH] ar71xx-generic: add support for Zyxel NWA1121-NI
+
+Because we've a bunch of them lying around.
+---
+ ...-generic-add-support-for-Zyxel-NWA1121-NI.patch | 217 +++++++++++++++++++++
+ targets/ar71xx-generic                             |   4 +
+ 2 files changed, 221 insertions(+)
+ create mode 100644 patches/openwrt/0023-ar71xx-generic-add-support-for-Zyxel-NWA1121-NI.patch
+
+diff --git a/patches/openwrt/0023-ar71xx-generic-add-support-for-Zyxel-NWA1121-NI.patch b/patches/openwrt/0023-ar71xx-generic-add-support-for-Zyxel-NWA1121-NI.patch
+new file mode 100644
+index 0000000..a9494cc
+--- /dev/null
++++ b/patches/openwrt/0023-ar71xx-generic-add-support-for-Zyxel-NWA1121-NI.patch
+@@ -0,0 +1,217 @@
++From: Vincent Wiemann <vincent.wiemann@ironai.com>
++Date: Sat, 22 Jun 2019 00:23:20 +0200
++Subject: ar71xx-generic: add support for Zyxel NWA1121-NI
++
++Because we've a bunch of them lying around.
++
++diff --git a/target/linux/ar71xx/base-files/lib/ar71xx.sh b/target/linux/ar71xx/base-files/lib/ar71xx.sh
++index 3f6df22ca9cd6c46c49f47facc6b808713d52203..7764a211acaf3db531dc1a782b9536b46d228f09 100755
++--- a/target/linux/ar71xx/base-files/lib/ar71xx.sh
+++++ b/target/linux/ar71xx/base-files/lib/ar71xx.sh
++@@ -786,6 +786,9 @@ ar71xx_board_detect() {
++ 	*"HiWiFi HC6361")
++ 		name="hiwifi-hc6361"
++ 		;;
+++	*"Zyxel NWA1121")
+++		name="nwa1121"
+++		;;
++ 	*"Hornet-UB")
++ 		local size="$(mtd_get_part_size 'firmware')"
++ 
++diff --git a/target/linux/ar71xx/base-files/lib/upgrade/platform.sh b/target/linux/ar71xx/base-files/lib/upgrade/platform.sh
++index ca1270b7fdc84c53f8417c226f18ca4fff1f27d8..c5f1480c7131d3ac5be30d534bd6b11b845b3fb6 100755
++--- a/target/linux/ar71xx/base-files/lib/upgrade/platform.sh
+++++ b/target/linux/ar71xx/base-files/lib/upgrade/platform.sh
++@@ -379,6 +379,7 @@ platform_check_image() {
++ 	ja76pf2|\
++ 	jwap003|\
++ 	ls-sr71|\
+++	nwa1121|\
++ 	pb42|\
++ 	pb44|\
++ 	routerstation|\
++@@ -701,6 +702,7 @@ platform_check_image() {
++ 	fritz4020|\
++ 	fritz450e|\
++ 	koala|\
+++	nwa1121|\
++ 	rb-750-r2|\
++ 	rb-750p-pbr2|\
++ 	rb-750up-r2|\
++diff --git a/target/linux/ar71xx/files/arch/mips/ath79/Kconfig.openwrt b/target/linux/ar71xx/files/arch/mips/ath79/Kconfig.openwrt
++index 1d0e3d910d42ab87af8481d6d13a79949d68e41b..9efd31abbe366410e6ef1a1b1bcdfb42e835b3af 100644
++--- a/target/linux/ar71xx/files/arch/mips/ath79/Kconfig.openwrt
+++++ b/target/linux/ar71xx/files/arch/mips/ath79/Kconfig.openwrt
++@@ -2419,3 +2419,15 @@ config ATH79_MACH_FRITZ450E
++ 	select ATH79_DEV_LEDS_GPIO
++ 	select ATH79_DEV_M25P80
++ 	select ATH79_DEV_WMAC
+++
+++config ATH79_MACH_NWA1121
+++	bool "Zyxel NWA1121 support"
+++	select SOC_AR934X
+++	select ATH79_DEV_AP9X_PCI if PCI
+++	select ATH79_DEV_ETH
+++	select ATH79_DEV_GPIO_BUTTONS
+++	select ATH79_DEV_LEDS_GPIO
+++	select ATH79_DEV_M25P80
+++	select ATH79_DEV_USB
+++	select ATH79_DEV_WMAC
+++	select ATH79_DEV_NVRAM
++diff --git a/target/linux/ar71xx/files/arch/mips/ath79/Makefile b/target/linux/ar71xx/files/arch/mips/ath79/Makefile
++index 8800a7de1020062cbf4f25cf507ed9b1fbe78da0..667eb01115b2b2c04acbd7a36230c69a3057abb3 100644
++--- a/target/linux/ar71xx/files/arch/mips/ath79/Makefile
+++++ b/target/linux/ar71xx/files/arch/mips/ath79/Makefile
++@@ -165,6 +165,7 @@ obj-$(CONFIG_ATH79_MACH_MZK_W300NH)		+= mach-mzk-w300nh.o
++ obj-$(CONFIG_ATH79_MACH_N5Q)			+= mach-n5q.o
++ obj-$(CONFIG_ATH79_MACH_NBG460N)		+= mach-nbg460n.o
++ obj-$(CONFIG_ATH79_MACH_NBG6716)		+= mach-nbg6716.o
+++obj-$(CONFIG_ATH79_MACH_NWA1121)		+= mach-nwa1121.o
++ obj-$(CONFIG_ATH79_MACH_RAMBUTAN)		+= mach-rambutan.o
++ obj-$(CONFIG_ATH79_MACH_OM2P)			+= mach-om2p.o
++ obj-$(CONFIG_ATH79_MACH_OM5P)			+= mach-om5p.o
++diff --git a/target/linux/ar71xx/files/arch/mips/ath79/mach-nwa1121.c b/target/linux/ar71xx/files/arch/mips/ath79/mach-nwa1121.c
++new file mode 100644
++index 0000000000000000000000000000000000000000..3cd69c96ae18aefcf35e2957a5341bbd3fa91e8d
++--- /dev/null
+++++ b/target/linux/ar71xx/files/arch/mips/ath79/mach-nwa1121.c
++@@ -0,0 +1,105 @@
+++/*
+++ *  Zyxel NWA1121-NI support
+++ *  Alex Prokofiev <alexpro at itp.ac.ru>
+++ *
+++ *  This program is free software; you can redistribute it and/or modify it
+++ *  under the terms of the GNU General Public License version 2 as published
+++ *  by the Free Software Foundation.
+++ */
+++
+++#include <linux/pci.h>
+++#include <linux/phy.h>
+++#include <linux/platform_device.h>
+++#include <linux/ath9k_platform.h>
+++#include <linux/ar8216_platform.h>
+++
+++#include <asm/mach-ath79/ar71xx_regs.h>
+++
+++#include "common.h"
+++#include "dev-ap9x-pci.h"
+++#include "dev-eth.h"
+++#include "dev-gpio-buttons.h"
+++#include "dev-leds-gpio.h"
+++#include "dev-m25p80.h"
+++#include "dev-spi.h"
+++#include "dev-wmac.h"
+++#include "machtypes.h"
+++#include "nvram.h"
+++
+++#define NWA1121_GPIO_RESET    4
+++#define NWA1121_GPIO_ORANGE    11
+++#define NWA1121_GPIO_GREEN    12
+++
+++#define NWA1121_ENV            0x1ffe0000
+++#define NWA1121_ART            0x1fff1000
+++
+++
+++static const char *nwa1121_part_probes[] = {
+++    "cmdlinepart",
+++    NULL,
+++};
+++
+++static struct flash_platform_data nwa1121_flash_data = {
+++    .part_probes    = nwa1121_part_probes,
+++};
+++
+++static struct gpio_led nwa1121_leds_gpio[] __initdata = {
+++    {
+++        .name        = "zyxel:orange",
+++        .gpio        = NWA1121_GPIO_ORANGE,
+++        .active_low    = 1,
+++    }, {
+++        .name        = "zyxel:green",
+++        .gpio        = NWA1121_GPIO_GREEN,
+++        .active_low    = 1,
+++    }
+++};
+++
+++static struct gpio_keys_button nwa1121_gpio_keys[] __initdata = {
+++    {
+++        .desc        = "reset",
+++        .type        = EV_KEY,
+++        .code        = KEY_RESTART,
+++        .gpio        = NWA1121_GPIO_RESET,
+++        .debounce_interval = 60,
+++        .active_low    = 1,
+++    }
+++};
+++
+++static int nwa1121_get_env(const char *name, char *mac)
+++{
+++    u8 *env = (u8 *) KSEG1ADDR(NWA1121_ENV);
+++    return ath79_nvram_parse_mac_addr(env, 0x10000, name, mac);
+++}
+++
+++static void __init nwa1121_setup(void)
+++{
+++    u8 *ee = (u8 *) KSEG1ADDR(NWA1121_ART);
+++    u8 wifi0mac[ETH_ALEN];
+++    u8 eth0mac[ETH_ALEN];
+++
+++    ath79_register_m25p80(&nwa1121_flash_data);
+++
+++    ath79_register_leds_gpio(-1, ARRAY_SIZE(nwa1121_leds_gpio), nwa1121_leds_gpio);
+++    ath79_register_gpio_keys_polled(-1, 20, ARRAY_SIZE(nwa1121_gpio_keys), nwa1121_gpio_keys);
+++
+++    nwa1121_get_env("wifi0mac=", wifi0mac);
+++    ath79_register_wmac(ee, wifi0mac);
+++
+++    ath79_setup_ar934x_eth_cfg(AR934X_ETH_CFG_RGMII_GMAC0 /* | AR934X_ETH_CFG_SW_ONLY_MODE */);
+++    ath79_setup_ar934x_eth_rx_delay(1, 1);
+++    ath79_register_mdio(0, 0x0);
+++
+++    nwa1121_get_env("eth0mac=", eth0mac);
+++    ath79_init_mac(ath79_eth0_data.mac_addr, eth0mac, 0);
+++
+++    ath79_eth0_data.phy_if_mode = PHY_INTERFACE_MODE_RGMII;
+++    ath79_eth0_data.phy_mask = BIT(0);
+++    ath79_eth0_data.mii_bus_dev = &ath79_mdio0_device.dev;
+++    ath79_eth0_pll_data.pll_1000 = 0x0e000000;
+++    ath79_eth0_data.speed = SPEED_1000;
+++    ath79_register_eth(0);
+++}
+++
+++MIPS_MACHINE(ATH79_MACH_NWA1121, "NWA1121",
+++        "ZYXEL NWA1121", nwa1121_setup);
++diff --git a/target/linux/ar71xx/files/arch/mips/ath79/machtypes.h b/target/linux/ar71xx/files/arch/mips/ath79/machtypes.h
++index 80f6e1d95b7a4e5559e7d5da041b32d962ad4e84..8b71915ec69619eb86ce3400ad3b14da3da3a42b 100644
++--- a/target/linux/ar71xx/files/arch/mips/ath79/machtypes.h
+++++ b/target/linux/ar71xx/files/arch/mips/ath79/machtypes.h
++@@ -168,6 +168,7 @@ enum ath79_mach_type {
++ 	ATH79_MACH_NBG460N,			/* Zyxel NBG460N/550N/550NH */
++ 	ATH79_MACH_NBG6616,			/* Zyxel NBG6616 */
++ 	ATH79_MACH_NBG6716,			/* Zyxel NBG6716 */
+++	ATH79_MACH_NWA1121,			/* Zyxel NWA1121-NI */
++ 	ATH79_MACH_OM2P,			/* OpenMesh OM2P */
++ 	ATH79_MACH_OM2Pv2,			/* OpenMesh OM2Pv2 */
++ 	ATH79_MACH_OM2Pv4,			/* OpenMesh OM2Pv4 */
++diff --git a/target/linux/ar71xx/image/generic.mk b/target/linux/ar71xx/image/generic.mk
++index 4568b656219419e9ca1156c6716bd2124074cb32..98e2bf0faa7d1c9c5c9727e88393e4a142cf1441 100644
++--- a/target/linux/ar71xx/image/generic.mk
+++++ b/target/linux/ar71xx/image/generic.mk
++@@ -1251,6 +1251,17 @@ define Device/bhr-4grv2
++ endef
++ TARGET_DEVICES += bhr-4grv2
++ 
+++define Device/nwa1121
+++  DEVICE_TITLE := Zyxel NWA1121
+++  BOARDNAME := NWA1121
+++  ROOTFS_SIZE := 8192k
+++  KERNEL_SIZE := 7488k
+++  IMAGE_SIZE := 15680k
+++  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,8192k(rootfs),2m(kernel),5440k(reserve),256k(config),64k(mib0),64k(art)ro
+++  IMAGE/sysupgrade.bin := append-rootfs | pad-rootfs | combined-image
+++endef
+++TARGET_DEVICES += nwa1121
+++
++ define Device/wam250
++   DEVICE_TITLE := Samsung WAM250
++   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 -swconfig
+diff --git a/targets/ar71xx-generic b/targets/ar71xx-generic
+index 57333cd..6046959 100755
+--- a/targets/ar71xx-generic
++++ b/targets/ar71xx-generic
+@@ -446,3 +446,7 @@ device('wd-my-net-n750', 'mynet-n750')
+ device('zyxel-nbg6616', 'NBG6616', {
+ 	packages = ATH10K_PACKAGES,
+ })
++
++device('zyxel-nwa1121', 'nwa1121', {
++	factory = false,
++})
+-- 
+2.1.4
+
