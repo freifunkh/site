@@ -1179,7 +1179,7 @@ index c30d24a2..a91b1a64 100644
 +
 +device('tp-link-tl-wr841n-nd-mod-ath79-16m-v11', 'tplink_tl-wr841-v11-16m', {
 +        factory = false,
-+        aliases = {'tp-link-tl-wr841n-nd-mod-16m-v11''},
++        aliases = {'tp-link-tl-wr841n-nd-mod-16m-v11'},
 +})
 -- 
 2.29.2.windows.2
