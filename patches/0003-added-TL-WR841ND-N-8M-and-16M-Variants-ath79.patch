@@ -127,7 +127,7 @@ index 00000000..1c2520bb
 ++#include "ar9341.dtsi"
 ++
 ++/ {
-++	model = "TP-Link TL-WR841N/ND Mod (16M) v8";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 16M) v8";
 ++	compatible = "tplink,tl-wr841-v8-16m", "qca,ar9341";
 ++
 ++	aliases {
@@ -298,7 +298,7 @@ index 00000000..1c2520bb
 ++#include "ar9341.dtsi"
 ++
 ++/ {
-++	model = "TP-Link TL-WR841N/ND Mod (8M) v8";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 8M) v8";
 ++	compatible = "tplink,tl-wr841-v8-8m", "qca,ar9341";
 ++
 ++	aliases {
@@ -735,7 +735,7 @@ index 00000000..1c2520bb
 ++
 ++/ {
 ++	compatible = "tplink,tl-wr841-v10-16m", "qca,qca9533";
-++	model = "TP-Link TL-WR841N/ND Mod (16M) v10";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 16M) v10";
 ++
 ++	aliases {
 ++		led-boot = &qss_led;
@@ -757,7 +757,7 @@ index 00000000..1c2520bb
 ++
 ++/ {
 ++	compatible = "tplink,tl-wr841-v10-8m", "qca,qca9533";
-++	model = "TP-Link TL-WR841N/ND Mod (8M) v10";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 8M) v10";
 ++
 ++	aliases {
 ++		led-boot = &qss_led;
@@ -779,7 +779,7 @@ index 00000000..1c2520bb
 ++
 ++/ {
 ++	compatible = "tplink,tl-wr841-v11-16m", "qca,qca9533";
-++	model = "TP-Link TL-WR841N/ND Mod (16M) v11";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 16M) v11";
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi
 +new file mode 100644
@@ -825,7 +825,7 @@ index 00000000..1c2520bb
 ++
 ++/ {
 ++	compatible = "tplink,tl-wr841-v11-8m", "qca,qca9533";
-++	model = "TP-Link TL-WR841N/ND Mod (8M) v11";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 8M) v11";
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi
 +new file mode 100644
@@ -871,7 +871,7 @@ index 00000000..1c2520bb
 ++
 ++/ {
 ++	compatible = "tplink,tl-wr841-v9-16m", "qca,qca9533";
-++	model = "TP-Link TL-WR841N/ND Mod (16M) v9";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 16M) v9";
 ++
 ++	aliases {
 ++		led-boot = &qss_led;
@@ -893,7 +893,7 @@ index 00000000..1c2520bb
 ++
 ++/ {
 ++	compatible = "tplink,tl-wr841-v9-8m", "qca,qca9533";
-++	model = "TP-Link TL-WR841N/ND Mod (8M) v9";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 8M) v9";
 ++
 ++	aliases {
 ++		led-boot = &qss_led;
