@@ -1,25 +1,146 @@
-From 9973594f5791617a66df72a8363813d3b0a926dc Mon Sep 17 00:00:00 2001
+From e1447264ec38e3c01e8edce40d6918045b72a7a3 Mon Sep 17 00:00:00 2001
 From: Dark4MD <github.web@manu.li>
-Date: Sun, 2 Feb 2020 21:06:56 +0100
-Subject: [PATCH] openwrt: added TL-WR841ND/N 8M and 16M Variants to
- ath79
+Date: Sat, 12 Jun 2021 03:19:40 +0200
+Subject: [PATCH] added TL-WR841ND/N 8M and 16M Variants migration to ath79
 
 Added TL-WR841ND/N 8M and 16M v9-v11 Variants to ath79-generic (migration).
-V8 is not automatically migrated as of now because of some missing migration patches and stays at ar71xx-generic.
+V8 Variant is not automatically migrated as of now because of some missing migration patches and stays at ar71xx-generic if not updated to ath79 manually.
 ---
- ...841ND-N-8M-and-16M-Variants-to-ath79.patch | 973 ++++++++++++++++++
  ...-WR841ND-N-Devices-for-8M-and-16M-Va.patch | 116 +++
+ ...841ND-N-8M-and-16M-Variants-to-ath79.patch | 973 ++++++++++++++++++
  targets/ar71xx-generic                        |   8 +
- targets/ath79-generic                         |  38 +
- 4 files changed, 1135 insertions(+)
- create mode 100644 patches/openwrt/0013-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
- create mode 100644 patches/openwrt/0014-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
+ targets/ath79-generic                         |  32 +
+ 4 files changed, 1129 insertions(+)
+ create mode 100644 patches/openwrt/0023-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
+ create mode 100644 patches/openwrt/0024-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
 
-diff --git a/patches/openwrt/0013-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch b/patches/openwrt/0013-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
+diff --git a/patches/openwrt/0023-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch b/patches/openwrt/0023-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
 new file mode 100644
-index 00000000..1c2520bb
+index 00000000..bd01fb1f
 --- /dev/null
-+++ b/patches/openwrt/0013-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
++++ b/patches/openwrt/0023-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
+@@ -0,0 +1,116 @@
++From 2734fb40ac15f8db6eadbbd9e3438b7077876424 Mon Sep 17 00:00:00 2001
++From: Dark4MD <github.web@manu.li>
++Date: Fri, 22 Feb 2019 22:45:24 +0100
++Subject: [PATCH] added TP-Link TL-WR841ND/N Devices for 8M and 16M Variants
++
++---
++ target/linux/ar71xx/base-files/lib/ar71xx.sh |  6 +++
++ target/linux/ar71xx/image/generic-tp-link.mk | 74 ++++++++++++++++++++++++++++
++ 2 files changed, 80 insertions(+)
++ mode change 100644 => 100755 target/linux/ar71xx/image/generic-tp-link.mk
++
++diff --git a/target/linux/ar71xx/base-files/lib/ar71xx.sh b/target/linux/ar71xx/base-files/lib/ar71xx.sh
++index ccbd4e77c3..9c81ed75d0 100755
++--- a/target/linux/ar71xx/base-files/lib/ar71xx.sh
+++++ b/target/linux/ar71xx/base-files/lib/ar71xx.sh
++@@ -255,6 +255,12 @@ tplink_board_detect() {
++ 
++ 		[ "$hwid" = '08410002' -a "$mid" = '00000002' ] && hwver=' v1.5'
++ 		;;
+++	"084108"*)
+++		model="TP-Link TL-WR841N/ND Mod (8M)"
+++		;;
+++	"084116"*)
+++		model="TP-Link TL-WR841N/ND Mod (16M)"
+++		;;
++ 	"084200"*)
++ 		model="TP-Link TL-WR842N/ND"
++ 		;;
++diff --git a/target/linux/ar71xx/image/generic-tp-link.mk b/target/linux/ar71xx/image/generic-tp-link.mk
++old mode 100644
++new mode 100755
++index 338b2db2d6..4e5df2c742
++--- a/target/linux/ar71xx/image/generic-tp-link.mk
+++++ b/target/linux/ar71xx/image/generic-tp-link.mk
++@@ -529,3 +529,77 @@ define Device/tl-wr942n-v1
++   SUPPORTED_DEVICES := tl-wr942n-v1
++ endef
++ TARGET_DEVICES += tl-wr942n-v1
+++
+++define Device/tl-wr841-v8-8m
+++  $(Device/tplink-8mlzma)
+++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (8M) v8
+++  BOARDNAME := TL-WR841N-v8
+++  DEVICE_PROFILE := TLWR8418M
+++  TPLINK_HWID := 0x08410808
+++endef
+++TARGET_DEVICES += tl-wr841-v8-8m
+++
+++define Device/tl-wr841-v9-8m
+++  $(Device/tplink-8mlzma)
+++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (8M) v9
+++  BOARDNAME := TL-WR841N-v9
+++  DEVICE_PROFILE := TLWR8418M
+++  TPLINK_HWID := 0x08410809
+++endef
+++TARGET_DEVICES += tl-wr841-v9-8m
+++
+++define Device/tl-wr841-v10-8m
+++  $(Device/tl-wr841-v9-8m)
+++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (8M) v10
+++  TPLINK_HWID := 0x08410810
+++endef
+++TARGET_DEVICES += tl-wr841-v10-8m
+++
+++define Device/tl-wr841-v11-8m
+++  $(Device/tplink-8mlzma)
+++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (8M) v11
+++  BOARDNAME := TL-WR841N-v11
+++  DEVICE_PROFILE := TLWR8418M
+++  TPLINK_HWID := 0x08410811
+++  IMAGES += factory-us.bin factory-eu.bin
+++  IMAGE/factory-us.bin := append-rootfs | mktplinkfw factory -C US
+++  IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
+++endef
+++TARGET_DEVICES += tl-wr841-v11-8m
+++
+++define Device/tl-wr841-v8-16m
+++  $(Device/tplink-16mlzma)
+++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (16M) v8
+++  BOARDNAME := TL-WR841N-v8
+++  DEVICE_PROFILE := TLWR84116M
+++  TPLINK_HWID := 0x08411608
+++endef
+++TARGET_DEVICES += tl-wr841-v8-16m
+++
+++define Device/tl-wr841-v9-16m
+++  $(Device/tplink-16mlzma)
+++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (16M) v9
+++  BOARDNAME := TL-WR841N-v9
+++  DEVICE_PROFILE := TLWR84116M
+++  TPLINK_HWID := 0x08411609
+++endef
+++TARGET_DEVICES += tl-wr841-v9-16m
+++
+++define Device/tl-wr841-v10-16m
+++  $(Device/tl-wr841-v9-16m)
+++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (16M) v10
+++  TPLINK_HWID := 0x08411610
+++endef
+++TARGET_DEVICES += tl-wr841-v10-16m
+++
+++define Device/tl-wr841-v11-16m
+++  $(Device/tplink-16mlzma)
+++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (16M) v11
+++  BOARDNAME := TL-WR841N-v11
+++  DEVICE_PROFILE := TLWR84116M
+++  TPLINK_HWID := 0x08411611
+++  IMAGES += factory-us.bin factory-eu.bin
+++  IMAGE/factory-us.bin := append-rootfs | mktplinkfw factory -C US
+++  IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
+++endef
+++TARGET_DEVICES += tl-wr841-v11-16m
++\ No newline at end of file
++-- 
++2.11.0
++
+diff --git a/patches/openwrt/0024-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch b/patches/openwrt/0024-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
+new file mode 100644
+index 00000000..a626355b
+--- /dev/null
++++ b/patches/openwrt/0024-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
 @@ -0,0 +1,973 @@
 +From 39d2938072680cda2cd943bcdbaafee963f0a476 Mon Sep 17 00:00:00 2001
 +From: "Manu.WTF" <43337106+Dark4MD@users.noreply.github.com>
@@ -127,7 +248,7 @@ index 00000000..1c2520bb
 ++#include "ar9341.dtsi"
 ++
 ++/ {
-++	model = "TP-Link TL-WR841N/ND Mod (ATH79 16M) v8";
+++	model = "TP-Link TL-WR841N/ND Mod (16M ATH79) v8";
 ++	compatible = "tplink,tl-wr841-v8-16m", "qca,ar9341";
 ++
 ++	aliases {
@@ -298,7 +419,7 @@ index 00000000..1c2520bb
 ++#include "ar9341.dtsi"
 ++
 ++/ {
-++	model = "TP-Link TL-WR841N/ND Mod (ATH79 8M) v8";
+++	model = "TP-Link TL-WR841N/ND Mod (8M ATH79) v8";
 ++	compatible = "tplink,tl-wr841-v8-8m", "qca,ar9341";
 ++
 ++	aliases {
@@ -735,7 +856,7 @@ index 00000000..1c2520bb
 ++
 ++/ {
 ++	compatible = "tplink,tl-wr841-v10-16m", "qca,qca9533";
-++	model = "TP-Link TL-WR841N/ND Mod (ATH79 16M) v10";
+++	model = "TP-Link TL-WR841N/ND Mod (16M ATH79) v10";
 ++
 ++	aliases {
 ++		led-boot = &qss_led;
@@ -757,7 +878,7 @@ index 00000000..1c2520bb
 ++
 ++/ {
 ++	compatible = "tplink,tl-wr841-v10-8m", "qca,qca9533";
-++	model = "TP-Link TL-WR841N/ND Mod (ATH79 8M) v10";
+++	model = "TP-Link TL-WR841N/ND Mod (8M ATH79) v10";
 ++
 ++	aliases {
 ++		led-boot = &qss_led;
@@ -779,7 +900,7 @@ index 00000000..1c2520bb
 ++
 ++/ {
 ++	compatible = "tplink,tl-wr841-v11-16m", "qca,qca9533";
-++	model = "TP-Link TL-WR841N/ND Mod (ATH79 16M) v11";
+++	model = "TP-Link TL-WR841N/ND Mod (16M ATH79) v11";
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi
 +new file mode 100644
@@ -825,7 +946,7 @@ index 00000000..1c2520bb
 ++
 ++/ {
 ++	compatible = "tplink,tl-wr841-v11-8m", "qca,qca9533";
-++	model = "TP-Link TL-WR841N/ND Mod (ATH79 8M) v11";
+++	model = "TP-Link TL-WR841N/ND Mod (8M ATH79) v11";
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi
 +new file mode 100644
@@ -871,7 +992,7 @@ index 00000000..1c2520bb
 ++
 ++/ {
 ++	compatible = "tplink,tl-wr841-v9-16m", "qca,qca9533";
-++	model = "TP-Link TL-WR841N/ND Mod (ATH79 16M) v9";
+++	model = "TP-Link TL-WR841N/ND Mod (16M ATH79) v9";
 ++
 ++	aliases {
 ++		led-boot = &qss_led;
@@ -893,7 +1014,7 @@ index 00000000..1c2520bb
 ++
 ++/ {
 ++	compatible = "tplink,tl-wr841-v9-8m", "qca,qca9533";
-++	model = "TP-Link TL-WR841N/ND Mod (ATH79 8M) v9";
+++	model = "TP-Link TL-WR841N/ND Mod (8M ATH79) v9";
 ++
 ++	aliases {
 ++		led-boot = &qss_led;
@@ -913,7 +1034,7 @@ index 00000000..1c2520bb
 ++define Device/tplink_tl-wr841-v8-8m
 ++  $(Device/tplink-8mlzma)
 ++  ATH_SOC := ar9341
-++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (ATH79 8M) v8
+++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (8M ATH79) v8
 ++  TPLINK_HWID := 0x08410808
 ++  SUPPORTED_DEVICES += tl-wr841n-v8 tl-wr841n-v8-8m
 ++endef
@@ -922,7 +1043,7 @@ index 00000000..1c2520bb
 ++define Device/tplink_tl-wr841-v9-8m
 ++  $(Device/tplink-8mlzma)
 ++  ATH_SOC := qca9533
-++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (ATH79 8M) v9
+++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (8M ATH79) v9
 ++  TPLINK_HWID := 0x08410809
 ++  SUPPORTED_DEVICES += tl-wr841n-v9 tl-wr841n-v9-8m
 ++endef
@@ -931,7 +1052,7 @@ index 00000000..1c2520bb
 ++define Device/tplink_tl-wr841-v10-8m
 ++  $(Device/tplink-8mlzma)
 ++  ATH_SOC := qca9533
-++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (ATH79 8M) v10
+++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (8M ATH79) v10
 ++  TPLINK_HWID := 0x08410810
 ++  SUPPORTED_DEVICES += tl-wr841n-v9 tl-wr841n-v9-8m
 ++endef
@@ -940,7 +1061,7 @@ index 00000000..1c2520bb
 ++define Device/tplink_tl-wr841-v11-8m
 ++  $(Device/tplink-8mlzma)
 ++  ATH_SOC := qca9533
-++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (ATH79 8M) v11
+++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (8M ATH79) v11
 ++  TPLINK_HWID := 0x08410811
 ++  SUPPORTED_DEVICES += tl-wr841n-v11 tl-wr841n-v11-8m
 ++  IMAGES += factory-us.bin factory-eu.bin
@@ -952,7 +1073,7 @@ index 00000000..1c2520bb
 ++define Device/tplink_tl-wr841-v8-16m
 ++  $(Device/tplink-16mlzma)
 ++  ATH_SOC := ar9341
-++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (ATH79 16M) v8
+++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (16M ATH79) v8
 ++  TPLINK_HWID := 0x08411608
 ++  SUPPORTED_DEVICES += tl-wr841n-v8 tl-wr841n-v8-16m
 ++endef
@@ -961,7 +1082,7 @@ index 00000000..1c2520bb
 ++define Device/tplink_tl-wr841-v9-16m
 ++  $(Device/tplink-16mlzma)
 ++  ATH_SOC := qca9533
-++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (ATH79 16M) v9
+++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (16M ATH79) v9
 ++  TPLINK_HWID := 0x08411609
 ++  SUPPORTED_DEVICES += tl-wr841n-v9 tl-wr841n-v9-16m
 ++endef
@@ -970,7 +1091,7 @@ index 00000000..1c2520bb
 ++define Device/tplink_tl-wr841-v10-16m
 ++  $(Device/tplink-16mlzma)
 ++  ATH_SOC := qca9533
-++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (ATH79 16M) v10
+++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (16M ATH79) v10
 ++  TPLINK_HWID := 0x08411610
 ++  SUPPORTED_DEVICES += tl-wr841n-v9 tl-wr841n-v9-16m
 ++endef
@@ -979,7 +1100,7 @@ index 00000000..1c2520bb
 ++define Device/tplink_tl-wr841-v11-16m
 ++  $(Device/tplink-16mlzma)
 ++  ATH_SOC := qca9533
-++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (ATH79 16M) v11
+++  DEVICE_TITLE := TP-Link TL-WR841N/ND Mod (16M ATH79) v11
 ++  TPLINK_HWID := 0x08411611
 ++  SUPPORTED_DEVICES += tl-wr841n-v11 tl-wr841n-v11-8m
 ++  IMAGES += factory-us.bin factory-eu.bin
@@ -994,133 +1115,11 @@ index 00000000..1c2520bb
 +-- 
 +2.29.2.windows.2
 +
-diff --git a/patches/openwrt/0014-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch b/patches/openwrt/0014-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
-new file mode 100644
-index 00000000..bd01fb1f
---- /dev/null
-+++ b/patches/openwrt/0014-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
-@@ -0,0 +1,116 @@
-+From 2734fb40ac15f8db6eadbbd9e3438b7077876424 Mon Sep 17 00:00:00 2001
-+From: Dark4MD <github.web@manu.li>
-+Date: Fri, 22 Feb 2019 22:45:24 +0100
-+Subject: [PATCH] added TP-Link TL-WR841ND/N Devices for 8M and 16M Variants
-+
-+---
-+ target/linux/ar71xx/base-files/lib/ar71xx.sh |  6 +++
-+ target/linux/ar71xx/image/generic-tp-link.mk | 74 ++++++++++++++++++++++++++++
-+ 2 files changed, 80 insertions(+)
-+ mode change 100644 => 100755 target/linux/ar71xx/image/generic-tp-link.mk
-+
-+diff --git a/target/linux/ar71xx/base-files/lib/ar71xx.sh b/target/linux/ar71xx/base-files/lib/ar71xx.sh
-+index ccbd4e77c3..9c81ed75d0 100755
-+--- a/target/linux/ar71xx/base-files/lib/ar71xx.sh
-++++ b/target/linux/ar71xx/base-files/lib/ar71xx.sh
-+@@ -255,6 +255,12 @@ tplink_board_detect() {
-+ 
-+ 		[ "$hwid" = '08410002' -a "$mid" = '00000002' ] && hwver=' v1.5'
-+ 		;;
-++	"084108"*)
-++		model="TP-Link TL-WR841N/ND Mod (8M)"
-++		;;
-++	"084116"*)
-++		model="TP-Link TL-WR841N/ND Mod (16M)"
-++		;;
-+ 	"084200"*)
-+ 		model="TP-Link TL-WR842N/ND"
-+ 		;;
-+diff --git a/target/linux/ar71xx/image/generic-tp-link.mk b/target/linux/ar71xx/image/generic-tp-link.mk
-+old mode 100644
-+new mode 100755
-+index 338b2db2d6..4e5df2c742
-+--- a/target/linux/ar71xx/image/generic-tp-link.mk
-++++ b/target/linux/ar71xx/image/generic-tp-link.mk
-+@@ -529,3 +529,77 @@ define Device/tl-wr942n-v1
-+   SUPPORTED_DEVICES := tl-wr942n-v1
-+ endef
-+ TARGET_DEVICES += tl-wr942n-v1
-++
-++define Device/tl-wr841-v8-8m
-++  $(Device/tplink-8mlzma)
-++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (8M) v8
-++  BOARDNAME := TL-WR841N-v8
-++  DEVICE_PROFILE := TLWR8418M
-++  TPLINK_HWID := 0x08410808
-++endef
-++TARGET_DEVICES += tl-wr841-v8-8m
-++
-++define Device/tl-wr841-v9-8m
-++  $(Device/tplink-8mlzma)
-++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (8M) v9
-++  BOARDNAME := TL-WR841N-v9
-++  DEVICE_PROFILE := TLWR8418M
-++  TPLINK_HWID := 0x08410809
-++endef
-++TARGET_DEVICES += tl-wr841-v9-8m
-++
-++define Device/tl-wr841-v10-8m
-++  $(Device/tl-wr841-v9-8m)
-++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (8M) v10
-++  TPLINK_HWID := 0x08410810
-++endef
-++TARGET_DEVICES += tl-wr841-v10-8m
-++
-++define Device/tl-wr841-v11-8m
-++  $(Device/tplink-8mlzma)
-++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (8M) v11
-++  BOARDNAME := TL-WR841N-v11
-++  DEVICE_PROFILE := TLWR8418M
-++  TPLINK_HWID := 0x08410811
-++  IMAGES += factory-us.bin factory-eu.bin
-++  IMAGE/factory-us.bin := append-rootfs | mktplinkfw factory -C US
-++  IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
-++endef
-++TARGET_DEVICES += tl-wr841-v11-8m
-++
-++define Device/tl-wr841-v8-16m
-++  $(Device/tplink-16mlzma)
-++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (16M) v8
-++  BOARDNAME := TL-WR841N-v8
-++  DEVICE_PROFILE := TLWR84116M
-++  TPLINK_HWID := 0x08411608
-++endef
-++TARGET_DEVICES += tl-wr841-v8-16m
-++
-++define Device/tl-wr841-v9-16m
-++  $(Device/tplink-16mlzma)
-++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (16M) v9
-++  BOARDNAME := TL-WR841N-v9
-++  DEVICE_PROFILE := TLWR84116M
-++  TPLINK_HWID := 0x08411609
-++endef
-++TARGET_DEVICES += tl-wr841-v9-16m
-++
-++define Device/tl-wr841-v10-16m
-++  $(Device/tl-wr841-v9-16m)
-++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (16M) v10
-++  TPLINK_HWID := 0x08411610
-++endef
-++TARGET_DEVICES += tl-wr841-v10-16m
-++
-++define Device/tl-wr841-v11-16m
-++  $(Device/tplink-16mlzma)
-++  DEVICE_TITLE := TP-LINK TL-WR841N/ND Mod (16M) v11
-++  BOARDNAME := TL-WR841N-v11
-++  DEVICE_PROFILE := TLWR84116M
-++  TPLINK_HWID := 0x08411611
-++  IMAGES += factory-us.bin factory-eu.bin
-++  IMAGE/factory-us.bin := append-rootfs | mktplinkfw factory -C US
-++  IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
-++endef
-++TARGET_DEVICES += tl-wr841-v11-16m
-+\ No newline at end of file
-+-- 
-+2.11.0
-+
 diff --git a/targets/ar71xx-generic b/targets/ar71xx-generic
-index 363ad019..00da9b23 100644
+index df7dbd97..f9939017 100644
 --- a/targets/ar71xx-generic
 +++ b/targets/ar71xx-generic
-@@ -394,6 +394,14 @@ device('tp-link-re450', 're450-v1', {
+@@ -398,6 +398,14 @@ device('tp-link-re450', 're450-v1', {
  	class = 'tiny', -- Only 6M of usable Firmware space
  })
  
@@ -1136,51 +1135,46 @@ index 363ad019..00da9b23 100644
  -- Ubiquiti
  
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index c30d24a2..a91b1a64 100644
+index 5537a7ea..7217b2ea 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
-@@ -78,3 +78,41 @@ device('tp-link-archer-c6-v2', 'tplink_archer-c6-v2', {
+@@ -97,3 +97,35 @@ device('tp-link-archer-d50-v1', 'tplink_archer-d50-v1', {
+ 	factory = false,
+ 	broken = true, -- 64M ath9k + ath10k & power LED not working
  })
- 
- device('tp-link-cpe220-v3', 'tplink_cpe220-v3')
 +
-+device('tp-link-tl-wr841n-nd-mod-ath79-8m-v8', 'tplink_tl-wr841-v8-8m', {
++device('tp-link-tl-wr841n-nd-mod-8m-ath79-v8', 'tplink_tl-wr841-v8-8m-ath79', {
 +        factory = false,
 +})
 +
-+device('tp-link-tl-wr841n-nd-mod-ath79-8m-v9', 'tplink_tl-wr841-v9-8m', {
-+        factory = false,
-+        aliases = {'tp-link-tl-wr841n-nd-mod-8m-v9'},
-+})
-+
-+device('tp-link-tl-wr841n-nd-mod-ath79-8m-v10', 'tplink_tl-wr841-v10-8m', {
-+        factory = false,
-+        aliases = {'tp-link-tl-wr841n-nd-mod-8m-v10'},
-+})
-+
-+device('tp-link-tl-wr841n-nd-mod-ath79-8m-v11', 'tplink_tl-wr841-v11-8m', {
-+        factory = false,
-+        aliases = {'tp-link-tl-wr841n-nd-mod-8m-v11'},
-+})
-+
-+device('tp-link-tl-wr841n-nd-mod-ath79-16m-v8', 'tplink_tl-wr841-v8-16m', {
++device('tp-link-tl-wr841n-nd-mod-16m-ath79-v8', 'tplink_tl-wr841-v8-16m-ath79', {
 +        factory = false,
 +})
 +
-+device('tp-link-tl-wr841n-nd-mod-ath79-16m-v9', 'tplink_tl-wr841-v9-16m', {
++device('tp-link-tl-wr841n-nd-mod-8m-ath79-v9', 'tplink_tl-wr841-v9-8m-ath79', {
 +        factory = false,
-+        aliases = {'tp-link-tl-wr841n-nd-mod-16m-v9'},
 +})
 +
-+device('tp-link-tl-wr841n-nd-mod-ath79-16m-v10', 'tplink_tl-wr841-v10-16m', {
++device('tp-link-tl-wr841n-nd-mod-16m-ath79-v9', 'tplink_tl-wr841-v9-16m-ath79', {
 +        factory = false,
-+        aliases = {'tp-link-tl-wr841n-nd-mod-16m-v10'},
 +})
 +
-+device('tp-link-tl-wr841n-nd-mod-ath79-16m-v11', 'tplink_tl-wr841-v11-16m', {
++device('tp-link-tl-wr841n-nd-mod-8m-ath79-v10', 'tplink_tl-wr841-v10-8m-ath79', {
 +        factory = false,
-+        aliases = {'tp-link-tl-wr841n-nd-mod-16m-v11'},
 +})
++
++device('tp-link-tl-wr841n-nd-mod-16m-ath79-v10', 'tplink_tl-wr841-v10-16m-ath79', {
++        factory = false,
++})
++
++device('tp-link-tl-wr841n-nd-mod-8m-ath79-v11', 'tplink_tl-wr841-v11-8m-ath79', {
++        factory = false,
++})
++
++device('tp-link-tl-wr841n-nd-mod-16m-ath79-v11', 'tplink_tl-wr841-v11-16m-ath79', {
++        factory = false,
++})
+\ No newline at end of file
 -- 
 2.29.2.windows.2
 
