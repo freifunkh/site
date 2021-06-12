@@ -1,16 +1,16 @@
-From e1447264ec38e3c01e8edce40d6918045b72a7a3 Mon Sep 17 00:00:00 2001
+From cd551c05a548c8d36a6e4434db058febb8244552 Mon Sep 17 00:00:00 2001
 From: Dark4MD <github.web@manu.li>
-Date: Sat, 12 Jun 2021 03:19:40 +0200
-Subject: [PATCH] added TL-WR841ND/N 8M and 16M Variants migration to ath79
+Date: Sat, 12 Jun 2021 17:38:44 +0200
+Subject: [PATCH] openwrt: added TL-WR841ND/N 8M and 16M Variants to ath79
 
 Added TL-WR841ND/N 8M and 16M v9-v11 Variants to ath79-generic (migration).
-V8 Variant is not automatically migrated as of now because of some missing migration patches and stays at ar71xx-generic if not updated to ath79 manually.
+V8 is not automatically migrated as of now because of some missing migration patches and stays at ar71xx-generic.
 ---
  ...-WR841ND-N-Devices-for-8M-and-16M-Va.patch | 116 +++
  ...841ND-N-8M-and-16M-Variants-to-ath79.patch | 973 ++++++++++++++++++
  targets/ar71xx-generic                        |   8 +
- targets/ath79-generic                         |  32 +
- 4 files changed, 1129 insertions(+)
+ targets/ath79-generic                         |  38 +
+ 4 files changed, 1135 insertions(+)
  create mode 100644 patches/openwrt/0023-added-TP-Link-TL-WR841ND-N-Devices-for-8M-and-16M-Va.patch
  create mode 100644 patches/openwrt/0024-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
 
@@ -1135,46 +1135,51 @@ index df7dbd97..f9939017 100644
  -- Ubiquiti
  
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index 5537a7ea..7217b2ea 100644
+index 5537a7ea..32003304 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
-@@ -97,3 +97,35 @@ device('tp-link-archer-d50-v1', 'tplink_archer-d50-v1', {
+@@ -97,3 +97,41 @@ device('tp-link-archer-d50-v1', 'tplink_archer-d50-v1', {
  	factory = false,
  	broken = true, -- 64M ath9k + ath10k & power LED not working
  })
 +
-+device('tp-link-tl-wr841n-nd-mod-8m-ath79-v8', 'tplink_tl-wr841-v8-8m-ath79', {
++device('tp-link-tl-wr841n-nd-mod-8m-ath79-v8', 'tplink_tl-wr841-v8-8m', {
 +        factory = false,
 +})
 +
-+device('tp-link-tl-wr841n-nd-mod-16m-ath79-v8', 'tplink_tl-wr841-v8-16m-ath79', {
++device('tp-link-tl-wr841n-nd-mod-8m-ath79-v9', 'tplink_tl-wr841-v9-8m', {
++        factory = false,
++        aliases = {'tp-link-tl-wr841n-nd-mod-8m-v9'},
++})
++
++device('tp-link-tl-wr841n-nd-mod-8m-ath79-v10', 'tplink_tl-wr841-v10-8m', {
++        factory = false,
++        aliases = {'tp-link-tl-wr841n-nd-mod-8m-v10'},
++})
++
++device('tp-link-tl-wr841n-nd-mod-8m-ath79-v11', 'tplink_tl-wr841-v11-8m', {
++        factory = false,
++        aliases = {'tp-link-tl-wr841n-nd-mod-8m-v11'},
++})
++
++device('tp-link-tl-wr841n-nd-mod-16m-ath79-v8', 'tplink_tl-wr841-v8-16m', {
 +        factory = false,
 +})
 +
-+device('tp-link-tl-wr841n-nd-mod-8m-ath79-v9', 'tplink_tl-wr841-v9-8m-ath79', {
++device('tp-link-tl-wr841n-nd-mod-16m-ath79-v9', 'tplink_tl-wr841-v9-16m', {
 +        factory = false,
++        aliases = {'tp-link-tl-wr841n-nd-mod-16m-v9'},
 +})
 +
-+device('tp-link-tl-wr841n-nd-mod-16m-ath79-v9', 'tplink_tl-wr841-v9-16m-ath79', {
++device('tp-link-tl-wr841n-nd-mod-16m-ath79-v10', 'tplink_tl-wr841-v10-16m', {
 +        factory = false,
++        aliases = {'tp-link-tl-wr841n-nd-mod-16m-v10'},
 +})
 +
-+device('tp-link-tl-wr841n-nd-mod-8m-ath79-v10', 'tplink_tl-wr841-v10-8m-ath79', {
++device('tp-link-tl-wr841n-nd-mod-16m-ath79-v11', 'tplink_tl-wr841-v11-16m', {
 +        factory = false,
++        aliases = {'tp-link-tl-wr841n-nd-mod-16m-v11'},
 +})
-+
-+device('tp-link-tl-wr841n-nd-mod-16m-ath79-v10', 'tplink_tl-wr841-v10-16m-ath79', {
-+        factory = false,
-+})
-+
-+device('tp-link-tl-wr841n-nd-mod-8m-ath79-v11', 'tplink_tl-wr841-v11-8m-ath79', {
-+        factory = false,
-+})
-+
-+device('tp-link-tl-wr841n-nd-mod-16m-ath79-v11', 'tplink_tl-wr841-v11-16m-ath79', {
-+        factory = false,
-+})
-\ No newline at end of file
 -- 
 2.29.2.windows.2
 
