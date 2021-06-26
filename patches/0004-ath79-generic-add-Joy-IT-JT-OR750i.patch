@@ -1,0 +1,290 @@
+From 072e06692756b6a2538cc0b15837fab55a35440e Mon Sep 17 00:00:00 2001
+From: Sebastian Schaper <openwrt@sebastianschaper.net>
+Date: Sat, 19 Jun 2021 13:17:17 +0200
+Subject: [PATCH] ath79-generic: add Joy-IT JT-OR750i
+
+Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
+---
+ .../luasrc/lib/gluon/upgrade/010-primary-mac  |   3 +
+ ...h79-add-support-for-Joy-IT-JT-OR750i.patch | 236 ++++++++++++++++++
+ targets/ath79-generic                         |   7 +
+ 3 files changed, 246 insertions(+)
+ create mode 100644 patches/openwrt/0028-ath79-add-support-for-Joy-IT-JT-OR750i.patch
+
+diff --git a/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac b/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac
+index 3ff33ee0..8e64debb 100755
+--- a/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac
++++ b/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac
+@@ -144,6 +144,9 @@ local primary_addrs = {
+ 			'om2pv4',
+ 			'om2p-hsv4',
+ 		}},
++		{'ath79', 'generic', {
++			'joyit,jt-or750i',
++		}},
+ 		{'ipq40xx', 'generic', {
+ 			'linksys,ea6350v3',
+ 			'openmesh,a42',
+diff --git a/patches/openwrt/0028-ath79-add-support-for-Joy-IT-JT-OR750i.patch b/patches/openwrt/0028-ath79-add-support-for-Joy-IT-JT-OR750i.patch
+new file mode 100644
+index 00000000..02649dd7
+--- /dev/null
++++ b/patches/openwrt/0028-ath79-add-support-for-Joy-IT-JT-OR750i.patch
+@@ -0,0 +1,236 @@
++From 7630961ea616be2ce0fbbe6ee756b1ed7b6782a2 Mon Sep 17 00:00:00 2001
++From: Sebastian Schaper <openwrt@sebastianschaper.net>
++Date: Sat, 26 Jun 2021 23:36:59 +0200
++Subject: [PATCH] ath79: add support for Joy-IT JT-OR750i
++
++Specifications:
++ * QCA9531, 16 MiB flash, 128 MiB RAM, 802.11n 2T2R
++ * QCA9887, 802.11ac 1T1R
++ * 3x 10/100 LAN, 1x 10/100 WAN
++
++Installation:
++ * The device comes without firmware,
++   there is only a bootloader at http://10.123.123.1
++ * flash sysupgrade.bin
++
++TFTP recovery with static ip:
++ * rename sysupgrade.bin to jt-or750i_firmware.bin
++ * provide via tftp server at 192.168.0.66
++ * keep reset button pressed for 4 seconds after connecting power
++
++TFTP recovery with dynamic ip:
++ * rename sysupgrade.bin to jt-or750i_firmware.bin
++ * provide via tftp server, with dhcp server running on the same address
++ * keep reset button pressed for 6 seconds after connecting power
++
++Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
++---
++ .../ath79/dts/qca9531_joyit_jt-or750i.dts     | 124 ++++++++++++++++++
++ .../generic/base-files/etc/board.d/01_leds    |   6 +
++ .../generic/base-files/etc/board.d/02_network |   5 +
++ .../etc/hotplug.d/firmware/11-ath10k-caldata  |   4 +
++ target/linux/ath79/image/generic.mk           |   9 ++
++ 5 files changed, 148 insertions(+)
++ create mode 100644 target/linux/ath79/dts/qca9531_joyit_jt-or750i.dts
++
++diff --git a/target/linux/ath79/dts/qca9531_joyit_jt-or750i.dts b/target/linux/ath79/dts/qca9531_joyit_jt-or750i.dts
++new file mode 100644
++index 0000000000..8a6edc6aaf
++--- /dev/null
+++++ b/target/linux/ath79/dts/qca9531_joyit_jt-or750i.dts
++@@ -0,0 +1,124 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "qca953x.dtsi"
+++
+++#include <dt-bindings/gpio/gpio.h>
+++#include <dt-bindings/input/input.h>
+++
+++/ {
+++	compatible = "joyit,jt-or750i", "qca,qca9531";
+++	model = "Joy-IT JT-OR750i";
+++
+++	aliases {
+++		led-boot = &led_status_green;
+++		led-failsafe = &led_status_red;
+++		led-running = &led_status_green;
+++		led-upgrade = &led_status_red;
+++		label-mac-device = &eth1;
+++	};
+++
+++	keys {
+++		compatible = "gpio-keys";
+++
+++		reset {
+++			label = "reset";
+++			linux,code = <KEY_RESTART>;
+++			gpios = <&gpio 17 GPIO_ACTIVE_LOW>;
+++		};
+++	};
+++
+++	leds {
+++		compatible = "gpio-leds";
+++
+++		led_status_green: status_green {
+++			label = "green:status";
+++			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		led_status_red: status_red {
+++			label = "red:status";
+++			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		lan1 {
+++			label = "green:lan1";
+++			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		lan2 {
+++			label = "green:lan2";
+++			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		lan3 {
+++			label = "green:lan3";
+++			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		wan {
+++			label = "green:wan";
+++			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
+++		};
+++	};
+++};
+++
+++&spi {
+++	status = "okay";
+++
+++	flash@0 {
+++		compatible = "jedec,spi-nor";
+++		reg = <0>;
+++		spi-max-frequency = <50000000>;
+++
+++		partitions {
+++			compatible = "fixed-partitions";
+++			#address-cells = <1>;
+++			#size-cells = <1>;
+++
+++			partition@0 {
+++				label = "u-boot";
+++				reg = <0x0 0x40000>;
+++				read-only;
+++			};
+++
+++			partition@40000 {
+++				label = "u-boot-env";
+++				reg = <0x40000 0x10000>;
+++			};
+++
+++			partition@50000 {
+++				label = "firmware";
+++				reg = <0x50000 0xfa0000>;
+++				compatible = "denx,uimage";
+++			};
+++
+++			art: partition@ff0000 {
+++				label = "art";
+++				reg = <0xff0000 0x10000>;
+++				read-only;
+++			};
+++		};
+++	};
+++};
+++
+++&eth0 {
+++	status = "okay";
+++
+++	phy-handle = <&swphy4>;
+++
+++	mtd-mac-address = <&art 0x0>;
+++};
+++
+++&eth1 {
+++	mtd-mac-address = <&art 0x6>;
+++};
+++
+++&pcie0 {
+++	status = "okay";
+++};
+++
+++&wmac {
+++	status = "okay";
+++
+++	mtd-cal-data = <&art 0x1000>;
+++};
++diff --git a/target/linux/ath79/generic/base-files/etc/board.d/01_leds b/target/linux/ath79/generic/base-files/etc/board.d/01_leds
++index fae5ac7c92..d0a361a329 100755
++--- a/target/linux/ath79/generic/base-files/etc/board.d/01_leds
+++++ b/target/linux/ath79/generic/base-files/etc/board.d/01_leds
++@@ -220,6 +220,12 @@ glinet,gl-x750)
++ hak5,lan-turtle)
++ 	ucidef_set_led_netdev "wan" "WAN" "orange:system" "eth1"
++ 	;;
+++joyit,jt-or750i)
+++	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth0"
+++	ucidef_set_led_switch "lan1" "LAN1" "green:lan1" "switch0" "0x10"
+++	ucidef_set_led_switch "lan2" "LAN2" "green:lan2" "switch0" "0x08"
+++	ucidef_set_led_switch "lan3" "LAN3" "green:lan3" "switch0" "0x04"
+++	;;
++ meraki,mr12|\
++ tplink,cpe210-v2|\
++ tplink,cpe210-v3)
++diff --git a/target/linux/ath79/generic/base-files/etc/board.d/02_network b/target/linux/ath79/generic/base-files/etc/board.d/02_network
++index 1e522b91c6..31c0f11861 100755
++--- a/target/linux/ath79/generic/base-files/etc/board.d/02_network
+++++ b/target/linux/ath79/generic/base-files/etc/board.d/02_network
++@@ -270,6 +270,11 @@ ath79_setup_interfaces()
++ 		ucidef_add_switch "switch0" \
++ 			"0@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "5:wan"
++ 		;;
+++	joyit,jt-or750i)
+++		ucidef_set_interface_wan "eth1"
+++		ucidef_add_switch "switch0" \
+++			"0@eth0" "2:lan:3" "3:lan:2" "4:lan:1"
+++		;;
++ 	librerouter,librerouter-v1)
++ 		ucidef_add_switch "switch0" \
++ 			"0@eth0" "5:wan" "6@eth1" "4:lan"
++diff --git a/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata b/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
++index 5a44dd94e5..efaaad1fa7 100644
++--- a/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
+++++ b/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
++@@ -89,6 +89,10 @@ case "$FIRMWARE" in
++ 		caldata_extract "art" 0x5000 0x844
++ 		ath10k_patch_mac $(macaddr_add $(mtd_get_mac_binary art 0x0) +1)
++ 		;;
+++	joyit,jt-or750i)
+++		caldata_extract "art" 0x5000 0x844
+++		ath10k_patch_mac $(mtd_get_mac_binary art 0x6)
+++		;;
++ 	nec,wg800hp)
++ 		caldata_extract "art" 0x5000 0x844
++ 		ath10k_patch_mac $(mtd_get_mac_text board_data 0x880)
++diff --git a/target/linux/ath79/image/generic.mk b/target/linux/ath79/image/generic.mk
++index 303907e5bb..ce4e462a40 100644
++--- a/target/linux/ath79/image/generic.mk
+++++ b/target/linux/ath79/image/generic.mk
++@@ -1343,6 +1343,15 @@ define Device/jjplus_ja76pf2
++ endef
++ TARGET_DEVICES += jjplus_ja76pf2
++ 
+++define Device/joyit_jt-or750i
+++  SOC := qca9531
+++  DEVICE_VENDOR := Joy-IT
+++  DEVICE_MODEL := JT-OR750i
+++  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9887-ct
+++  IMAGE_SIZE := 16000k
+++endef
+++TARGET_DEVICES += joyit_jt-or750i
+++
++ define Device/librerouter_librerouter-v1
++   SOC := qca9558
++   DEVICE_VENDOR := Librerouter
++-- 
++2.29.2.windows.2
++
+diff --git a/targets/ath79-generic b/targets/ath79-generic
+index f2c1a952..3c5f4b58 100644
+--- a/targets/ath79-generic
++++ b/targets/ath79-generic
+@@ -60,6 +60,13 @@ device('gl.inet-gl-ar300m-lite', 'glinet_gl-ar300m-lite', {
+ 	factory = false,
+ })
+ 
++-- Joy-IT
++
++device('joy-it-jt-or750i', 'joyit_jt-or750i', {
++	factory = false,
++	packages = ATH10K_PACKAGES_QCA9887,
++})
++
+ -- OCEDO
+ 
+ device('ocedo-raccoon', 'ocedo_raccoon', {
+-- 
+2.29.2.windows.2
+
