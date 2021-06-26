@@ -6,19 +6,21 @@ Subject: [PATCH] ath79-generic: add Joy-IT JT-OR750i
 Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
 ---
  .../luasrc/lib/gluon/upgrade/010-primary-mac  |   3 +
- ...h79-add-support-for-Joy-IT-JT-OR750i.patch | 236 ++++++++++++++++++
+ ...h79-add-support-for-Joy-IT-JT-OR750i.patch | 237 ++++++++++++++++++
  targets/ath79-generic                         |   7 +
  3 files changed, 246 insertions(+)
  create mode 100644 patches/openwrt/0028-ath79-add-support-for-Joy-IT-JT-OR750i.patch
 
 diff --git a/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac b/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac
-index 3ff33ee0..8e64debb 100755
+old mode 100755
+new mode 100644
+index 499a33bf..ad52ac13
 --- a/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac
 +++ b/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac
-@@ -144,6 +144,9 @@ local primary_addrs = {
- 			'om2pv4',
- 			'om2p-hsv4',
- 		}},
+@@ -102,6 +102,9 @@ local primary_addrs = {
+ 		{'x86'},
+ 	}},
+ 	{interface('wan'), {
 +		{'ath79', 'generic', {
 +			'joyit,jt-or750i',
 +		}},
@@ -30,7 +32,7 @@ new file mode 100644
 index 00000000..02649dd7
 --- /dev/null
 +++ b/patches/openwrt/0028-ath79-add-support-for-Joy-IT-JT-OR750i.patch
-@@ -0,0 +1,236 @@
+@@ -0,0 +1,237 @@
 +From 7630961ea616be2ce0fbbe6ee756b1ed7b6782a2 Mon Sep 17 00:00:00 2001
 +From: Sebastian Schaper <openwrt@sebastianschaper.net>
 +Date: Sat, 26 Jun 2021 23:36:59 +0200
@@ -62,7 +64,7 @@ index 00000000..02649dd7
 + .../generic/base-files/etc/board.d/01_leds    |   6 +
 + .../generic/base-files/etc/board.d/02_network |   5 +
 + .../etc/hotplug.d/firmware/11-ath10k-caldata  |   4 +
-+ target/linux/ath79/image/generic.mk           |   9 ++
++ target/linux/ath79/image/generic.mk           |  10 ++
 + 5 files changed, 148 insertions(+)
 + create mode 100644 target/linux/ath79/dts/qca9531_joyit_jt-or750i.dts
 +
@@ -248,7 +250,7 @@ index 00000000..02649dd7
 +index 303907e5bb..ce4e462a40 100644
 +--- a/target/linux/ath79/image/generic.mk
 ++++ b/target/linux/ath79/image/generic.mk
-+@@ -1343,6 +1343,15 @@ define Device/jjplus_ja76pf2
++@@ -1343,6 +1343,16 @@ define Device/jjplus_ja76pf2
 + endef
 + TARGET_DEVICES += jjplus_ja76pf2
 + 
@@ -257,6 +259,7 @@ index 00000000..02649dd7
 ++  DEVICE_VENDOR := Joy-IT
 ++  DEVICE_MODEL := JT-OR750i
 ++  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9887-ct
+++  SUPPORTED_DEVICES += jt-or750i
 ++  IMAGE_SIZE := 16000k
 ++endef
 ++TARGET_DEVICES += joyit_jt-or750i
