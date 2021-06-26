@@ -1,0 +1,821 @@
+From 013e2e9e84728ca032fb59b793b57f18ccbfd01e Mon Sep 17 00:00:00 2001
+From: Dark4MD <github.web@manu.li>
+Date: Mon, 10 May 2021 19:36:12 +0200
+Subject: [PATCH] openwrt: added TL-WR841ND/N 8M and 16M Variants to ath79
+
+---
+ ...841ND-N-8M-and-16M-Variants-to-ath79.patch | 753 ++++++++++++++++++
+ targets/ath79-generic                         |  40 +
+ 2 files changed, 793 insertions(+)
+ create mode 100644 patches/openwrt/0005-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
+
+diff --git a/patches/openwrt/0005-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch b/patches/openwrt/0005-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
+new file mode 100644
+index 00000000..2f66b0b1
+--- /dev/null
++++ b/patches/openwrt/0005-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
+@@ -0,0 +1,753 @@
++From d532a4cc1009c13c30470d62d13379d8f7689dd3 Mon Sep 17 00:00:00 2001
++From: Dark4MD <github.web@manu.li>
++Date: Mon, 10 May 2021 19:20:13 +0200
++Subject: [PATCH] added TL-WR841ND/N 8M and 16M Variants to ath79
++
++---
++ .../ar9341_tplink_tl-wr841-v8-16m.dts   |  61 +++++++++
++ .../ar9341_tplink_tl-wr841-v8-8m.dts    |  61 +++++++++
++ .../qca9533_tplink_tl-wr841-16m.dtsi    | 124 ++++++++++++++++++
++ .../qca9533_tplink_tl-wr841-8m.dtsi     | 124 ++++++++++++++++++
++ .../qca9533_tplink_tl-wr841-v10-16m.dts |  15 +++
++ .../qca9533_tplink_tl-wr841-v10-8m.dts  |  15 +++
++ .../qca9533_tplink_tl-wr841-v11-16m.dts |   8 ++
++ .../qca9533_tplink_tl-wr841-v11-16m.dtsi|  24 ++++
++ .../qca9533_tplink_tl-wr841-v11-8m.dts  |   8 ++
++ .../qca9533_tplink_tl-wr841-v11-8m.dtsi |  24 ++++
++ .../qca9533_tplink_tl-wr841-v9-16m.dts  |  15 +++
++ .../qca9533_tplink_tl-wr841-v9-8m.dts   |  15 +++
++ .../generic/base-files/etc/board.d/01_leds    |   8 ++
++ .../generic/base-files/etc/board.d/02_network |   8 ++
++ target/linux/ath79/image/generic-tp-link.mk   |  86 ++++++++++++
++ 15 files changed, 596 insertions(+)
++ create mode 100644 target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts
++ create mode 100644 target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
++ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
++ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
++ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts
++ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-8m.dts
++ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dts
++ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi
++ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dts
++ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi
++ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-16m.dts
++ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-8m.dts
++
++diff --git a/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts
++new file mode 100644
++index 0000000000..51f29dc678
++--- /dev/null
+++++ b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts
++@@ -0,0 +1,61 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "ar9341_tplink.dtsi"
+++
+++/ {
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 16M) v8";
+++	compatible = "tplink,tl-wr841-v8-16m", "qca,ar9341";
+++
+++	keys {
+++		compatible = "gpio-keys";
+++
+++		rfkill {
+++			label = "WiFi";
+++			linux,code = <KEY_RFKILL>;
+++			linux,input-type = <EV_SW>;
+++			gpios = <&gpio 16 GPIO_ACTIVE_HIGH>;
+++			debounce-interval = <60>;
+++		};
+++
+++		reset {
+++			label = "Reset";
+++			linux,code = <KEY_RESTART>;
+++			gpios = <&gpio 17 GPIO_ACTIVE_LOW>;
+++			debounce-interval = <60>;
+++		};
+++	};
+++};
+++
+++&spi {
+++	status = "okay";
+++
+++	flash@0 {
+++		compatible = "jedec,spi-nor";
+++		reg = <0>;
+++		spi-max-frequency = <25000000>;
+++
+++		partitions {
+++			compatible = "fixed-partitions";
+++			#address-cells = <1>;
+++			#size-cells = <1>;
+++
+++			uboot: partition@0 {
+++				label = "u-boot";
+++				reg = <0x000000 0x020000>;
+++				read-only;
+++			};
+++
+++			partition@20000 {
+++				compatible = "tplink,firmware";
+++				label = "firmware";
+++				reg = <0x020000 0xfd0000>;
+++			};
+++
+++			art: partition@ff0000 {
+++				label = "art";
+++				reg = <0xff0000 0x010000>;
+++				read-only;
+++			};
+++		};
+++	};
+++};
++diff --git a/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
++new file mode 100644
++index 0000000000..94baaf600a
++--- /dev/null
+++++ b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
++@@ -0,0 +1,61 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "ar9341_tplink.dtsi"
+++
+++/ {
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 8M) v8";
+++	compatible = "tplink,tl-wr841-v8-8m", "qca,ar9341";
+++
+++	keys {
+++		compatible = "gpio-keys";
+++
+++		rfkill {
+++			label = "WiFi";
+++			linux,code = <KEY_RFKILL>;
+++			linux,input-type = <EV_SW>;
+++			gpios = <&gpio 16 GPIO_ACTIVE_HIGH>;
+++			debounce-interval = <60>;
+++		};
+++
+++		reset {
+++			label = "Reset";
+++			linux,code = <KEY_RESTART>;
+++			gpios = <&gpio 17 GPIO_ACTIVE_LOW>;
+++			debounce-interval = <60>;
+++		};
+++	};
+++};
+++
+++&spi {
+++	status = "okay";
+++
+++	flash@0 {
+++		compatible = "jedec,spi-nor";
+++		reg = <0>;
+++		spi-max-frequency = <25000000>;
+++
+++		partitions {
+++			compatible = "fixed-partitions";
+++			#address-cells = <1>;
+++			#size-cells = <1>;
+++
+++			uboot: partition@0 {
+++				label = "u-boot";
+++				reg = <0x000000 0x020000>;
+++				read-only;
+++			};
+++
+++			partition@20000 {
+++				compatible = "tplink,firmware";
+++				label = "firmware";
+++				reg = <0x020000 0x7d0000>;
+++			};
+++
+++			art: partition@7f0000 {
+++				label = "art";
+++				reg = <0x7f0000 0x010000>;
+++				read-only;
+++			};
+++		};
+++	};
+++};
++diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
++new file mode 100644
++index 0000000000..2c6ab9d3c2
++--- /dev/null
+++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
++@@ -0,0 +1,124 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "qca953x.dtsi"
+++
+++#include <dt-bindings/gpio/gpio.h>
+++#include <dt-bindings/input/input.h>
+++
+++/ {
+++	aliases {
+++		label-mac-device = &wmac;
+++	};
+++
+++	leds: leds {
+++		compatible = "gpio-leds";
+++
+++		wifi {
+++			label = "green:wlan";
+++			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
+++			linux,default-trigger = "phy0tpt";
+++		};
+++
+++		led_qss: qss {
+++			label = "green:qss";
+++			gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		wan {
+++			label = "green:wan";
+++			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		lan1 {
+++			label = "green:lan1";
+++			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		lan2 {
+++			label = "green:lan2";
+++			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		lan3 {
+++			label = "green:lan3";
+++			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		lan4 {
+++			label = "green:lan4";
+++			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
+++		};
+++	};
+++
+++	keys {
+++		compatible = "gpio-keys";
+++
+++		reset {
+++			label = "Reset button";
+++			linux,code = <KEY_RESTART>;
+++			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
+++			debounce-interval = <60>;
+++		};
+++
+++		rfkill {
+++			label = "RFKILL button";
+++			linux,code = <KEY_RFKILL>;
+++			gpios = <&gpio 17 GPIO_ACTIVE_LOW>;
+++			debounce-interval = <60>;
+++		};
+++	};
+++};
+++
+++&spi {
+++	status = "okay";
+++
+++	flash@0 {
+++		compatible = "jedec,spi-nor";
+++		reg = <0>;
+++		spi-max-frequency = <25000000>;
+++
+++		partitions {
+++			compatible = "fixed-partitions";
+++			#address-cells = <1>;
+++			#size-cells = <1>;
+++
+++			uboot: partition@0 {
+++				label = "u-boot";
+++				reg = <0x000000 0x020000>;
+++				read-only;
+++			};
+++
+++			partition@20000 {
+++				compatible = "tplink,firmware";
+++				label = "firmware";
+++				reg = <0x020000 0xfd0000>;
+++			};
+++
+++			art: partition@ff0000 {
+++				label = "art";
+++				reg = <0xff0000 0x010000>;
+++				read-only;
+++			};
+++		};
+++	};
+++};
+++
+++&eth0 {
+++	status = "okay";
+++
+++	phy-handle = <&swphy4>;
+++
+++	mtd-mac-address = <&uboot 0x1fc00>;
+++	mtd-mac-address-increment = <1>;
+++};
+++
+++&eth1 {
+++	mtd-mac-address = <&uboot 0x1fc00>;
+++};
+++
+++&wmac {
+++	status = "okay";
+++
+++	mtd-cal-data = <&art 0x1000>;
+++	mtd-mac-address = <&uboot 0x1fc00>;
+++};
++diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
++new file mode 100644
++index 0000000000..81317a37b8
++--- /dev/null
+++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
++@@ -0,0 +1,124 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "qca953x.dtsi"
+++
+++#include <dt-bindings/gpio/gpio.h>
+++#include <dt-bindings/input/input.h>
+++
+++/ {
+++	aliases {
+++		label-mac-device = &wmac;
+++	};
+++
+++	leds: leds {
+++		compatible = "gpio-leds";
+++
+++		wifi {
+++			label = "green:wlan";
+++			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
+++			linux,default-trigger = "phy0tpt";
+++		};
+++
+++		led_qss: qss {
+++			label = "green:qss";
+++			gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		wan {
+++			label = "green:wan";
+++			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		lan1 {
+++			label = "green:lan1";
+++			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		lan2 {
+++			label = "green:lan2";
+++			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		lan3 {
+++			label = "green:lan3";
+++			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		lan4 {
+++			label = "green:lan4";
+++			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
+++		};
+++	};
+++
+++	keys {
+++		compatible = "gpio-keys";
+++
+++		reset {
+++			label = "Reset button";
+++			linux,code = <KEY_RESTART>;
+++			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
+++			debounce-interval = <60>;
+++		};
+++
+++		rfkill {
+++			label = "RFKILL button";
+++			linux,code = <KEY_RFKILL>;
+++			gpios = <&gpio 17 GPIO_ACTIVE_LOW>;
+++			debounce-interval = <60>;
+++		};
+++	};
+++};
+++
+++&spi {
+++	status = "okay";
+++
+++	flash@0 {
+++		compatible = "jedec,spi-nor";
+++		reg = <0>;
+++		spi-max-frequency = <25000000>;
+++
+++		partitions {
+++			compatible = "fixed-partitions";
+++			#address-cells = <1>;
+++			#size-cells = <1>;
+++
+++			uboot: partition@0 {
+++				label = "u-boot";
+++				reg = <0x000000 0x020000>;
+++				read-only;
+++			};
+++
+++			partition@20000 {
+++				compatible = "tplink,firmware";
+++				label = "firmware";
+++				reg = <0x020000 0x7d0000>;
+++			};
+++
+++			art: partition@7f0000 {
+++				label = "art";
+++				reg = <0x7f0000 0x010000>;
+++				read-only;
+++			};
+++		};
+++	};
+++};
+++
+++&eth0 {
+++	status = "okay";
+++
+++	phy-handle = <&swphy4>;
+++
+++	mtd-mac-address = <&uboot 0x1fc00>;
+++	mtd-mac-address-increment = <1>;
+++};
+++
+++&eth1 {
+++	mtd-mac-address = <&uboot 0x1fc00>;
+++};
+++
+++&wmac {
+++	status = "okay";
+++
+++	mtd-cal-data = <&art 0x1000>;
+++	mtd-mac-address = <&uboot 0x1fc00>;
+++};
++diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts
++new file mode 100644
++index 0000000000..669804e9b1
++--- /dev/null
+++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts
++@@ -0,0 +1,15 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "qca9533_tplink_tl-wr841-16m.dtsi"
+++
+++/ {
+++	compatible = "tplink,tl-wr841-v10-16m", "qca,qca9533";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 16M) v10";
+++
+++	aliases {
+++		led-boot = &led_qss;
+++		led-failsafe = &led_qss;
+++		led-running = &led_qss;
+++		led-upgrade = &led_qss;
+++	};
+++};
++diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-8m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-8m.dts
++new file mode 100644
++index 0000000000..da1dcdbea7
++--- /dev/null
+++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-8m.dts
++@@ -0,0 +1,15 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "qca9533_tplink_tl-wr841-8m.dtsi"
+++
+++/ {
+++	compatible = "tplink,tl-wr841-v10-8m", "qca,qca9533";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 8M) v10";
+++
+++	aliases {
+++		led-boot = &led_qss;
+++		led-failsafe = &led_qss;
+++		led-running = &led_qss;
+++		led-upgrade = &led_qss;
+++	};
+++};
++diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dts
++new file mode 100644
++index 0000000000..9ba7eef4fe
++--- /dev/null
+++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dts
++@@ -0,0 +1,8 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "qca9533_tplink_tl-wr841-v11-16m.dtsi"
+++
+++/ {
+++	compatible = "tplink,tl-wr841-v11-16m", "qca,qca9533";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 16M) v11";
+++};
++diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi
++new file mode 100644
++index 0000000000..e40621ceeb
++--- /dev/null
+++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi
++@@ -0,0 +1,24 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "qca9533_tplink_tl-wr841-16m.dtsi"
+++
+++/ {
+++	aliases {
+++		led-boot = &led_system;
+++		led-failsafe = &led_system;
+++		led-running = &led_system;
+++		led-upgrade = &led_system;
+++	};
+++};
+++
+++&leds {
+++	led_system: system {
+++		label = "green:system";
+++		gpios = <&gpio 1 GPIO_ACTIVE_LOW>;
+++	};
+++
+++	wan_orange {
+++		label = "orange:wan";
+++		gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
+++	};
+++};
++diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dts
++new file mode 100644
++index 0000000000..3cf72f53ba
++--- /dev/null
+++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dts
++@@ -0,0 +1,8 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "qca9533_tplink_tl-wr841-v11-8m.dtsi"
+++
+++/ {
+++	compatible = "tplink,tl-wr841-v11-8m", "qca,qca9533";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 8M) v11";
+++};
++diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi
++new file mode 100644
++index 0000000000..92eab6e8da
++--- /dev/null
+++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi
++@@ -0,0 +1,24 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "qca9533_tplink_tl-wr841-8m.dtsi"
+++
+++/ {
+++	aliases {
+++		led-boot = &led_system;
+++		led-failsafe = &led_system;
+++		led-running = &led_system;
+++		led-upgrade = &led_system;
+++	};
+++};
+++
+++&leds {
+++	led_system: system {
+++		label = "green:system";
+++		gpios = <&gpio 1 GPIO_ACTIVE_LOW>;
+++	};
+++
+++	wan_orange {
+++		label = "orange:wan";
+++		gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
+++	};
+++};
++diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-16m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-16m.dts
++new file mode 100644
++index 0000000000..bb5422312e
++--- /dev/null
+++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-16m.dts
++@@ -0,0 +1,15 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "qca9533_tplink_tl-wr841-16m.dtsi"
+++
+++/ {
+++	compatible = "tplink,tl-wr841-v9-16m", "qca,qca9533";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 16M) v9";
+++
+++	aliases {
+++		led-boot = &led_qss;
+++		led-failsafe = &led_qss;
+++		led-running = &led_qss;
+++		led-upgrade = &led_qss;
+++	};
+++};
++diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-8m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-8m.dts
++new file mode 100644
++index 0000000000..84133f68b5
++--- /dev/null
+++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-8m.dts
++@@ -0,0 +1,15 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "qca9533_tplink_tl-wr841-8m.dtsi"
+++
+++/ {
+++	compatible = "tplink,tl-wr841-v9-8m", "qca,qca9533";
+++	model = "TP-Link TL-WR841N/ND Mod (ATH79 8M) v9";
+++
+++	aliases {
+++		led-boot = &led_qss;
+++		led-failsafe = &led_qss;
+++		led-running = &led_qss;
+++		led-upgrade = &led_qss;
+++	};
+++};
++diff --git a/target/linux/ath79/generic/base-files/etc/board.d/01_leds b/target/linux/ath79/generic/base-files/etc/board.d/01_leds
++index fae5ac7c92..aa1fb234e7 100755
++--- a/target/linux/ath79/generic/base-files/etc/board.d/01_leds
+++++ b/target/linux/ath79/generic/base-files/etc/board.d/01_leds
++@@ -287,6 +287,12 @@ tplink,archer-c6-v2-us)
++ 	ucidef_set_led_switch "wan" "WAN" "green:wan" "switch0" "0x02"
++ 	;;
++ tplink,archer-c25-v1|\
+++tplink,tl-wr841-v9-8m|\
+++tplink,tl-wr841-v9-16m|\
+++tplink,tl-wr841-v10-8m|\
+++tplink,tl-wr841-v10-16m|\
+++tplink,tl-wr841-v11-8m|\
+++tplink,tl-wr841-v11-16m|\
++ tplink,tl-wr842n-v3)
++ 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth1"
++ 	ucidef_set_led_switch "lan1" "LAN1" "green:lan1" "switch0" "0x10"
++@@ -350,6 +356,8 @@ tplink,tl-wpa8630p-v2.0-eu|\
++ tplink,tl-wpa8630p-v2.1-eu)
++ 	ucidef_set_led_switch "lan" "LAN" "green:lan" "switch0" "0x3c"
++ 	;;
+++tplink,tl-wr841-v8-8m|\
+++tplink,tl-wr841-v8-16m|\
++ tplink,tl-wr842n-v2)
++ 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth1"
++ 	ucidef_set_led_switch "lan1" "LAN1" "green:lan1" "switch0" "0x04"
++diff --git a/target/linux/ath79/generic/base-files/etc/board.d/02_network b/target/linux/ath79/generic/base-files/etc/board.d/02_network
++index 1e522b91c6..8d11185a82 100755
++--- a/target/linux/ath79/generic/base-files/etc/board.d/02_network
+++++ b/target/linux/ath79/generic/base-files/etc/board.d/02_network
++@@ -149,6 +149,12 @@ ath79_setup_interfaces()
++ 	tplink,archer-c60-v2|\
++ 	tplink,archer-c60-v3|\
++ 	tplink,tl-wdr3500-v1|\
+++	tplink,tl-wr841-v9-8m|\
+++	tplink,tl-wr841-v9-16m|\
+++	tplink,tl-wr841-v10-8m|\
+++	tplink,tl-wr841-v10-16m|\
+++	tplink,tl-wr841-v11-8m|\
+++	tplink,tl-wr841-v11-16m|\
++ 	tplink,tl-wr842n-v1|\
++ 	tplink,tl-wr842n-v3|\
++ 	ubnt,airrouter)
++@@ -382,6 +388,8 @@ ath79_setup_interfaces()
++ 		ucidef_add_switch "switch0" \
++ 			"0@eth0" "2:lan:3" "3:lan:2" "4:lan:1" "5:lan:4"
++ 		;;
+++	tplink,tl-wr841-v8-8m|\
+++	tplink,tl-wr841-v8-16m|\
++ 	tplink,tl-wr842n-v2)
++ 		ucidef_set_interface_wan "eth1"
++ 		ucidef_add_switch "switch0" \
++diff --git a/target/linux/ath79/image/generic-tp-link.mk b/target/linux/ath79/image/generic-tp-link.mk
++index 0058d74f77..594fa0e839 100644
++--- a/target/linux/ath79/image/generic-tp-link.mk
+++++ b/target/linux/ath79/image/generic-tp-link.mk
++@@ -742,6 +742,92 @@ define Device/tplink_tl-wr810n-v2
++ endef
++ TARGET_DEVICES += tplink_tl-wr810n-v2
++ 
+++define Device/tplink_tl-wr841-v8-8m
+++  $(Device/tplink-8mlzma)
+++  SOC := ar9341
+++  DEVICE_MODEL := TL-WR841N/ND Mod (ATH79 8M)
+++  DEVICE_VARIANT := v8
+++  TPLINK_HWID := 0x08410808
+++  SUPPORTED_DEVICES += tl-wr841n-v8 tl-wr841n-v8-8m
+++endef
+++TARGET_DEVICES += tplink_tl-wr841-v8-8m
+++
+++define Device/tplink_tl-wr841-v8-16m
+++  $(Device/tplink-16mlzma)
+++  SOC := ar9341
+++  DEVICE_MODEL := TL-WR841N/ND Mod (ATH79 16M)
+++  DEVICE_VARIANT := v8
+++  TPLINK_HWID := 0x08411608
+++  SUPPORTED_DEVICES += tl-wr841n-v8 tl-wr841n-v8-16m
+++endef
+++TARGET_DEVICES += tplink_tl-wr841-v8-16m
+++
+++define Device/tplink_tl-wr841-v9-8m
+++  $(Device/tplink-8mlzma)
+++  SOC := qca9533
+++  DEVICE_MODEL := TL-WR841N/ND Mod (ATH79 8M)
+++  DEVICE_VARIANT := v9
+++  TPLINK_HWID := 0x08410809
+++  SUPPORTED_DEVICES += tl-wr841n-v9 tl-wr841n-v9-8m
+++endef
+++TARGET_DEVICES += tplink_tl-wr841-v9-8m
+++
+++define Device/tplink_tl-wr841-v9-16m
+++  $(Device/tplink-16mlzma)
+++  SOC := qca9533
+++  DEVICE_MODEL := TL-WR841N/ND Mod (ATH79 16M)
+++  DEVICE_VARIANT := v9
+++  TPLINK_HWID := 0x08411609
+++  SUPPORTED_DEVICES += tl-wr841n-v9 tl-wr841n-v9-16m
+++endef
+++TARGET_DEVICES += tplink_tl-wr841-v9-16m
+++
+++define Device/tplink_tl-wr841-v10-8m
+++  $(Device/tplink-8mlzma)
+++  SOC := qca9533
+++  DEVICE_MODEL := TL-WR841N/ND Mod (ATH79 8M)
+++  DEVICE_VARIANT := v10
+++  TPLINK_HWID := 0x08410810
+++  SUPPORTED_DEVICES += tl-wr841n-v9 tl-wr841n-v9-8m
+++endef
+++TARGET_DEVICES += tplink_tl-wr841-v10-8m
+++
+++define Device/tplink_tl-wr841-v10-16m
+++  $(Device/tplink-16mlzma)
+++  SOC := qca9533
+++  DEVICE_MODEL := TL-WR841N/ND Mod (ATH79 16M)
+++  DEVICE_VARIANT := v10
+++  TPLINK_HWID := 0x08411610
+++  SUPPORTED_DEVICES += tl-wr841n-v9 tl-wr841n-v9-16m
+++endef
+++TARGET_DEVICES += tplink_tl-wr841-v10-16m
+++
+++define Device/tplink_tl-wr841-v11-8m
+++  $(Device/tplink-8mlzma)
+++  SOC := qca9533
+++  DEVICE_MODEL := TL-WR841N/ND Mod (ATH79 8M)
+++  DEVICE_VARIANT := v11
+++  TPLINK_HWID := 0x08410811
+++  SUPPORTED_DEVICES += tl-wr841n-v11 tl-wr841n-v11-8m
+++  IMAGES += factory-us.bin factory-eu.bin
+++  IMAGE/factory-us.bin := tplink-v1-image factory -C US
+++  IMAGE/factory-eu.bin := tplink-v1-image factory -C EU
+++endef
+++TARGET_DEVICES += tplink_tl-wr841-v11-8m
+++
+++define Device/tplink_tl-wr841-v11-16m
+++  $(Device/tplink-16mlzma)
+++  SOC := qca9533
+++  DEVICE_MODEL := TL-WR841N/ND Mod (ATH79 16M)
+++  DEVICE_VARIANT := v11
+++  TPLINK_HWID := 0x08411611
+++  SUPPORTED_DEVICES += tl-wr841n-v11 tl-wr841n-v11-16m
+++  IMAGES += factory-us.bin factory-eu.bin
+++  IMAGE/factory-us.bin := tplink-v1-image factory -C US
+++  IMAGE/factory-eu.bin := tplink-v1-image factory -C EU
+++endef
+++TARGET_DEVICES += tplink_tl-wr841-v11-16m
+++
++ define Device/tplink_tl-wr842n-v1
++   $(Device/tplink-8m)
++   SOC := ar7241
++-- 
++2.29.2.windows.2
++
+diff --git a/targets/ath79-generic b/targets/ath79-generic
+index f2c1a952..4ee05ad8 100644
+--- a/targets/ath79-generic
++++ b/targets/ath79-generic
+@@ -92,3 +92,43 @@ device('tp-link-archer-d50-v1', 'tplink_archer-d50-v1', {
+ 	factory = false,
+ 	broken = true, -- 64M ath9k + ath10k & power LED not working
+ })
++
++device('tp-link-tl-wr841n-nd-mod-ath79-8m-v8', 'tplink_tl-wr841-v8-8m', {
++	factory = false,
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-8m-v8'},
++})
++
++device('tp-link-tl-wr841n-nd-mod-ath79-16m-v8', 'tplink_tl-wr841-v8-16m', {
++	factory = false,
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-8m-v9'},
++})
++
++device('tp-link-tl-wr841n-nd-mod-ath79-8m-v9', 'tplink_tl-wr841-v9-8m', {
++	factory = false,
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-8m-v10'},
++})
++
++device('tp-link-tl-wr841n-nd-mod-ath79-16m-v9', 'tplink_tl-wr841-v9-16m', {
++	factory = false,
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-8m-v11'},
++})
++
++device('tp-link-tl-wr841n-nd-mod-ath79-8m-v10', 'tplink_tl-wr841-v10-8m', {
++	factory = false,
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v8'},
++})
++
++device('tp-link-tl-wr841n-nd-mod-ath79-16m-v10', 'tplink_tl-wr841-v10-16m', {
++	factory = false,
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v8'},
++})
++
++device('tp-link-tl-wr841n-nd-mod-ath79-8m-v11', 'tplink_tl-wr841-v11-8m', {
++	factory = false,
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v8'},
++})
++
++device('tp-link-tl-wr841n-nd-mod-ath79-16m-v11', 'tplink_tl-wr841-v11-16m', {
++	factory = false,
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v8'},
++})
+-- 
+2.29.2.windows.2
+
