@@ -12,8 +12,6 @@ Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
  create mode 100644 patches/openwrt/0028-ath79-add-support-for-Joy-IT-JT-OR750i.patch
 
 diff --git a/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac b/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac
-old mode 100755
-new mode 100644
 index 499a33bf..ad52ac13
 --- a/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac
 +++ b/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac
