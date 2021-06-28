@@ -5,26 +5,11 @@ Subject: [PATCH] ath79-generic: add Joy-IT JT-OR750i
 
 Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
 ---
- .../luasrc/lib/gluon/upgrade/010-primary-mac  |   3 +
  ...h79-add-support-for-Joy-IT-JT-OR750i.patch | 237 ++++++++++++++++++
  targets/ath79-generic                         |   7 +
  3 files changed, 246 insertions(+)
  create mode 100644 patches/openwrt/0028-ath79-add-support-for-Joy-IT-JT-OR750i.patch
 
-diff --git a/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac b/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac
-index 499a33bf..ad52ac13
---- a/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac
-+++ b/package/gluon-core/luasrc/lib/gluon/upgrade/010-primary-mac
-@@ -102,6 +102,9 @@ local primary_addrs = {
- 		{'x86'},
- 	}},
- 	{interface('wan'), {
-+		{'ath79', 'generic', {
-+			'joyit,jt-or750i',
-+		}},
- 		{'ipq40xx', 'generic', {
- 			'linksys,ea6350v3',
- 			'openmesh,a42',
 diff --git a/patches/openwrt/0028-ath79-add-support-for-Joy-IT-JT-OR750i.patch b/patches/openwrt/0028-ath79-add-support-for-Joy-IT-JT-OR750i.patch
 new file mode 100644
 index 00000000..02649dd7
@@ -88,7 +73,7 @@ index 00000000..02649dd7
 ++		led-failsafe = &led_status_red;
 ++		led-running = &led_status_green;
 ++		led-upgrade = &led_status_red;
-++		label-mac-device = &eth1;
+++		label-mac-device = &eth0;
 ++	};
 ++
 ++	keys {
@@ -205,7 +190,7 @@ index 00000000..02649dd7
 + 	ucidef_set_led_netdev "wan" "WAN" "orange:system" "eth1"
 + 	;;
 ++joyit,jt-or750i)
-++	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth0"
+++	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth1"
 ++	ucidef_set_led_switch "lan1" "LAN1" "green:lan1" "switch0" "0x10"
 ++	ucidef_set_led_switch "lan2" "LAN2" "green:lan2" "switch0" "0x08"
 ++	ucidef_set_led_switch "lan3" "LAN3" "green:lan3" "switch0" "0x04"
