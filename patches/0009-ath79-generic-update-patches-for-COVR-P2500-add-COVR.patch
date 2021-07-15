@@ -1,0 +1,1835 @@
+From 91c37313c6de3d2e4d853921a3c3b6fdc98e65e9 Mon Sep 17 00:00:00 2001
+From: Sebastian Schaper <openwrt@sebastianschaper.net>
+Date: Thu, 15 Jul 2021 08:45:09 +0200
+Subject: [PATCH] ath79-generic: update patches for COVR-P2500, add COVR-C1200
+
+Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
+---
+ ...link-sge-image-add-util-for-D-Link-d.patch | 559 ++++++++++++++++++
+ ...add-support-for-D-Link-COVR-C1200-A1.patch | 385 ++++++++++++
+ ...add-support-for-D-Link-COVR-P2500-A1.patch | 314 ++++++++++
+ ...script-for-NMK-hannover.freifuk.net.patch} | 371 +-----------
+ ...ard-broken-oem-config-after-flashing.patch |  40 ++
+ ...lc-interface-configuration-for-gluon.patch |  37 ++
+ targets/ath79-generic                         |  18 +-
+ 7 files changed, 1366 insertions(+), 358 deletions(-)
+ create mode 100644 patches/openwrt/0029-firmware-utils-dlink-sge-image-add-util-for-D-Link-d.patch
+ create mode 100644 patches/openwrt/0030-ath79-add-support-for-D-Link-COVR-C1200-A1.patch
+ create mode 100644 patches/openwrt/0031-ath79-add-support-for-D-Link-COVR-P2500-A1.patch
+ rename patches/openwrt/{0027-ath79-add-support-for-D-Link-COVR-P2500-A1.patch => 0032-add-plc-init.d-script-for-NMK-hannover.freifuk.net.patch} (98%)
+ create mode 100644 patches/openwrt/0033-discard-broken-oem-config-after-flashing.patch
+ create mode 100644 patches/openwrt/0034-add-plc-interface-configuration-for-gluon.patch
+
+diff --git a/patches/openwrt/0029-firmware-utils-dlink-sge-image-add-util-for-D-Link-d.patch b/patches/openwrt/0029-firmware-utils-dlink-sge-image-add-util-for-D-Link-d.patch
+new file mode 100644
+index 00000000..367335e8
+--- /dev/null
++++ b/patches/openwrt/0029-firmware-utils-dlink-sge-image-add-util-for-D-Link-d.patch
+@@ -0,0 +1,559 @@
++From 3d3769d600d63f619c9bc1d02e7330afbe654db5 Mon Sep 17 00:00:00 2001
++From: Sebastian Schaper <openwrt@sebastianschaper.net>
++Date: Fri, 14 May 2021 14:09:45 +0200
++Subject: [PATCH 1/5] firmware-utils: dlink-sge-image: add util for D-Link
++ devices by SGE
++
++This tool will encrypt/decrypt factory images requiring the "SHRS" header
++e.g. COVR-P2500, COVR-C1200, DIR-878, DIR-882, DIR-1960, DIR-2660, ...
++
++Encryption is loosely based on a series of blogposts by ricksanchez [1]
++and the provided code [2], as well as patches to qca-uboot found in the
++GPL tarball released for D-Link COVR-P2500 Rev. A1 [3].
++
++Further scripts (e.g. /lib/upgrade/) and keys were found in the GPL tarball
++and/or rootfs of COVR-C1200 (the devices are based on OpenWrt Chaos Calmer
++and failsafe can be entered by pressing 'f' on the serial console during boot,
++allowing to access the file system of the running device).
++
++[1] https://0x00sec.org/t/breaking-the-d-link-dir3060-firmware-encryption-recon-part-1/21943
++[2] https://github.com/0xricksanchez/dlink-decrypt
++[3] https://tsd.dlink.com.tw/GPL.asp
++
++Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
++---
++ include/image-commands.mk                  |   5 +
++ tools/firmware-utils/Makefile              |   1 +
++ tools/firmware-utils/src/dlink-sge-image.c | 398 +++++++++++++++++++++
++ tools/firmware-utils/src/dlink-sge-image.h |  86 +++++
++ 4 files changed, 490 insertions(+)
++ create mode 100644 tools/firmware-utils/src/dlink-sge-image.c
++ create mode 100755 tools/firmware-utils/src/dlink-sge-image.h
++
++diff --git a/include/image-commands.mk b/include/image-commands.mk
++index fa36885038..947f60e67a 100644
++--- a/include/image-commands.mk
+++++ b/include/image-commands.mk
++@@ -175,6 +175,11 @@ define Build/check-size
++ 	}
++ endef
++ 
+++define Build/dlink-sge-image
+++	$(STAGING_DIR_HOST)/bin/dlink-sge-image $@ $@.enc
+++	mv $@.enc $@
+++endef
+++
++ define Build/elecom-product-header
++ 	$(eval product=$(word 1,$(1)))
++ 	$(eval fw=$(if $(word 2,$(1)),$(word 2,$(1)),$@))
++diff --git a/tools/firmware-utils/Makefile b/tools/firmware-utils/Makefile
++index 72cd513a45..36d9a8a870 100644
++--- a/tools/firmware-utils/Makefile
+++++ b/tools/firmware-utils/Makefile
++@@ -34,6 +34,7 @@ define Host/Compile
++ 	$(call cc,buffalo-tftp buffalo-lib,-Wall)
++ 	$(call cc,dgfirmware,-Wall)
++ 	$(call cc,dgn3500sum,-Wall)
+++	$(call cc,dlink-sge-image,-lcrypto -pthread -Wall)
++ 	$(call cc,dns313-header,-Wall)
++ 	$(call cc,edimax_fw_header,-Wall)
++ 	$(call cc,encode_crc,-Wall)
++diff --git a/tools/firmware-utils/src/dlink-sge-image.c b/tools/firmware-utils/src/dlink-sge-image.c
++new file mode 100644
++index 0000000000..61aa722bdd
++--- /dev/null
+++++ b/tools/firmware-utils/src/dlink-sge-image.c
++@@ -0,0 +1,398 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++/*
+++ * Copyright (C) 2021 Sebastian Schaper <openwrt@sebastianschaper.net>
+++ *
+++ * This tool encrypts factory images for certain D-Link Devices
+++ * manufactured by SGE / T&W, e.g. COVR-C1200, COVR-P2500, DIR-882, ...
+++ *
+++ * Build instructions:
+++ *   gcc -lcrypto dlink-sge-image.c -o dlink-sge-image
+++ *
+++ * Usage:
+++ *   ./dlink-sge-image infile outfile [-d: decrypt]
+++ *
+++ */
+++
+++#include "dlink-sge-image.h"
+++
+++#include <openssl/aes.h>
+++#include <openssl/pem.h>
+++#include <openssl/rsa.h>
+++#include <openssl/sha.h>
+++
+++#include <arpa/inet.h>
+++#include <stdio.h>
+++#include <stdlib.h>
+++#include <string.h>
+++
+++#define BUFSIZE		4096
+++
+++#define HEAD_MAGIC		"SHRS"
+++#define HEAD_MAGIC_LEN	4
+++#define SHA512_DIGEST_LENGTH	64
+++#define RSA_KEY_LENGTH_BYTES	512
+++#define AES_BLOCK_SIZE	16
+++#define HEADER_LEN		1756
+++
+++unsigned char aes_iv[AES_BLOCK_SIZE];
+++
+++unsigned char readbuf[BUFSIZE];
+++unsigned char encbuf[BUFSIZE];
+++
+++unsigned int read_bytes = 0;
+++unsigned long read_total = 0;
+++unsigned int i;
+++
+++unsigned char vendor_key[AES_BLOCK_SIZE];
+++AES_KEY enc_key;
+++
+++FILE * input_file;
+++FILE * output_file;
+++
+++void image_encrypt(void)
+++{
+++	// seek to position 1756 (begin of AES-encrypted data),
+++	// write image headers later
+++	char buf[HEADER_LEN];
+++	memset(buf, 0, HEADER_LEN);
+++	fwrite(&buf, 1, HEADER_LEN, output_file);
+++
+++	RSA *rsa = RSA_new();
+++	BIO *rsa_private_bio = BIO_new_mem_buf(key2_pem, -1);
+++	PEM_read_bio_RSAPrivateKey(rsa_private_bio, &rsa, NULL, NULL);
+++
+++	SHA512_CTX digest;
+++	SHA512_Init(&digest);
+++
+++	SHA512_CTX digest_post;
+++	SHA512_Init(&digest_post);
+++
+++	memcpy(&aes_iv, &salt, AES_BLOCK_SIZE);
+++	AES_set_encrypt_key(&vendor_key[0], 128, &enc_key);
+++
+++	uint32_t payload_length_before, pad_len;
+++
+++	while((read_bytes = fread(&readbuf, 1, BUFSIZE, input_file)) == BUFSIZE)
+++	{
+++		SHA512_Update(&digest, &readbuf[0], read_bytes);
+++		read_total += read_bytes;
+++
+++		AES_cbc_encrypt(&readbuf[0], encbuf, BUFSIZE, &enc_key, \
+++			aes_iv, AES_ENCRYPT);
+++		fwrite(&encbuf, 1, BUFSIZE, output_file);
+++
+++		SHA512_Update(&digest_post, &encbuf[0], BUFSIZE);
+++	}
+++
+++	// handle last block of data (read_bytes < BUFSIZE)
+++	SHA512_Update(&digest, &readbuf[0], read_bytes);
+++	read_total += read_bytes;
+++
+++	pad_len = AES_BLOCK_SIZE - (read_total % AES_BLOCK_SIZE);
+++	if(pad_len == 0)
+++	{
+++		pad_len = 16;
+++	}
+++	memset(&readbuf[read_bytes], 0, pad_len);
+++
+++	AES_cbc_encrypt(&readbuf[0], encbuf, read_bytes + pad_len, \
+++		&enc_key, aes_iv, AES_ENCRYPT);
+++	fwrite(&encbuf, 1, read_bytes + pad_len, output_file);
+++
+++	SHA512_Update(&digest_post, &encbuf[0], read_bytes + pad_len);
+++
+++	fclose(input_file);
+++	payload_length_before = read_total;
+++	printf("\npayload_length_before: %li\n", read_total);
+++
+++	// copy digest state, since we need another one with vendor key appended,
+++	// without having to re-hash the whole file (SHA512_Final is destructive)
+++	SHA512_CTX digest_vendor;
+++	memcpy(&digest_vendor, &digest, sizeof(SHA512_CTX));
+++
+++	unsigned char md_before[SHA512_DIGEST_LENGTH];
+++	SHA512_Final(&md_before[0], &digest);
+++
+++	printf("\ndigest_before: ");
+++	for (i = 0; i < SHA512_DIGEST_LENGTH; i++)  {
+++	  printf("%02x", md_before[i]);
+++	}
+++
+++	unsigned char md_vendor[SHA512_DIGEST_LENGTH];
+++	SHA512_Update(&digest_vendor, &vendor_key[0], AES_BLOCK_SIZE);
+++	SHA512_Final(&md_vendor[0], &digest_vendor);
+++
+++	printf("\ndigest_vendor: ");
+++	for (i = 0; i < SHA512_DIGEST_LENGTH; i++)  {
+++	  printf("%02x", md_vendor[i]);
+++	}
+++
+++	unsigned char md_post[SHA512_DIGEST_LENGTH];
+++	SHA512_Final(&md_post[0], &digest_post);
+++
+++	printf("\ndigest_post: ");
+++	for (i = 0; i < SHA512_DIGEST_LENGTH; i++)  {
+++	  printf("%02x", md_post[i]);
+++	}
+++
+++	char footer[] = {0x00, 0x00, 0x00, 0x00, 0x30};
+++	fwrite(&footer, 1, 5, output_file);
+++
+++	// go back to file header and write all the digests and signatures
+++	fseek(output_file, 0, SEEK_SET);
+++
+++	fwrite(HEAD_MAGIC, 1, HEAD_MAGIC_LEN, output_file);
+++
+++	// write payload length before
+++	uint32_t sizebuf;
+++	sizebuf = htonl(payload_length_before);
+++	fwrite((char *) &sizebuf, 1, 4, output_file);
+++
+++	// write payload length post
+++	payload_length_before += pad_len;
+++	sizebuf = htonl(payload_length_before);
+++	fwrite((char *) &sizebuf, 1, 4, output_file);
+++
+++	// write salt and digests
+++	fwrite(salt, 1, AES_BLOCK_SIZE, output_file);
+++	fwrite(&md_vendor[0], 1, SHA512_DIGEST_LENGTH, output_file);
+++	fwrite(&md_before[0], 1, SHA512_DIGEST_LENGTH, output_file);
+++	fwrite(&md_post[0],   1, SHA512_DIGEST_LENGTH, output_file);
+++
+++	unsigned char sigret[RSA_KEY_LENGTH_BYTES];
+++	unsigned int siglen = RSA_KEY_LENGTH_BYTES;
+++
+++	// zero-fill rsa_pub field, unused in header
+++	memset(sigret, 0, RSA_KEY_LENGTH_BYTES);
+++	fwrite(&sigret[0], 1, RSA_KEY_LENGTH_BYTES, output_file);
+++
+++	// sign md_before
+++	RSA_sign(NID_sha512, &md_before[0], SHA512_DIGEST_LENGTH, \
+++		&sigret[0], &siglen, rsa);
+++	printf("\nsigned before:\n");
+++	for (i = 0; i < RSA_KEY_LENGTH_BYTES; i++)  {
+++	  printf("%02x", sigret[i]);
+++	}
+++	fwrite(&sigret[0], 1, RSA_KEY_LENGTH_BYTES, output_file);
+++
+++	// sign md_post
+++	RSA_sign(NID_sha512, &md_post[0], SHA512_DIGEST_LENGTH, \
+++		&sigret[0], &siglen, rsa);
+++	printf("\nsigned post:\n");
+++	for (i = 0; i < RSA_KEY_LENGTH_BYTES; i++)  {
+++	  printf("%02x", sigret[i]);
+++	}
+++	fwrite(&sigret[0], 1, RSA_KEY_LENGTH_BYTES, output_file);
+++
+++	fclose(output_file);
+++}
+++
+++void image_decrypt(void)
+++{
+++	printf("\ndecrypt mode\n");
+++
+++	RSA *rsa = RSA_new();
+++	BIO *rsa_public_bio = BIO_new_mem_buf(public_pem, -1);
+++	RSA_print(rsa_public_bio, rsa, 0);
+++	PEM_read_bio_RSAPublicKey(rsa_public_bio, &rsa, NULL, NULL);
+++
+++	char magic[4];
+++	fread(&magic, 1, HEAD_MAGIC_LEN, input_file);
+++	if(strncmp(magic, HEAD_MAGIC, HEAD_MAGIC_LEN) != 0)
+++	{
+++		fprintf(stderr, "Input File header magic does not match '%s'.\n"
+++			"Maybe this file is not encrypted?\n", HEAD_MAGIC);
+++		exit(1);
+++	}
+++
+++	uint32_t payload_length_before, payload_length_post;
+++	fread((char *) &payload_length_before, 1, 4, input_file);
+++	fread((char *) &payload_length_post  , 1, 4, input_file);
+++	payload_length_before = ntohl(payload_length_before);
+++	payload_length_post   = ntohl(payload_length_post);
+++
+++	char salt[AES_BLOCK_SIZE];
+++	fread(salt, 1, AES_BLOCK_SIZE, input_file);
+++
+++	char md_vendor[SHA512_DIGEST_LENGTH];
+++	fread(md_vendor, 1, SHA512_DIGEST_LENGTH, input_file);
+++
+++	char md_before[SHA512_DIGEST_LENGTH];
+++	fread(md_before, 1, SHA512_DIGEST_LENGTH, input_file);
+++
+++	char md_post[SHA512_DIGEST_LENGTH];
+++	fread(md_post, 1, SHA512_DIGEST_LENGTH, input_file);
+++
+++	// skip rsa_pub
+++	fread(readbuf, 1, RSA_KEY_LENGTH_BYTES, input_file);
+++
+++	unsigned char rsa_sign_before[RSA_KEY_LENGTH_BYTES];
+++	fread(rsa_sign_before, 1, RSA_KEY_LENGTH_BYTES, input_file);
+++
+++	unsigned char rsa_sign_post[RSA_KEY_LENGTH_BYTES];
+++	fread(rsa_sign_post, 1, RSA_KEY_LENGTH_BYTES, input_file);
+++
+++	// file should be at position HEADER_LEN now, start AES decryption
+++	SHA512_CTX digest_post;
+++	SHA512_Init(&digest_post);
+++	SHA512_CTX digest_before;
+++	SHA512_Init(&digest_before);
+++	SHA512_CTX digest_vendor;
+++
+++	memcpy(&aes_iv, &salt, AES_BLOCK_SIZE);
+++	AES_set_decrypt_key(&vendor_key[0], 128, &enc_key);
+++	uint32_t pad_len = payload_length_post - payload_length_before;
+++
+++	while(read_total < payload_length_post)
+++	{
+++		if(read_total + BUFSIZE <= payload_length_post)
+++		{
+++			read_bytes = fread(&readbuf, 1, BUFSIZE, input_file);
+++		}
+++		else
+++		{
+++			read_bytes = fread(&readbuf, 1, \
+++				payload_length_post - read_total, input_file);
+++		}
+++
+++		read_total += read_bytes;
+++
+++		SHA512_Update(&digest_post, &readbuf[0], read_bytes);
+++
+++		AES_cbc_encrypt(&readbuf[0], &encbuf[0], read_bytes, &enc_key, \
+++			aes_iv, AES_DECRYPT);
+++
+++		// only update digest_before until payload_length_before,
+++		// do not hash decrypted padding
+++		if(read_total > payload_length_before)
+++		{
+++			// only calc hash for data before padding
+++			SHA512_Update(&digest_before, &encbuf[0], read_bytes - pad_len);
+++			fwrite(&encbuf[0], 1, read_bytes - pad_len, output_file);
+++
+++			// copy state of digest, since SHA512_Final is desctructive
+++			memcpy(&digest_vendor, &digest_before, sizeof(SHA512_CTX));
+++
+++			// append vendor_key
+++			SHA512_Update(&digest_vendor, &vendor_key[0], AES_BLOCK_SIZE);
+++		}
+++		else
+++		{
+++			// calc hash for all of read_bytes
+++			SHA512_Update(&digest_before, &encbuf[0], read_bytes);
+++			fwrite(&encbuf[0], 1, read_bytes, output_file);
+++		}
+++	}
+++
+++	fclose(output_file);
+++
+++	unsigned char md_post_actual[SHA512_DIGEST_LENGTH];
+++	SHA512_Final(&md_post_actual[0], &digest_post);
+++
+++	printf("\ndigest_post: ");
+++	for (i = 0; i < SHA512_DIGEST_LENGTH; i++)  {
+++	  printf("%02x", md_post_actual[i]);
+++	}
+++
+++	if(strncmp(md_post, (char *) md_post_actual, SHA512_DIGEST_LENGTH) != 0)
+++	{
+++		fprintf(stderr, "SHA512 post does not match file contents.\n");
+++		exit(1);
+++	}
+++
+++	unsigned char md_before_actual[SHA512_DIGEST_LENGTH];
+++	SHA512_Final(&md_before_actual[0], &digest_before);
+++
+++	printf("\ndigest_before: ");
+++	for (i = 0; i < SHA512_DIGEST_LENGTH; i++)  {
+++	  printf("%02x", md_before_actual[i]);
+++	}
+++
+++	if(strncmp(md_before, (char *) md_before_actual, SHA512_DIGEST_LENGTH) != 0)
+++	{
+++		fprintf(stderr, "SHA512 before does not match decrypted payload.\n");
+++		exit(1);
+++	}
+++
+++	unsigned char md_vendor_actual[SHA512_DIGEST_LENGTH];
+++	SHA512_Final(&md_vendor_actual[0], &digest_vendor);
+++
+++	printf("\ndigest_vendor: ");
+++	for (i = 0; i < SHA512_DIGEST_LENGTH; i++)  {
+++	  printf("%02x", md_vendor_actual[i]);
+++	}
+++
+++	if(strncmp(md_vendor, (char *) md_vendor_actual, SHA512_DIGEST_LENGTH) != 0)
+++	{
+++		fprintf(stderr, "SHA512 vendor does not match decrypted payload"
+++			" padded with vendor key.\n");
+++		exit(1);
+++	}
+++
+++	if(RSA_verify(NID_sha512, &md_before_actual[0], SHA512_DIGEST_LENGTH, \
+++		&rsa_sign_before[0], RSA_KEY_LENGTH_BYTES, rsa))
+++	{
+++		printf("\nsignature before verification success");
+++	}
+++	else
+++	{
+++		fprintf(stderr, "Signature before verification failed.\nThe decrypted"
+++			" image file may however be flashable via bootloader recovery.\n");
+++	}
+++
+++	if(RSA_verify(NID_sha512, &md_post_actual[0], SHA512_DIGEST_LENGTH, \
+++		&rsa_sign_post[0], RSA_KEY_LENGTH_BYTES, rsa))
+++	{
+++		printf("\nsignature post verification success");
+++	}
+++	else
+++	{
+++		fprintf(stderr, "Signature post verification failed.\nThe decrypted"
+++			" image file may however be flashable via bootloader recovery.\n");
+++	}
+++
+++	printf("\n");
+++}
+++
+++int main(int argc, char **argv)
+++{
+++	if(argc < 2 || argc > 4)
+++	{
+++		fprintf(stderr, "Usage:\n"
+++			"\tdlink-sge-image infile outfile [-d: decrypt]\n\n");
+++		exit(1);
+++	}
+++
+++	input_file = fopen(argv[1], "rb");
+++	if(input_file == NULL)
+++	{
+++		fprintf(stderr, "Input File %s could not be opened.\n", argv[1]);
+++		exit(1);
+++	}
+++
+++	output_file = fopen(argv[2], "wb");
+++	if(input_file == NULL)
+++	{
+++		fprintf(stderr, "Output File %s could not be opened.\n", argv[2]);
+++		exit(1);
+++	}
+++
+++	memcpy(&aes_iv, &iv, AES_BLOCK_SIZE);
+++	AES_set_decrypt_key(&key1[0], 128, &enc_key);
+++	AES_cbc_encrypt(&key2[0], &vendor_key[0], AES_BLOCK_SIZE, &enc_key, \
+++		aes_iv, AES_DECRYPT);
+++
+++	printf("\nvendor_key: ");
+++	for (i = 0; i < AES_BLOCK_SIZE; i++)  {
+++	  printf("%02x", vendor_key[i]);
+++	}
+++
+++	if(argc == 4 && strncmp(argv[3], "-d", 2) == 0)
+++	{
+++		image_decrypt();
+++	}
+++	else
+++	{
+++		image_encrypt();
+++	}
+++}
++diff --git a/tools/firmware-utils/src/dlink-sge-image.h b/tools/firmware-utils/src/dlink-sge-image.h
++new file mode 100755
++index 0000000000..0eefede787
++--- /dev/null
+++++ b/tools/firmware-utils/src/dlink-sge-image.h
++@@ -0,0 +1,86 @@
+++// SPDX-License-Identifier: GPL-2.0-only
+++
+++const unsigned char key1[] =
+++	"\x35\x87\x90\x03\x45\x19\xf8\xc8\x23\x5d\xb6\x49\x28\x39\xa7\x3f";
+++
+++const unsigned char key2[] =
+++	"\xc8\xd3\x2f\x40\x9c\xac\xb3\x47\xc8\xd2\x6f\xdc\xb9\x09\x0b\x3c";
+++
+++const unsigned char iv[] =
+++	"\x98\xc9\xd8\xf0\x13\x3d\x06\x95\xe2\xa7\x09\xc8\xb6\x96\x82\xd4";
+++
+++const unsigned char salt[] =
+++	"\x67\xc6\x69\x73\x51\xff\x4a\xec\x29\xcd\xba\xab\xf2\xfb\xe3\x46";
+++
+++// public.pem as found in GPL tarball
+++const unsigned char public_pem[] = R"(
+++-----BEGIN RSA PUBLIC KEY-----
+++MIICCgKCAgEApZLuH2XFDWuazEMpx4v6QY0ePRJm344JgkLKfeofovxvbjfX6RHU
+++7yUz6b2wJnW4lomEzjrJEQFnPGNFV/oWO/NaTb3k0rPUewDzlzy/pn7ZMehqnMK1
+++tHVnyQ6RZ+9qkdYEu08f79UgZcGQzSy2TLNMquAB9ffGbTHAjRfoK7cDjQX+RKWh
+++OOs5tbnzhR0B4Jdd6UL9Sqoq5UisTdlnFhy67RdsItz3OOrHIiDYmfkEOqAZySKZ
+++MhY7h7kkC8t1IzZOncBx3LYU4PMo9ulycAx7xDUric8xswnKoYAJbbKtp9xnGKRJ
+++HPuZOZyXFdWNlTVhzG3sGdDzcpHxrFOJZ5RK/n19DArbq6w9MEInTmU3bcwDYFvX
+++JCQ5Al05lgqP8vk7U4xx3AcwZUQHNVzduBuibB26jhpPXSk1Cl6NpFdXlKvcynfV
+++H8XaCHy8LXhZBMiuR62Ft6YkcIpBdsQ2uBGL5GOmVFA/cOEtPZjWxzN/miXaZ7In
+++iRhXEHFus6zYIPOTa9DNyAA87UCqxkem7Xgu59fgq49YwGPk+Q7HJXKgts9QTn9y
+++26OtlUAq1i23EJK6GJvTmszslXbAWEi5Mlb/o7QdpEQt/gyz9udnVmfXOy4UmNXN
+++ZxuVyXNomTBFRObZ5Zmn6n+xat5eBDpvct+OO1IUMC154div9i2szF0CAwEAAQ==
+++-----END RSA PUBLIC KEY-----
+++)";
+++
+++// key2.pem as found in GPL tarball, decrypted via openssl using
+++// PEM passphrase 12345678 to reduce code and runtime complexity
+++const unsigned char key2_pem[] = R"(
+++-----BEGIN RSA PRIVATE KEY-----
+++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
+++-----END RSA PRIVATE KEY-----
+++)";
++-- 
++2.25.1
++
+diff --git a/patches/openwrt/0030-ath79-add-support-for-D-Link-COVR-C1200-A1.patch b/patches/openwrt/0030-ath79-add-support-for-D-Link-COVR-C1200-A1.patch
+new file mode 100644
+index 00000000..e74b42b4
+--- /dev/null
++++ b/patches/openwrt/0030-ath79-add-support-for-D-Link-COVR-C1200-A1.patch
+@@ -0,0 +1,385 @@
++From 26381c356ed5b18578474152a265310d9fe64a51 Mon Sep 17 00:00:00 2001
++From: Sebastian Schaper <openwrt@sebastianschaper.net>
++Date: Fri, 14 May 2021 14:33:58 +0200
++Subject: [PATCH 2/5] ath79: add support for D-Link COVR-C1200 A1
++
++The COVR-C1200 devices are sold as "Whole Home Mesh Wi-Fi"
++sets in packs of two (COVR-C1202) and three (COVR-C1203).
++
++Specifications:
++ * QCA9563, 16 MiB flash, 128 MiB RAM, 2x3:2 802.11n
++ * QCA9886 2x2:2 801.11ac Wave 2
++ * AR8337, 2 Gigabit ports (1: WAN; 2: LAN)
++ * USB Type-C power connector (5V, 3A)
++
++Installation COVR Point A:
++ * In factory reset state: OEM Web UI is at 192.168.0.50
++   no DHCP, skip wizard by directly accessing:
++     http://192.168.0.50/UpdateFirmware_Simple.html
++ * After completing setup wizard: Web UI is at 192.168.0.1
++     DHCP enabled, login with empty password
++ * Flash factory.bin
++ * Perform a factory reset to restore OpenWrt UCI defaults
++
++Installation COVR Points B:
++ * OEM Web UI is at 192.168.0.50, no DHCP, empty password
++ * Flash factory.bin
++ * Perform a factory reset to restore OpenWrt UCI defaults
++
++Recovery:
++ * Keep reset button pressed during power on
++ * Recovery Web UI is at 192.168.0.50, no DHCP
++ * Flash factory.bin
++   seems to work best with Chromium-based browsers or curl:
++     curl -F firmware=@factory.bin \
++       http://192.168.0.50/upgrade.cgi
++
++Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
++---
++ include/image-commands.mk                     |   4 +
++ scripts/dlink-sge-signature.py                |  35 ++++
++ .../ath79/dts/qca9563_dlink_covr-c1200-a1.dts | 167 ++++++++++++++++++
++ .../generic/base-files/etc/board.d/02_network |   9 +
++ .../etc/hotplug.d/firmware/11-ath10k-caldata  |   6 +
++ .../etc/hotplug.d/ieee80211/10_fix_wifi_mac   |   4 +
++ target/linux/ath79/image/generic.mk           |  27 +++
++ 7 files changed, 252 insertions(+)
++ create mode 100755 scripts/dlink-sge-signature.py
++ create mode 100644 target/linux/ath79/dts/qca9563_dlink_covr-c1200-a1.dts
++
++diff --git a/include/image-commands.mk b/include/image-commands.mk
++index 947f60e67a..b16dee913e 100644
++--- a/include/image-commands.mk
+++++ b/include/image-commands.mk
++@@ -23,6 +23,10 @@ define Build/append-dtb-elf
++ 		.appended_dtb=$(KDIR)/image-$(firstword $(DEVICE_DTS)).dtb $@
++ endef
++ 
+++define Build/append-file
+++	dd if=$(1) >> $@
+++endef
+++
++ define Build/append-kernel
++ 	dd if=$(IMAGE_KERNEL) >> $@
++ endef
++diff --git a/scripts/dlink-sge-signature.py b/scripts/dlink-sge-signature.py
++new file mode 100755
++index 0000000000..761e3e5413
++--- /dev/null
+++++ b/scripts/dlink-sge-signature.py
++@@ -0,0 +1,35 @@
+++#!/usr/bin/env python3
+++# SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++#
+++# Copyright (C) 2021 Sebastian Schaper <openwrt@sebastianschaper.net>
+++#
+++# append model string and gzip-based signature used by
+++# certain D-Link devices manufactured by SGE / T&W.
+++#
+++# e.g. COVR-P2500 requires this to be appended to the
+++# encrypted factory image, while for COVR-C1200 the
+++# signature needs to be appended to the unencrypted payload
+++#
+++
+++import gzip, hashlib, sys
+++
+++if len(sys.argv) != 3:
+++    exit(f"usage: {sys.argv[0]} input.bin model_name")
+++
+++input_file = sys.argv[1]
+++model_name = sys.argv[2]
+++
+++with open(input_file, "rb+") as fd:
+++    input_bytes = fd.read()
+++
+++    gzipped = gzip.compress(input_bytes)[-8:-4]
+++    m = hashlib.md5()
+++    m.update(input_bytes)
+++
+++    fd.write(m.hexdigest().encode())
+++    fd.write(f"\n{model_name}\n".encode())
+++    fd.write(gzipped[::-1].hex().encode()) # change byte order
+++
+++    exit()
+++
+++exit(1)
++diff --git a/target/linux/ath79/dts/qca9563_dlink_covr-c1200-a1.dts b/target/linux/ath79/dts/qca9563_dlink_covr-c1200-a1.dts
++new file mode 100644
++index 0000000000..51ff3fa1f3
++--- /dev/null
+++++ b/target/linux/ath79/dts/qca9563_dlink_covr-c1200-a1.dts
++@@ -0,0 +1,167 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "qca956x.dtsi"
+++
+++#include <dt-bindings/gpio/gpio.h>
+++#include <dt-bindings/input/input.h>
+++#include <dt-bindings/mtd/partitions/uimage.h>
+++
+++/ {
+++	model = "D-Link COVR-C1200 A1";
+++	compatible = "dlink,covr-c1200-a1", "qca,qca9563";
+++
+++	aliases {
+++		led-boot = &led_power_orange;
+++		led-failsafe = &led_power_red;
+++		led-running = &led_power_white;
+++		led-upgrade = &led_power_red;
+++	};
+++
+++	keys {
+++		compatible = "gpio-keys";
+++
+++		wps {
+++			label = "wps";
+++			linux,code = <KEY_WPS_BUTTON>;
+++			gpios = <&gpio 1 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		reset {
+++			label = "reset";
+++			linux,code = <KEY_RESTART>;
+++			gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
+++		};
+++	};
+++
+++	leds {
+++		compatible = "gpio-leds";
+++		pinctrl-names = "default";
+++		pinctrl-0 = <&jtag_disable_pins>;
+++
+++		led_power_red: power_red {
+++			label = "red:power";
+++			gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
+++		};
+++
+++		led_power_white: power_white {
+++			label = "white:power";
+++			gpios = <&gpio 7 GPIO_ACTIVE_HIGH>;
+++		};
+++
+++		led_power_orange: power_orange {
+++			label = "orange:power";
+++			gpios = <&gpio 8 GPIO_ACTIVE_HIGH>;
+++			default-state = "on";
+++		};
+++	};
+++
+++	virtual_flash {
+++		compatible = "mtd-concat";
+++
+++		devices = <&fwconcat0 &fwconcat1>;
+++
+++		partitions {
+++			compatible = "fixed-partitions";
+++			#address-cells = <1>;
+++			#size-cells = <1>;
+++
+++			partition@0 {
+++				compatible = "openwrt,uimage", "denx,uimage";
+++				openwrt,ih-magic = <0x68737173>;
+++				label = "firmware";
+++				reg = <0x0 0x0>;
+++			};
+++		};
+++	};
+++};
+++
+++&spi {
+++	status = "okay";
+++
+++	flash@0 {
+++		compatible = "jedec,spi-nor";
+++		reg = <0>;
+++		spi-max-frequency = <50000000>;
+++
+++		partitions {
+++			compatible = "fixed-partitions";
+++			#address-cells = <1>;
+++			#size-cells = <1>;
+++
+++			partition@0 {
+++				label = "u-boot";
+++				reg = <0x0 0x40000>;
+++				read-only;
+++			};
+++
+++			partition@40000 {
+++				label = "u-boot-env";
+++				reg = <0x40000 0x10000>;
+++				read-only;
+++			};
+++
+++			fwconcat0: partition@50000 {
+++				label = "fwconcat0";
+++				reg = <0x50000 0xe30000>;
+++			};
+++
+++			partition@e80000 {
+++				label = "loader";
+++				reg = <0xe80000 0x10000>;
+++				read-only;
+++			};
+++
+++			fwconcat1: partition@e90000 {
+++				label = "fwconcat1";
+++				reg = <0xe90000 0x160000>;
+++			};
+++
+++			art: partition@ff0000 {
+++				label = "art";
+++				reg = <0xff0000 0x10000>;
+++				read-only;
+++			};
+++		};
+++	};
+++};
+++
+++&pcie {
+++	status = "okay";
+++};
+++
+++&mdio0 {
+++	status = "okay";
+++
+++	phy-mask = <0>;
+++
+++	phy0: ethernet-phy@0 {
+++		reg = <0>;
+++		qca,mib-poll-interval = <500>;
+++		reset-gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
+++
+++		qca,ar8327-initvals = <
+++			0x04 0x00080080 /* PORT0 PAD MODE CTRL */
+++			0x10 0x81000080 /* POWER_ON_STRAP */
+++			0x50 0xcc35cc35 /* LED_CTRL0 */
+++			0x54 0xcb37cb37 /* LED_CTRL1 */
+++			0x58 0x00000000 /* LED_CTRL2 */
+++			0x5c 0x00f3cf00 /* LED_CTRL3 */
+++			0x7c 0x0000007e /* PORT0_STATUS */
+++			>;
+++	};
+++};
+++
+++&eth0 {
+++	status = "okay";
+++
+++	pll-data = <0x03000101 0x00000101 0x00001919>;
+++
+++	phy-mode = "sgmii";
+++	phy-handle = <&phy0>;
+++};
+++
+++&wmac {
+++	status = "okay";
+++
+++	mtd-cal-data = <&art 0x1000>;
+++};
++diff --git a/target/linux/ath79/generic/base-files/etc/board.d/02_network b/target/linux/ath79/generic/base-files/etc/board.d/02_network
++index 52e773fea3..2f89372365 100644
++--- a/target/linux/ath79/generic/base-files/etc/board.d/02_network
+++++ b/target/linux/ath79/generic/base-files/etc/board.d/02_network
++@@ -206,6 +206,10 @@ ath79_setup_interfaces()
++ 		ucidef_add_switch "switch0" \
++ 			"0@eth0" "2:wan" "3:lan" "4:lan"
++ 		;;
+++	dlink,covr-c1200-a1)
+++		ucidef_add_switch "switch0" \
+++			"0@eth0" "1:wan" "2:lan"
+++		;;
++ 	dlink,dap-2695-a1)
++ 		ucidef_add_switch "switch0" \
++ 			"0@eth0" "2:lan" "3:wan" "6@eth1"
++@@ -494,6 +498,11 @@ ath79_setup_macs()
++ 	devolo,magic-2-wifi)
++ 		label_mac=$(macaddr_add "$(mtd_get_mac_binary art 0x1002)" 3)
++ 		;;
+++	dlink,covr-c1200-a1)
+++		lan_mac=$(mtd_get_mac_ascii art "protest_lan_mac")
+++		wan_mac=$(mtd_get_mac_ascii art "protest_wan_mac")
+++		label_mac=$lan_mac
+++		;;
++ 	dlink,dap-1330-a1|\
++ 	dlink,dap-1365-a1|\
++ 	dlink,dch-g020-a1)
++diff --git a/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata b/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
++index 5a44dd94e5..5f1c025329 100644
++--- a/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
+++++ b/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
++@@ -182,6 +182,12 @@ case "$FIRMWARE" in
++ 			/lib/firmware/ath10k/QCA9888/hw2.0/board.bin
++ 		rm /lib/firmware/ath10k/QCA9888/hw2.0/board-2.bin
++ 		;;
+++	dlink,covr-c1200-a1)
+++		caldata_extract "art" 0x5000 0x2f20
+++		ath10k_patch_mac $(mtd_get_mac_ascii art "protest_ath1_mac")
+++		ln -sf /lib/firmware/ath10k/pre-cal-pci-0000\:00\:00.0.bin \
+++			/lib/firmware/ath10k/QCA9880/hw2.0/board.bin
+++		;;
++ 	dlink,dap-2680-a1)
++ 		caldata_extract "art" 0x5000 0x2f20
++ 		ath10k_patch_mac $(mtd_get_mac_ascii bdcfg wlanmac_a)
++diff --git a/target/linux/ath79/generic/base-files/etc/hotplug.d/ieee80211/10_fix_wifi_mac b/target/linux/ath79/generic/base-files/etc/hotplug.d/ieee80211/10_fix_wifi_mac
++index ac8b59c538..6065e2b0fd 100644
++--- a/target/linux/ath79/generic/base-files/etc/hotplug.d/ieee80211/10_fix_wifi_mac
+++++ b/target/linux/ath79/generic/base-files/etc/hotplug.d/ieee80211/10_fix_wifi_mac
++@@ -17,6 +17,10 @@ case "$board" in
++ 	adtran,bsap1840)
++ 		macaddr_add "$(mtd_get_mac_binary 'Board data' 2)" $(($PHYNBR * 8 + 1)) > /sys${DEVPATH}/macaddress
++ 		;;
+++	dlink,covr-c1200-a1)
+++		[ "$PHYNBR" -eq 1 ] && \
+++			mtd_get_mac_ascii art "protest_ath0_mac" > /sys${DEVPATH}/macaddress
+++		;;
++ 	dlink,dap-1330-a1|\
++ 	dlink,dap-1365-a1|\
++ 	dlink,dch-g020-a1)
++diff --git a/target/linux/ath79/image/generic.mk b/target/linux/ath79/image/generic.mk
++index 222a1511a7..14e679f3fa 100644
++--- a/target/linux/ath79/image/generic.mk
+++++ b/target/linux/ath79/image/generic.mk
++@@ -48,6 +48,10 @@ define Build/cybertan-trx
++ 	-rm $@-empty.bin
++ endef
++ 
+++define Build/dlink-sge-signature
+++	$(TOPDIR)/scripts/dlink-sge-signature.py $@ $(1)
+++endef
+++
++ define Build/edimax-headers
++ 	$(eval edimax_magic=$(word 1,$(1)))
++ 	$(eval edimax_model=$(word 2,$(1)))
++@@ -717,6 +721,29 @@ define Device/devolo_magic-2-wifi
++ endef
++ TARGET_DEVICES += devolo_magic-2-wifi
++ 
+++define Device/dlink_covr-c1200-a1
+++  SOC := qca9563
+++  DEVICE_VENDOR := D-Link
+++  DEVICE_MODEL := COVR-C1200
+++  DEVICE_VARIANT := A1
+++  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct
+++  LOADER_TYPE := bin
+++  LOADER_FLASH_OFFS := 0x050000
+++  LOADER_KERNEL_MAGIC := 0x68737173
+++  COMPILE := loader-$(1).bin loader-$(1).uImage
+++  COMPILE/loader-$(1).bin := loader-okli-compile
+++  COMPILE/loader-$(1).uImage := append-loader-okli $(1) | pad-to 64k | \
+++	lzma | uImage lzma
+++  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma -M 0x68737173
+++  IMAGE_SIZE := 14528k
+++  IMAGES += factory.bin
+++  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
+++	append-rootfs | pad-rootfs | check-size | pad-to 14528k | \
+++	append-file $(KDIR)/loader-$(1).uImage | pad-to 15616k | \
+++	dlink-sge-signature COVR-C1200 | dlink-sge-image
+++endef
+++TARGET_DEVICES += dlink_covr-c1200-a1
+++
++ define Device/dlink_dap-13xx
++   SOC := qca9533
++   DEVICE_VENDOR := D-Link
++-- 
++2.25.1
++
+diff --git a/patches/openwrt/0031-ath79-add-support-for-D-Link-COVR-P2500-A1.patch b/patches/openwrt/0031-ath79-add-support-for-D-Link-COVR-P2500-A1.patch
+new file mode 100644
+index 00000000..62d22295
+--- /dev/null
++++ b/patches/openwrt/0031-ath79-add-support-for-D-Link-COVR-P2500-A1.patch
+@@ -0,0 +1,314 @@
++From 85e44e1f43b47b6b6dccf8f96a172b612c195d5f Mon Sep 17 00:00:00 2001
++From: Sebastian Schaper <openwrt@sebastianschaper.net>
++Date: Thu, 10 Dec 2020 21:16:04 +0100
++Subject: [PATCH 3/5] ath79: add support for D-Link COVR-P2500 A1
++
++Specifications:
++* QCA9563, 16 MiB flash, 128 MiB RAM, 2T2R 802.11n
++* QCA9886 2T2R 801.11ac Wave 2
++* QCA7550 Homeplug AV2 1300
++* AR8337, 3 Gigabit ports (1, 2: LAN; 3: WAN)
++
++To make use of PLC functionality, firmware needs to be
++provided via plchost (QCA7550 comes without SPI NOR),
++patched with the Network Password and MAC.
++
++Installation:
++* OEM Web UI is at 192.168.0.50
++  flash factory.bin
++
++Recovery:
++* Hold down reset button during power-on
++  Recovery Web UI is at 192.168.0.50
++  flash recovery.img (does not work on soem browsers)
++---
++ .../ath79/dts/qca9563_dlink_covr-p2500-a1.dts | 177 ++++++++++++++++++
++ .../generic/base-files/etc/board.d/02_network |   9 +
++ .../etc/hotplug.d/firmware/11-ath10k-caldata  |   7 +
++ .../etc/hotplug.d/ieee80211/10_fix_wifi_mac   |   3 +-
++ target/linux/ath79/image/generic.mk           |  26 +++
++ 5 files changed, 221 insertions(+), 1 deletion(-)
++ create mode 100644 target/linux/ath79/dts/qca9563_dlink_covr-p2500-a1.dts
++
++diff --git a/target/linux/ath79/dts/qca9563_dlink_covr-p2500-a1.dts b/target/linux/ath79/dts/qca9563_dlink_covr-p2500-a1.dts
++new file mode 100644
++index 0000000000..de172fe70b
++--- /dev/null
+++++ b/target/linux/ath79/dts/qca9563_dlink_covr-p2500-a1.dts
++@@ -0,0 +1,177 @@
+++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include "qca956x.dtsi"
+++
+++#include <dt-bindings/gpio/gpio.h>
+++#include <dt-bindings/input/input.h>
+++#include <dt-bindings/mtd/partitions/uimage.h>
+++
+++/ {
+++	compatible = "dlink,covr-p2500-a1", "qca,qca9563";
+++	model = "D-Link COVR-P2500 A1";
+++
+++	aliases {
+++		led-boot = &led_power_green;
+++		led-failsafe = &led_power_red;
+++		led-running = &led_power_green;
+++		led-upgrade = &led_power_red;
+++	};
+++
+++	keys {
+++		compatible = "gpio-keys";
+++
+++		wps {
+++			label = "wps";
+++			linux,code = <KEY_WPS_BUTTON>;
+++			gpios = <&gpio 1 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		reset {
+++			label = "reset";
+++			linux,code = <KEY_RESTART>;
+++			gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
+++		};
+++	};
+++
+++	leds {
+++		compatible = "gpio-leds";
+++		pinctrl-names = "default";
+++		pinctrl-0 = <&jtag_disable_pins>;
+++
+++		lan {
+++			label = "green:lan";
+++			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		led_power_green: power_green {
+++			label = "green:power";
+++			gpios = <&gpio 7 GPIO_ACTIVE_LOW>;
+++			default-state = "on";
+++		};
+++
+++		wlan2g {
+++			label = "green:wlan5g";
+++			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		led_power_red: power_red {
+++			label = "red:power";
+++			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
+++		};
+++
+++		wlan5g {
+++			label = "green:wlan2g";
+++			gpios = <&gpio 19 GPIO_ACTIVE_LOW>;
+++		};
+++	};
+++
+++	virtual_flash {
+++		compatible = "mtd-concat";
+++
+++		devices = <&fwconcat0 &fwconcat1>;
+++
+++		partitions {
+++			compatible = "fixed-partitions";
+++			#address-cells = <1>;
+++			#size-cells = <1>;
+++
+++			partition@0 {
+++				compatible = "openwrt,uimage", "denx,uimage";
+++				openwrt,ih-magic = <0x68737173>;
+++				label = "firmware";
+++				reg = <0x0 0x0>;
+++			};
+++		};
+++	};
+++};
+++
+++&spi {
+++	status = "okay";
+++
+++	flash@0 {
+++		compatible = "jedec,spi-nor";
+++		reg = <0>;
+++		spi-max-frequency = <50000000>;
+++
+++		partitions {
+++			compatible = "fixed-partitions";
+++			#address-cells = <1>;
+++			#size-cells = <1>;
+++
+++			partition@0 {
+++				label = "u-boot";
+++				reg = <0x0 0x40000>;
+++				read-only;
+++			};
+++
+++			partition@40000 {
+++				label = "u-boot-env";
+++				reg = <0x40000 0x10000>;
+++				read-only;
+++			};
+++
+++			fwconcat0: partition@50000 {
+++				label = "fwconcat0";
+++				reg = <0x50000 0xe30000>;
+++			};
+++
+++			partition@e80000 {
+++				label = "loader";
+++				reg = <0xe80000 0x10000>;
+++				read-only;
+++			};
+++
+++			fwconcat1: partition@e90000 {
+++				label = "fwconcat1";
+++				reg = <0xe90000 0x160000>;
+++			};
+++
+++			art: partition@ff0000 {
+++				label = "art";
+++				reg = <0xff0000 0x10000>;
+++				read-only;
+++			};
+++		};
+++	};
+++};
+++
+++&pcie {
+++	status = "okay";
+++};
+++
+++&mdio0 {
+++	status = "okay";
+++
+++	phy-mask = <0>;
+++
+++	phy0: ethernet-phy@0 {
+++		reg = <0>;
+++		qca,mib-poll-interval = <500>;
+++		reset-gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
+++
+++		qca,ar8327-initvals = <
+++			0x04 0x00080080 /* PORT0 PAD MODE CTRL */
+++			0x10 0x81000080 /* POWER_ON_STRAP */
+++			0x50 0xcc35cc35 /* LED_CTRL0 */
+++			0x54 0xcb37cb37 /* LED_CTRL1 */
+++			0x58 0x00000000 /* LED_CTRL2 */
+++			0x5c 0x00f3cf00 /* LED_CTRL3 */
+++			0x7c 0x0000007e /* PORT0_STATUS */
+++			>;
+++	};
+++};
+++
+++&eth0 {
+++	status = "okay";
+++
+++	pll-data = <0x03000101 0x00000101 0x00001919>;
+++
+++	phy-mode = "sgmii";
+++	phy-handle = <&phy0>;
+++};
+++
+++&wmac {
+++	status = "okay";
+++
+++	mtd-cal-data = <&art 0x1000>;
+++};
++diff --git a/target/linux/ath79/generic/base-files/etc/board.d/02_network b/target/linux/ath79/generic/base-files/etc/board.d/02_network
++index 2f89372365..71590c1cee 100644
++--- a/target/linux/ath79/generic/base-files/etc/board.d/02_network
+++++ b/target/linux/ath79/generic/base-files/etc/board.d/02_network
++@@ -210,6 +210,10 @@ ath79_setup_interfaces()
++ 		ucidef_add_switch "switch0" \
++ 			"0@eth0" "1:wan" "2:lan"
++ 		;;
+++	dlink,covr-p2500-a1)
+++		ucidef_add_switch "switch0" \
+++			"0@eth0" "1:lan" "2:lan" "3:wan" "4:plc"
+++		;;
++ 	dlink,dap-2695-a1)
++ 		ucidef_add_switch "switch0" \
++ 			"0@eth0" "2:lan" "3:wan" "6@eth1"
++@@ -503,6 +507,11 @@ ath79_setup_macs()
++ 		wan_mac=$(mtd_get_mac_ascii art "protest_wan_mac")
++ 		label_mac=$lan_mac
++ 		;;
+++	dlink,covr-p2500-a1)
+++		lan_mac=$(mtd_get_mac_ascii art "protest_lan_mac")
+++		wan_mac=$(mtd_get_mac_ascii art "protest_wan_mac")
+++		label_mac=$(mtd_get_mac_ascii art "protest_plc_mac")
+++		;;
++ 	dlink,dap-1330-a1|\
++ 	dlink,dap-1365-a1|\
++ 	dlink,dch-g020-a1)
++diff --git a/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata b/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
++index 5f1c025329..409bbf6f8f 100644
++--- a/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
+++++ b/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
++@@ -188,6 +188,13 @@ case "$FIRMWARE" in
++ 		ln -sf /lib/firmware/ath10k/pre-cal-pci-0000\:00\:00.0.bin \
++ 			/lib/firmware/ath10k/QCA9880/hw2.0/board.bin
++ 		;;
+++	dlink,covr-p2500-a1)
+++		caldata_extract "art" 0x5000 0x2f20
+++		ath10k_patch_mac $(mtd_get_mac_ascii art "protest_ath1_mac")
+++		ln -sf /lib/firmware/ath10k/pre-cal-pci-0000\:00\:00.0.bin \
+++			/lib/firmware/ath10k/QCA9888/hw2.0/board.bin
+++		rm /lib/firmware/ath10k/QCA9888/hw2.0/board-2.bin
+++		;;
++ 	dlink,dap-2680-a1)
++ 		caldata_extract "art" 0x5000 0x2f20
++ 		ath10k_patch_mac $(mtd_get_mac_ascii bdcfg wlanmac_a)
++diff --git a/target/linux/ath79/generic/base-files/etc/hotplug.d/ieee80211/10_fix_wifi_mac b/target/linux/ath79/generic/base-files/etc/hotplug.d/ieee80211/10_fix_wifi_mac
++index 6065e2b0fd..752f041823 100644
++--- a/target/linux/ath79/generic/base-files/etc/hotplug.d/ieee80211/10_fix_wifi_mac
+++++ b/target/linux/ath79/generic/base-files/etc/hotplug.d/ieee80211/10_fix_wifi_mac
++@@ -17,7 +17,8 @@ case "$board" in
++ 	adtran,bsap1840)
++ 		macaddr_add "$(mtd_get_mac_binary 'Board data' 2)" $(($PHYNBR * 8 + 1)) > /sys${DEVPATH}/macaddress
++ 		;;
++-	dlink,covr-c1200-a1)
+++	dlink,covr-c1200-a1|\
+++	dlink,covr-p2500-a1)
++ 		[ "$PHYNBR" -eq 1 ] && \
++ 			mtd_get_mac_ascii art "protest_ath0_mac" > /sys${DEVPATH}/macaddress
++ 		;;
++diff --git a/target/linux/ath79/image/generic.mk b/target/linux/ath79/image/generic.mk
++index 14e679f3fa..e68af4efbf 100644
++--- a/target/linux/ath79/image/generic.mk
+++++ b/target/linux/ath79/image/generic.mk
++@@ -744,6 +744,32 @@ define Device/dlink_covr-c1200-a1
++ endef
++ TARGET_DEVICES += dlink_covr-c1200-a1
++ 
+++define Device/dlink_covr-p2500-a1
+++  SOC := qca9563
+++  DEVICE_VENDOR := D-Link
+++  DEVICE_MODEL := COVR-P2500
+++  DEVICE_VARIANT := A1
+++  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct \
+++	open-plc-utils open-plc-utils-hpavkey open-plc-utils-modpib \
+++	open-plc-utils-plchost open-plc-utils-plctool
+++  LOADER_TYPE := bin
+++  LOADER_FLASH_OFFS := 0x050000
+++  LOADER_KERNEL_MAGIC := 0x68737173
+++  COMPILE := loader-$(1).bin loader-$(1).uImage
+++  COMPILE/loader-$(1).bin := loader-okli-compile
+++  COMPILE/loader-$(1).uImage := append-loader-okli $(1) | pad-to 64k | \
+++	lzma | uImage lzma
+++  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma -M 0x68737173
+++  IMAGE_SIZE := 14528k
+++  IMAGES += factory.bin recovery.bin
+++  IMAGE/recovery.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
+++	append-rootfs | pad-rootfs | check-size | pad-to 14528k | \
+++	append-file $(KDIR)/loader-$(1).uImage | pad-to 15616k
+++  IMAGE/factory.bin := $$(IMAGE/recovery.bin) | dlink-sge-image | \
+++	dlink-sge-signature COVR-P2500
+++endef
+++TARGET_DEVICES += dlink_covr-p2500-a1
+++
++ define Device/dlink_dap-13xx
++   SOC := qca9533
++   DEVICE_VENDOR := D-Link
++-- 
++2.25.1
++
+diff --git a/patches/openwrt/0027-ath79-add-support-for-D-Link-COVR-P2500-A1.patch b/patches/openwrt/0032-add-plc-init.d-script-for-NMK-hannover.freifuk.net.patch
+similarity index 98%
+rename from patches/openwrt/0027-ath79-add-support-for-D-Link-COVR-P2500-A1.patch
+rename to patches/openwrt/0032-add-plc-init.d-script-for-NMK-hannover.freifuk.net.patch
+index 8aae4977..cb42a6f5 100644
+--- a/patches/openwrt/0027-ath79-add-support-for-D-Link-COVR-P2500-A1.patch
++++ b/patches/openwrt/0032-add-plc-init.d-script-for-NMK-hannover.freifuk.net.patch
+@@ -1,314 +1,28 @@
+-From c823fd737cf17418417019452a1fba1f10de383e Mon Sep 17 00:00:00 2001
++From 49c9d9e80dd66dc54ea83ec9779ee2d97d44afb1 Mon Sep 17 00:00:00 2001
+ From: Sebastian Schaper <openwrt@sebastianschaper.net>
+-Date: Thu, 10 Dec 2020 21:16:04 +0100
+-Subject: [PATCH] ath79: add support for D-Link COVR-P2500 A1
++Date: Tue, 25 May 2021 00:00:44 +0200
++Subject: [PATCH 4/5] add plc init.d script for NMK "hannover.freifuk.net" and
++ COVR-P2500 firmware-blobs
+ 
+-Specifications:
+-* QCA9563, 16 MiB flash, 128 MiB RAM, 2T2R 802.11n
+-* QCA9886 2T2R 801.11ac Wave 2
+-* QCA7550 Homeplug AV2 1300
+-* AR8337, 3 Gigabit ports (1, 2: LAN; 3: WAN)
+-
+-To make use of PLC functionality, firmware needs to be
+-provided via plchost (QCA7550 comes without SPI NOR),
+-patched with the Network Password and MAC.
+-
+-Firmware, init script and uci-defaults for gluon are included.
+-
+-Installation:
+-* OEM Web UI is at 192.168.0.50
+-  flash factory.bin
+-
+-Recovery:
+-* Hold down reset button during power-on
+-  Recovery Web UI is at 192.168.0.50
+-  flash recovery.img (does not work on soem browsers)
+ ---
+- include/image-commands.mk                     |   4 +
+- .../ath79/dts/qca9563_dlink_covr-p2500-a1.dts | 177 ++++++++++++++++++
+- .../generic/base-files/etc/board.d/02_network |   9 +
+- .../etc/hotplug.d/firmware/11-ath10k-caldata  |   7 +
+- .../etc/hotplug.d/ieee80211/10_fix_wifi_mac   |   4 +
+- .../ath79/generic/base-files/etc/init.d/plc   |  59 ++++++
+- .../etc/uci-defaults/42_gluon_mesh_plc        |  17 ++
++ .../ath79/generic/base-files/etc/init.d/plc   |  62 ++++++++++++++++++
+  .../lib/plc/COVRP2500AVA1_PIB100EU_WM.pib     | Bin 0 -> 22344 bytes
+  .../lib/plc/COVRP2500AVA1_PIB100NA_WM.pib     | Bin 0 -> 22344 bytes
+  .../lib/plc/COVRP2500AVA1_PIB100SG_WM.pib     | Bin 0 -> 22344 bytes
+  .../lib/plc/MAC-7500-v2.2.2-03-X-CS.nvm       | Bin 0 -> 536236 bytes
+- target/linux/ath79/image/generic.mk           |  24 +++
+- 12 files changed, 301 insertions(+)
+- create mode 100644 target/linux/ath79/dts/qca9563_dlink_covr-p2500-a1.dts
++ 5 files changed, 62 insertions(+)
+  create mode 100755 target/linux/ath79/generic/base-files/etc/init.d/plc
+- create mode 100644 target/linux/ath79/generic/base-files/etc/uci-defaults/42_gluon_mesh_plc
+  create mode 100755 target/linux/ath79/generic/base-files/lib/plc/COVRP2500AVA1_PIB100EU_WM.pib
+  create mode 100755 target/linux/ath79/generic/base-files/lib/plc/COVRP2500AVA1_PIB100NA_WM.pib
+  create mode 100755 target/linux/ath79/generic/base-files/lib/plc/COVRP2500AVA1_PIB100SG_WM.pib
+  create mode 100755 target/linux/ath79/generic/base-files/lib/plc/MAC-7500-v2.2.2-03-X-CS.nvm
+ 
+-diff --git a/include/image-commands.mk b/include/image-commands.mk
+-index fa36885038..ff608f3d3e 100644
+---- a/include/image-commands.mk
+-+++ b/include/image-commands.mk
+-@@ -23,6 +23,10 @@ define Build/append-dtb-elf
+- 		.appended_dtb=$(KDIR)/image-$(firstword $(DEVICE_DTS)).dtb $@
+- endef
+- 
+-+define Build/append-file
+-+	dd if=$(1) >> $@
+-+endef
+-+
+- define Build/append-kernel
+- 	dd if=$(IMAGE_KERNEL) >> $@
+- endef
+-diff --git a/target/linux/ath79/dts/qca9563_dlink_covr-p2500-a1.dts b/target/linux/ath79/dts/qca9563_dlink_covr-p2500-a1.dts
+-new file mode 100644
+-index 0000000000..de172fe70b
+---- /dev/null
+-+++ b/target/linux/ath79/dts/qca9563_dlink_covr-p2500-a1.dts
+-@@ -0,0 +1,177 @@
+-+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+-+
+-+#include "qca956x.dtsi"
+-+
+-+#include <dt-bindings/gpio/gpio.h>
+-+#include <dt-bindings/input/input.h>
+-+#include <dt-bindings/mtd/partitions/uimage.h>
+-+
+-+/ {
+-+	compatible = "dlink,covr-p2500-a1", "qca,qca9563";
+-+	model = "D-Link COVR-P2500 A1";
+-+
+-+	aliases {
+-+		led-boot = &led_power_green;
+-+		led-failsafe = &led_power_red;
+-+		led-running = &led_power_green;
+-+		led-upgrade = &led_power_red;
+-+	};
+-+
+-+	keys {
+-+		compatible = "gpio-keys";
+-+
+-+		wps {
+-+			label = "wps";
+-+			linux,code = <KEY_WPS_BUTTON>;
+-+			gpios = <&gpio 1 GPIO_ACTIVE_LOW>;
+-+		};
+-+
+-+		reset {
+-+			label = "reset";
+-+			linux,code = <KEY_RESTART>;
+-+			gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
+-+		};
+-+	};
+-+
+-+	leds {
+-+		compatible = "gpio-leds";
+-+		pinctrl-names = "default";
+-+		pinctrl-0 = <&jtag_disable_pins>;
+-+
+-+		lan {
+-+			label = "green:lan";
+-+			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
+-+		};
+-+
+-+		led_power_green: power_green {
+-+			label = "green:power";
+-+			gpios = <&gpio 7 GPIO_ACTIVE_LOW>;
+-+			default-state = "on";
+-+		};
+-+
+-+		wlan2g {
+-+			label = "green:wlan5g";
+-+			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
+-+		};
+-+
+-+		led_power_red: power_red {
+-+			label = "red:power";
+-+			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
+-+		};
+-+
+-+		wlan5g {
+-+			label = "green:wlan2g";
+-+			gpios = <&gpio 19 GPIO_ACTIVE_LOW>;
+-+		};
+-+	};
+-+
+-+	virtual_flash {
+-+		compatible = "mtd-concat";
+-+
+-+		devices = <&fwconcat0 &fwconcat1>;
+-+
+-+		partitions {
+-+			compatible = "fixed-partitions";
+-+			#address-cells = <1>;
+-+			#size-cells = <1>;
+-+
+-+			partition@0 {
+-+				compatible = "openwrt,uimage", "denx,uimage";
+-+				openwrt,ih-magic = <0x68737173>;
+-+				label = "firmware";
+-+				reg = <0x0 0x0>;
+-+			};
+-+		};
+-+	};
+-+};
+-+
+-+&spi {
+-+	status = "okay";
+-+
+-+	flash@0 {
+-+		compatible = "jedec,spi-nor";
+-+		reg = <0>;
+-+		spi-max-frequency = <50000000>;
+-+
+-+		partitions {
+-+			compatible = "fixed-partitions";
+-+			#address-cells = <1>;
+-+			#size-cells = <1>;
+-+
+-+			partition@0 {
+-+				label = "u-boot";
+-+				reg = <0x0 0x40000>;
+-+				read-only;
+-+			};
+-+
+-+			partition@40000 {
+-+				label = "u-boot-env";
+-+				reg = <0x40000 0x10000>;
+-+				read-only;
+-+			};
+-+
+-+			fwconcat0: partition@50000 {
+-+				label = "fwconcat0";
+-+				reg = <0x50000 0xe30000>;
+-+			};
+-+
+-+			partition@e80000 {
+-+				label = "loader";
+-+				reg = <0xe80000 0x10000>;
+-+				read-only;
+-+			};
+-+
+-+			fwconcat1: partition@e90000 {
+-+				label = "fwconcat1";
+-+				reg = <0xe90000 0x160000>;
+-+			};
+-+
+-+			art: partition@ff0000 {
+-+				label = "art";
+-+				reg = <0xff0000 0x10000>;
+-+				read-only;
+-+			};
+-+		};
+-+	};
+-+};
+-+
+-+&pcie {
+-+	status = "okay";
+-+};
+-+
+-+&mdio0 {
+-+	status = "okay";
+-+
+-+	phy-mask = <0>;
+-+
+-+	phy0: ethernet-phy@0 {
+-+		reg = <0>;
+-+		qca,mib-poll-interval = <500>;
+-+		reset-gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
+-+
+-+		qca,ar8327-initvals = <
+-+			0x04 0x00080080 /* PORT0 PAD MODE CTRL */
+-+			0x10 0x81000080 /* POWER_ON_STRAP */
+-+			0x50 0xcc35cc35 /* LED_CTRL0 */
+-+			0x54 0xcb37cb37 /* LED_CTRL1 */
+-+			0x58 0x00000000 /* LED_CTRL2 */
+-+			0x5c 0x00f3cf00 /* LED_CTRL3 */
+-+			0x7c 0x0000007e /* PORT0_STATUS */
+-+			>;
+-+	};
+-+};
+-+
+-+&eth0 {
+-+	status = "okay";
+-+
+-+	pll-data = <0x03000101 0x00000101 0x00001919>;
+-+
+-+	phy-mode = "sgmii";
+-+	phy-handle = <&phy0>;
+-+};
+-+
+-+&wmac {
+-+	status = "okay";
+-+
+-+	mtd-cal-data = <&art 0x1000>;
+-+};
+-diff --git a/target/linux/ath79/generic/base-files/etc/board.d/02_network b/target/linux/ath79/generic/base-files/etc/board.d/02_network
+-index 52e773fea3..ba871e6cc4 100644
+---- a/target/linux/ath79/generic/base-files/etc/board.d/02_network
+-+++ b/target/linux/ath79/generic/base-files/etc/board.d/02_network
+-@@ -206,6 +206,10 @@ ath79_setup_interfaces()
+- 		ucidef_add_switch "switch0" \
+- 			"0@eth0" "2:wan" "3:lan" "4:lan"
+- 		;;
+-+	dlink,covr-p2500-a1)
+-+		ucidef_add_switch "switch0" \
+-+			"0@eth0" "1:lan" "2:lan" "3:wan" "4:plc"
+-+		;;
+- 	dlink,dap-2695-a1)
+- 		ucidef_add_switch "switch0" \
+- 			"0@eth0" "2:lan" "3:wan" "6@eth1"
+-@@ -494,6 +498,11 @@ ath79_setup_macs()
+- 	devolo,magic-2-wifi)
+- 		label_mac=$(macaddr_add "$(mtd_get_mac_binary art 0x1002)" 3)
+- 		;;
+-+	dlink,covr-p2500-a1)
+-+		lan_mac=$(mtd_get_mac_ascii art "protest_lan_mac")
+-+		wan_mac=$(mtd_get_mac_ascii art "protest_wan_mac")
+-+		label_mac=$lan_mac
+-+		;;
+- 	dlink,dap-1330-a1|\
+- 	dlink,dap-1365-a1|\
+- 	dlink,dch-g020-a1)
+-diff --git a/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata b/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
+-index 5a44dd94e5..df2708d1c8 100644
+---- a/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
+-+++ b/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
+-@@ -182,6 +182,13 @@ case "$FIRMWARE" in
+- 			/lib/firmware/ath10k/QCA9888/hw2.0/board.bin
+- 		rm /lib/firmware/ath10k/QCA9888/hw2.0/board-2.bin
+- 		;;
+-+	dlink,covr-p2500-a1)
+-+		caldata_extract "art" 0x5000 0x2f20
+-+		ath10k_patch_mac $(mtd_get_mac_ascii art "protest_ath1_mac")
+-+		ln -sf /lib/firmware/ath10k/pre-cal-pci-0000\:00\:00.0.bin \
+-+			/lib/firmware/ath10k/QCA9888/hw2.0/board.bin
+-+		rm /lib/firmware/ath10k/QCA9888/hw2.0/board-2.bin
+-+		;;
+- 	dlink,dap-2680-a1)
+- 		caldata_extract "art" 0x5000 0x2f20
+- 		ath10k_patch_mac $(mtd_get_mac_ascii bdcfg wlanmac_a)
+-diff --git a/target/linux/ath79/generic/base-files/etc/hotplug.d/ieee80211/10_fix_wifi_mac b/target/linux/ath79/generic/base-files/etc/hotplug.d/ieee80211/10_fix_wifi_mac
+-index ac8b59c538..7987fd2f11 100644
+---- a/target/linux/ath79/generic/base-files/etc/hotplug.d/ieee80211/10_fix_wifi_mac
+-+++ b/target/linux/ath79/generic/base-files/etc/hotplug.d/ieee80211/10_fix_wifi_mac
+-@@ -17,6 +17,10 @@ case "$board" in
+- 	adtran,bsap1840)
+- 		macaddr_add "$(mtd_get_mac_binary 'Board data' 2)" $(($PHYNBR * 8 + 1)) > /sys${DEVPATH}/macaddress
+- 		;;
+-+	dlink,covr-p2500-a1)
+-+		[ "$PHYNBR" -eq 1 ] && \
+-+			mtd_get_mac_ascii art "protest_ath0_mac" > /sys${DEVPATH}/macaddress
+-+		;;
+- 	dlink,dap-1330-a1|\
+- 	dlink,dap-1365-a1|\
+- 	dlink,dch-g020-a1)
+ diff --git a/target/linux/ath79/generic/base-files/etc/init.d/plc b/target/linux/ath79/generic/base-files/etc/init.d/plc
+ new file mode 100755
+-index 0000000000..381b83ee3b
++index 0000000000..aacf52eccf
+ --- /dev/null
+ +++ b/target/linux/ath79/generic/base-files/etc/init.d/plc
+-@@ -0,0 +1,59 @@
++@@ -0,0 +1,62 @@
+ +#!/bin/sh /etc/rc.common
+ +
+ +START=92
+@@ -362,35 +76,15 @@ index 0000000000..381b83ee3b
+ +}
+ +
+ +stop() {
+-+	killall plchost
+-+	# reset adapter into bootlaoder mode
+-+	mac=$(mtd_get_mac_ascii art protest_plc_mac)
+-+	plctool -i $plcinterface -R $mac
+++	case "$board" in
+++	dlink,covr-p2500-a1)
+++		killall plchost
+++		# reset adapter into bootloader mode
+++		plctool -i $plcinterface -R $(mtd_get_mac_ascii art protest_plc_mac)
+++		;;
+++	esac
+ +}
+ +
+-diff --git a/target/linux/ath79/generic/base-files/etc/uci-defaults/42_gluon_mesh_plc b/target/linux/ath79/generic/base-files/etc/uci-defaults/42_gluon_mesh_plc
+-new file mode 100644
+-index 0000000000..84920c2289
+---- /dev/null
+-+++ b/target/linux/ath79/generic/base-files/etc/uci-defaults/42_gluon_mesh_plc
+-@@ -0,0 +1,17 @@
+-+. /lib/functions.sh
+-+
+-+board=$(board_name)
+-+
+-+case "$board" in
+-+dlink,covr-p2500-a1)
+-+	uci set network.mesh_plc=interface
+-+	uci set network.mesh_plc.proto=gluon_wired
+-+	uci set network.mesh_plc.vxlan=1
+-+	uci set network.mesh_plc.disabled='0'
+-+	uci set network.mesh_plc.transitive='1'
+-+	uci set network.mesh_plc.index=1
+-+	uci set network.mesh_plc.ifname='eth0.3'
+-+	uci commit network
+-+	;;
+-+esac
+-+
+ diff --git a/target/linux/ath79/generic/base-files/lib/plc/COVRP2500AVA1_PIB100EU_WM.pib b/target/linux/ath79/generic/base-files/lib/plc/COVRP2500AVA1_PIB100EU_WM.pib
+ new file mode 100755
+ index 0000000000000000000000000000000000000000..9994aca97a61601563e5de0bf475a24d29951757
+@@ -10325,41 +10019,6 @@ oD<E-gwNmg;@g9;o^xvO4;EY4b$Gw1Wowo{0$9fy>{b&FH02&8f`v3p{
+ literal 0
+ HcmV?d00001
+ 
+-diff --git a/target/linux/ath79/image/generic.mk b/target/linux/ath79/image/generic.mk
+-index 222a1511a7..906c446f48 100644
+---- a/target/linux/ath79/image/generic.mk
+-+++ b/target/linux/ath79/image/generic.mk
+-@@ -717,6 +717,30 @@ define Device/devolo_magic-2-wifi
+- endef
+- TARGET_DEVICES += devolo_magic-2-wifi
+- 
+-+define Device/dlink_covr-p2500-a1
+-+  SOC := qca9563
+-+  DEVICE_VENDOR := D-Link
+-+  DEVICE_MODEL := COVR-P2500
+-+  DEVICE_VARIANT := A1
+-+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct \
+-+	open-plc-utils-hpavkey open-plc-utils-modpib open-plc-utils-plchost \
+-+	open-plc-utils-plctool
+-+  LOADER_TYPE := bin
+-+  LOADER_FLASH_OFFS := 0x050000
+-+  LOADER_KERNEL_MAGIC := 0x68737173
+-+  COMPILE := loader-$(1).bin loader-$(1).uImage
+-+  COMPILE/loader-$(1).bin := loader-okli-compile
+-+  COMPILE/loader-$(1).uImage := append-loader-okli $(1) | pad-to 64k | \
+-+	lzma | uImage lzma
+-+  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma -M 0x68737173
+-+  IMAGE_SIZE := 14528k
+-+  IMAGES += recovery.bin
+-+  IMAGE/recovery.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
+-+	append-rootfs | pad-rootfs | check-size | pad-to 14528k | \
+-+	append-file $(KDIR)/loader-$(1).uImage | pad-to 15616k
+-+endef
+-+TARGET_DEVICES += dlink_covr-p2500-a1
+-+
+- define Device/dlink_dap-13xx
+-   SOC := qca9533
+-   DEVICE_VENDOR := D-Link
+ -- 
+ 2.25.1
+ 
+diff --git a/patches/openwrt/0033-discard-broken-oem-config-after-flashing.patch b/patches/openwrt/0033-discard-broken-oem-config-after-flashing.patch
+new file mode 100644
+index 00000000..7cfcc62f
+--- /dev/null
++++ b/patches/openwrt/0033-discard-broken-oem-config-after-flashing.patch
+@@ -0,0 +1,40 @@
++From a86fec0f0aa1113f96dccca9e6e462137db0611e Mon Sep 17 00:00:00 2001
++From: Sebastian Schaper <openwrt@sebastianschaper.net>
++Date: Thu, 15 Jul 2021 08:11:59 +0200
++Subject: [PATCH 5/5] discard broken oem config after flashing
++
++Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
++---
++ .../etc/uci-defaults/10_discard_oem_config    | 20 +++++++++++++++++++
++ 1 file changed, 20 insertions(+)
++ create mode 100644 target/linux/ath79/generic/base-files/etc/uci-defaults/10_discard_oem_config
++
++diff --git a/target/linux/ath79/generic/base-files/etc/uci-defaults/10_discard_oem_config b/target/linux/ath79/generic/base-files/etc/uci-defaults/10_discard_oem_config
++new file mode 100644
++index 0000000000..6a5ebb71ef
++--- /dev/null
+++++ b/target/linux/ath79/generic/base-files/etc/uci-defaults/10_discard_oem_config
++@@ -0,0 +1,20 @@
+++# SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++#
+++# For devices that are based on earlier versions of OpenWrt (mostly ar71xx),
+++# uci configuration may be broken after flashing via the OEM Web Updater,
+++# since sysupgrade would append OEM uci settings to jffs2 after flashing.
+++#
+++# To enforce OpenWrt default settings after flashing, uci configuration
+++# is scanned for device-specific magic settings that trigger a jffs2 erase.
+++#
+++
+++board=$(board_name)
+++
+++case "$board" in
+++	dlink,covr-c1200-a1|\
+++	dlink,covr-p2500-a1)
+++		[ $(uci get protest.settings) == "cfg" ] && yes | firstboot && reboot
+++		;;
+++esac
+++
+++exit 0
++-- 
++2.25.1
++
+diff --git a/patches/openwrt/0034-add-plc-interface-configuration-for-gluon.patch b/patches/openwrt/0034-add-plc-interface-configuration-for-gluon.patch
+new file mode 100644
+index 00000000..6ebd9e59
+--- /dev/null
++++ b/patches/openwrt/0034-add-plc-interface-configuration-for-gluon.patch
+@@ -0,0 +1,37 @@
++From 52754625ae013d0edf0959c680fe01ce2ac6176a Mon Sep 17 00:00:00 2001
++From: Sebastian Schaper <openwrt@sebastianschaper.net>
++Date: Thu, 15 Jul 2021 20:27:59 +0200
++Subject: [PATCH 2/2] add plc interface configuration for gluon
++
++Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
++---
++ .../etc/uci-defaults/42_gluon_mesh_plc          | 17 +++++++++++++++++
++ 1 file changed, 17 insertions(+)
++ create mode 100644 target/linux/ath79/generic/base-files/etc/uci-defaults/42_gluon_mesh_plc
++
++diff --git a/target/linux/ath79/generic/base-files/etc/uci-defaults/42_gluon_mesh_plc b/target/linux/ath79/generic/base-files/etc/uci-defaults/42_gluon_mesh_plc
++new file mode 100644
++index 0000000000..84920c2289
++--- /dev/null
+++++ b/target/linux/ath79/generic/base-files/etc/uci-defaults/42_gluon_mesh_plc
++@@ -0,0 +1,17 @@
+++. /lib/functions.sh
+++
+++board=$(board_name)
+++
+++case "$board" in
+++dlink,covr-p2500-a1)
+++	uci set network.mesh_plc=interface
+++	uci set network.mesh_plc.proto=gluon_wired
+++	uci set network.mesh_plc.vxlan=1
+++	uci set network.mesh_plc.disabled='0'
+++	uci set network.mesh_plc.transitive='1'
+++	uci set network.mesh_plc.index=1
+++	uci set network.mesh_plc.ifname='eth0.3'
+++	uci commit network
+++	;;
+++esac
+++
++-- 
++2.25.1
++
+diff --git a/targets/ath79-generic b/targets/ath79-generic
+index b0215dc7..d1499fae 100644
+--- a/targets/ath79-generic
++++ b/targets/ath79-generic
+@@ -73,9 +73,23 @@ device('devolo-wifi-pro-1750x', 'devolo_dvl1750x', {
+ 
+ -- D-Link
+ 
+-device('dlink-covr-p2500-a1', 'dlink_covr-p2500-a1', {
++device('dlink-covr-c1200-a1', 'dlink_covr-c1200-a1', {
+ 	packages = ATH10K_PACKAGES_QCA9888,
+-	factory = false,
++})
++
++device('dlink-covr-p2500-a1', 'dlink_covr-p2500-a1', {
++	packages = {
++	'kmod-ath10k',
++	'-kmod-ath10k-ct',
++	'-kmod-ath10k-ct-smallbuffers',
++	'ath10k-firmware-qca9888',
++	'-ath10k-firmware-qca9888-ct',
++	'open-plc-utils',
++	'open-plc-utils-hpavkey',
++	'open-plc-utils-modpib',
++	'open-plc-utils-plchost',
++	'open-plc-utils-plctool',
++	},
+ })
+ 
+ device('dlink-dap-1330-a1', 'dlink_dap-1330-a1')
+-- 
+2.25.1
+
