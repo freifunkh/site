@@ -1,4 +1,4 @@
-From 91c37313c6de3d2e4d853921a3c3b6fdc98e65e9 Mon Sep 17 00:00:00 2001
+From 0ad6302a67266f35da4febf4cd298c17480bf3b4 Mon Sep 17 00:00:00 2001
 From: Sebastian Schaper <openwrt@sebastianschaper.net>
 Date: Thu, 15 Jul 2021 08:45:09 +0200
 Subject: [PATCH] ath79-generic: update patches for COVR-P2500, add COVR-C1200
@@ -1759,14 +1759,14 @@ index 00000000..7cfcc62f
 +
 diff --git a/patches/openwrt/0034-add-plc-interface-configuration-for-gluon.patch b/patches/openwrt/0034-add-plc-interface-configuration-for-gluon.patch
 new file mode 100644
-index 00000000..6ebd9e59
+index 00000000..11914e21
 --- /dev/null
 +++ b/patches/openwrt/0034-add-plc-interface-configuration-for-gluon.patch
 @@ -0,0 +1,37 @@
-+From 52754625ae013d0edf0959c680fe01ce2ac6176a Mon Sep 17 00:00:00 2001
++From e85ba59ad2d56ce2d02840f605e3c066fb61265c Mon Sep 17 00:00:00 2001
 +From: Sebastian Schaper <openwrt@sebastianschaper.net>
 +Date: Thu, 15 Jul 2021 20:27:59 +0200
-+Subject: [PATCH 2/2] add plc interface configuration for gluon
++Subject: [PATCH] add plc interface configuration for gluon
 +
 +Signed-off-by: Sebastian Schaper <openwrt@sebastianschaper.net>
 +---
@@ -1776,7 +1776,7 @@ index 00000000..6ebd9e59
 +
 +diff --git a/target/linux/ath79/generic/base-files/etc/uci-defaults/42_gluon_mesh_plc b/target/linux/ath79/generic/base-files/etc/uci-defaults/42_gluon_mesh_plc
 +new file mode 100644
-+index 0000000000..84920c2289
++index 0000000000..876e9a23d4
 +--- /dev/null
 ++++ b/target/linux/ath79/generic/base-files/etc/uci-defaults/42_gluon_mesh_plc
 +@@ -0,0 +1,17 @@
@@ -1786,13 +1786,13 @@ index 00000000..6ebd9e59
 ++
 ++case "$board" in
 ++dlink,covr-p2500-a1)
-++	uci set network.mesh_plc=interface
-++	uci set network.mesh_plc.proto=gluon_wired
-++	uci set network.mesh_plc.vxlan=1
-++	uci set network.mesh_plc.disabled='0'
-++	uci set network.mesh_plc.transitive='1'
-++	uci set network.mesh_plc.index=1
-++	uci set network.mesh_plc.ifname='eth0.3'
+++	uci set network.plc=interface
+++	uci set network.plc.proto=gluon_wired
+++	uci set network.plc.vxlan=1
+++	uci set network.plc.disabled='0'
+++	uci set network.plc.transitive='1'
+++	uci set network.plc.index=1
+++	uci set network.plc.ifname='eth0.3'
 ++	uci commit network
 ++	;;
 ++esac
