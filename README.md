@@ -1,4 +1,14 @@
-# build a current ffh gluon
+## well-known branches
+
+|    Branch Name   |       Description      |                Builds Against the Following Gluon Version                |            Used For           |
+|:----------------:|:----------------------:|:------------------------------------------------------------------------:|:-----------------------------:|
+|      master      |                        |                                  master                                  | nightly builds, manual builds |
+|      stable      |  mostly latest release | [See here](https://hannover.freifunk.net/wiki/Freifunk/FirmwareReleases) |    manual builds, releases    |
+| master-wireguard |                        |                                  master                                  |         manual builds         |
+| stable-wireguard | currently not used yet |                                     -                                    |    manual builds, releases    |
+|       next       | currently not used yet |                                   next                                   |         manual builds         |
+
+## build a current ffh gluon
 
 ``` shell
 # clone gluon
@@ -29,7 +39,7 @@ make V=s GLUON_TARGET=ar71xx-generic &> logs/$(date -Is)_ar71xx-generic.log
 
 ```
 
-# build all targets
+## build all targets
 
 ``` shell
 TARGETS="ar71xx-generic ar71xx-tiny ar71xx-nand ar71xx-mikrotik ath79-generic brcm2708-bcm2708 brcm2708-bcm2709 brcm2708-bcm2710 ipq40xx-generic ipq806x-generic lantiq-xrx200 lantiq-xway mpc85xx-generic mpc85xx-p1020 mvebu-cortexa9 ramips-mt7620 ramips-mt7621 ramips-mt76x8 ramips-rt305x sunxi-cortexa7 x86-64 x86-generic x86-geode"
@@ -39,7 +49,7 @@ for t in $TARGETS; do
 done
 ```
 
-# build for debugging purposes
+## build for debugging purposes
 
 - Debugging symbols are not stripped while building. (At least you still need to compile the package with `-g` to get the debug symbols, but they are not stripped)
 - Packages `gdb`, `valgrind` and `strace` will be built in the image
