@@ -1,15 +1,13 @@
-From e8e2cb2665f5c94f5680f928fef341862c31971c Mon Sep 17 00:00:00 2001
+From 3a64fd5019249d272ddb2e0327c779a711cd7f15 Mon Sep 17 00:00:00 2001
 From: Dark4MD <github.web@manu.li>
 Date: Mon, 10 May 2021 19:36:12 +0200
 Subject: [PATCH] openwrt: added TL-WR841ND/N 8M and 16M Variants to ath79
 
-rebased on master by aiyion due to:
-commit af74622cb5 ("ath79-generic: sort TP-Link devices")
-commit 1ad629e503 ("ath79-generic: sort TP-Link devices")
+rebased on master
 ---
  ...841ND-N-8M-and-16M-Variants-to-ath79.patch | 753 ++++++++++++++++++
- targets/ath79-generic                         |  39 +
- 2 files changed, 792 insertions(+)
+ targets/ath79-generic                         |  40 +
+ 2 files changed, 793 insertions(+)
  create mode 100644 patches/openwrt/0005-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
 
 diff --git a/patches/openwrt/0005-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch b/patches/openwrt/0005-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
@@ -772,14 +770,13 @@ index 00000000..2f66b0b1
 +2.29.2.windows.2
 +
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index 4cd7f7fe..8b0a8c67 100644
+index 4cd7f7fe..83855634 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
-@@ -309,6 +309,45 @@ device('tp-link-tl-wr1043nd-v4', 'tplink_tl-wr1043nd-v4', {
- 	manifest_aliases = {
- 		'tp-link-tl-wr1043n-nd-v4', -- upgrade from OpenWrt 19.07
+@@ -311,6 +311,46 @@ device('tp-link-tl-wr1043nd-v4', 'tplink_tl-wr1043nd-v4', {
  	},
-+
+ })
+ 
 +device('tp-link-tl-wr841n-nd-mod-ath79-8m-v8', 'tplink_tl-wr841-v8-8m', {
 +	factory = false,
 +	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-8m-v8'},
@@ -818,9 +815,11 @@ index 4cd7f7fe..8b0a8c67 100644
 +device('tp-link-tl-wr841n-nd-mod-ath79-16m-v11', 'tplink_tl-wr841-v11-16m', {
 +	factory = false,
 +	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v8'},
- })
- 
++})
++
  device('tp-link-wbs210-v2', 'tplink_wbs210-v2')
+ 
+ -- Ubiquiti
 -- 
 2.29.2.windows.2
 
