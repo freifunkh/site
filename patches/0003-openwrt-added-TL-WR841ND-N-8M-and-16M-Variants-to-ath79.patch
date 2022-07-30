@@ -1,11 +1,9 @@
-From b8c11340f946489b54da8e8dc0028e2774248ccc Mon Sep 17 00:00:00 2001
+From b376896ce0412260014e8a6de757a95d6385023b Mon Sep 17 00:00:00 2001
 From: Dark4MD <github.web@manu.li>
-Date: Mon, 10 May 2021 19:36:12 +0200
-Subject: [PATCH] openwrt: added TL-WR841ND/N 8M and 16M Variants to ath79
+Date: Thu, 5 May 2022 18:04:46 +0200
+Subject: [PATCH] patches/openwrt: added TL-WR841ND/N 8M and 16M Variants to
+ ath79
 
-rebased on master
-
-Signed-off-by: aiyion.prime <git@aiyionpri.me>
 ---
  ...841ND-N-8M-and-16M-Variants-to-ath79.patch | 753 ++++++++++++++++++
  targets/ath79-generic                         |  40 +
@@ -14,14 +12,14 @@ Signed-off-by: aiyion.prime <git@aiyionpri.me>
 
 diff --git a/patches/openwrt/0004-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch b/patches/openwrt/0004-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
 new file mode 100644
-index 00000000..7b89d015
+index 00000000..22467463
 --- /dev/null
 +++ b/patches/openwrt/0004-added-TL-WR841ND-N-8M-and-16M-Variants-to-ath79.patch
 @@ -0,0 +1,753 @@
-+From 64550effeaa7c7260aaf98fc8a91535dec950f33 Mon Sep 17 00:00:00 2001
++From 62ed3340ab385907f28ecce97a71f493327144a2 Mon Sep 17 00:00:00 2001
 +From: Dark4MD <github.web@manu.li>
-+Date: Mon, 10 May 2021 19:20:13 +0200
-+Subject: [PATCH] added TL-WR841ND/N 8M and 16M Variants to ath79
++Date: Thu, 5 May 2022 17:45:14 +0200
++Subject: [PATCH]  added TL-WR841ND/N 8M and 16M Variants to ath79
 +
 +---
 + .../dts/ar9341_tplink_tl-wr841-v8-16m.dts     |  61 +++++++++
@@ -672,13 +670,13 @@ index 00000000..7b89d015
 + 	tplink,tl-wr941hp-v1)
 + 		ucidef_set_interface_wan "eth1"
 +diff --git a/target/linux/ath79/image/generic-tp-link.mk b/target/linux/ath79/image/generic-tp-link.mk
-+index 6479f6e26a..2398cea48f 100644
++index 6479f6e26a..783882aa37 100644
 +--- a/target/linux/ath79/image/generic-tp-link.mk
 ++++ b/target/linux/ath79/image/generic-tp-link.mk
-+@@ -766,6 +766,92 @@ define Device/tplink_tl-wr810n-v2
++@@ -784,6 +784,92 @@ define Device/tplink_tl-wr841hp-v3
 + endef
-+ TARGET_DEVICES += tplink_tl-wr810n-v2
-+
++ TARGET_DEVICES += tplink_tl-wr841hp-v3
++ 
 ++define Device/tplink_tl-wr841-v8-8m
 ++  $(Device/tplink-8mlzma)
 ++  SOC := ar9341
@@ -765,19 +763,19 @@ index 00000000..7b89d015
 ++endef
 ++TARGET_DEVICES += tplink_tl-wr841-v11-16m
 ++
-+ define Device/tplink_tl-wr841hp-v2
-+   $(Device/tplink-8mlzma)
-+   SOC := ar9344
++ define Device/tplink_tl-wr842n-v1
++   $(Device/tplink-8m)
++   SOC := ar7241
 +-- 
-+2.36.0
++2.29.2.windows.2
 +
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index d43224f3..83856449 100644
+index d43224f3..a7c9906f 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
-@@ -397,6 +397,46 @@ device('tp-link-wbs210-v1', 'tplink_wbs210-v1', {
- 	},
- })
+@@ -368,6 +368,46 @@ device('tp-link-tl-wdr4300-v1', 'tplink_tl-wdr4300-v1')
+ 
+ device('tp-link-tl-wr810n-v1', 'tplink_tl-wr810n-v1')
  
 +device('tp-link-tl-wr841n-nd-mod-ath79-8m-v8', 'tplink_tl-wr841-v8-8m', {
 +	factory = false,
@@ -819,9 +817,9 @@ index d43224f3..83856449 100644
 +	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v8'},
 +})
 +
- device('tp-link-wbs210-v2', 'tplink_wbs210-v2')
- 
- -- Ubiquiti
+ device('tp-link-tl-wr842n-v3', 'tplink_tl-wr842n-v3', {
+ 	manifest_aliases = {
+ 		'tp-link-tl-wr842n-nd-v3', -- upgrade from OpenWrt 19.07
 -- 
-2.36.0
+2.29.2.windows.2
 
