@@ -1,0 +1,53 @@
+From 7921b927ecb2171fb5f87b45d670266f0eb94d0a Mon Sep 17 00:00:00 2001
+From: "aiyion.prime" <git@aiyionpri.me>
+Date: Sat, 6 Aug 2022 14:18:46 +0200
+Subject: [PATCH 2/2] gluon-mesh-vpn-wireguard: add fastd key migration
+
+---
+ .../399-mesh-vpn-fastd-wireguard-key-convert  | 34 +++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+ create mode 100755 package/gluon-mesh-vpn-wireguard/luasrc/lib/gluon/upgrade/399-mesh-vpn-fastd-wireguard-key-convert
+
+diff --git a/package/gluon-mesh-vpn-wireguard/luasrc/lib/gluon/upgrade/399-mesh-vpn-fastd-wireguard-key-convert b/package/gluon-mesh-vpn-wireguard/luasrc/lib/gluon/upgrade/399-mesh-vpn-fastd-wireguard-key-convert
+new file mode 100755
+index 00000000..0f2f3796
+--- /dev/null
++++ b/package/gluon-mesh-vpn-wireguard/luasrc/lib/gluon/upgrade/399-mesh-vpn-fastd-wireguard-key-convert
+@@ -0,0 +1,34 @@
++#!/usr/bin/lua
++
++local uci = require('simple-uci').cursor()
++local util = require 'gluon.util'
++
++local wg_private_key = uci:get("network_gluon-old", 'wg_mesh', "private_key")
++local fastd_secret = uci:get('fastd', 'mesh_vpn', 'secret')
++
++local function valid_fastd_key(fastd_key)
++	return fastd_key and fastd_key:match(('%x'):rep(64))
++end
++
++local function valid_wireguard_key(wireguard_key)
++	return wireguard_key and wireguard_key:match("^" .. ("[%a%d+/]"):rep(42) .. "[AEIMQUYcgkosw480]=$")
++end
++
++
++if valid_wireguard_key(wg_private_key) then
++	return
++end
++
++if not valid_fastd_key(fastd_secret) then
++	return
++end
++
++local buffer = util.exec(string.format("exec gluon-mesh-vpn-key-translate -n %q", fastd_secret))
++if not valid_wireguard_key(buffer) then
++	return
++end
++
++uci:section('network_gluon-old', 'interface', 'wg_mesh', {
++	private_key = buffer,
++})
++uci:save("network_gluon-old")
+-- 
+2.37.3
+
