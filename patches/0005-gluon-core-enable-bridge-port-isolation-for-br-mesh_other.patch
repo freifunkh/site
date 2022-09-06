@@ -1,0 +1,29 @@
+From 33779ccd969480d361fa3394bb919d70007d3f35 Mon Sep 17 00:00:00 2001
+From: Tom Herbers <mail@tomherbers.de>
+Date: Sun, 7 Aug 2022 21:07:18 +0200
+Subject: [PATCH] gluon-core: enable bridge port isolation for br-mesh_other
+ interfaces
+
+---
+ .../luasrc/lib/gluon/upgrade/210-interface-mesh           | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/package/gluon-core/luasrc/lib/gluon/upgrade/210-interface-mesh b/package/gluon-core/luasrc/lib/gluon/upgrade/210-interface-mesh
+index 7e2f84718c..3549379508 100755
+--- a/package/gluon-core/luasrc/lib/gluon/upgrade/210-interface-mesh
++++ b/package/gluon-core/luasrc/lib/gluon/upgrade/210-interface-mesh
+@@ -33,6 +33,14 @@ if #mesh_interfaces_other > 0 then
+ 	else
+ 		iftype = 'bridge'
+ 		ifname = mesh_interfaces_other
++
++		for _, iface in ipairs(ifname) do
++			uci:section('network', 'device', nil, {
++				name = iface,
++				isolate = true,
++			})
++		end
++
+ 	end
+ 
+ 	uci:section('network', 'interface', 'mesh_other', {
