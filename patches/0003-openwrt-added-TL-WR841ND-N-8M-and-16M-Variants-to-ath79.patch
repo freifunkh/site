@@ -779,42 +779,42 @@ index d43224f3..a7c9906f 100644
  
 +device('tp-link-tl-wr841n-nd-mod-ath79-8m-v8', 'tplink_tl-wr841-v8-8m', {
 +	factory = false,
-+	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-8m-v8'},
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-8m-v8', 'tp-link-tl-wr841n-nd-mod-8m-ath79-v8'},
 +})
 +
 +device('tp-link-tl-wr841n-nd-mod-ath79-16m-v8', 'tplink_tl-wr841-v8-16m', {
 +	factory = false,
-+	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-8m-v9'},
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-8m-v8', 'tp-link-tl-wr841n-nd-mod-16m-ath79-v8'},
 +})
 +
 +device('tp-link-tl-wr841n-nd-mod-ath79-8m-v9', 'tplink_tl-wr841-v9-8m', {
 +	factory = false,
-+	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-8m-v10'},
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-8m-v9', 'tp-link-tl-wr841n-nd-mod-8m-ath79-v9'},
 +})
 +
 +device('tp-link-tl-wr841n-nd-mod-ath79-16m-v9', 'tplink_tl-wr841-v9-16m', {
 +	factory = false,
-+	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-8m-v11'},
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-8m-v9', 'tp-link-tl-wr841n-nd-mod-16m-ath79-v9'},
 +})
 +
 +device('tp-link-tl-wr841n-nd-mod-ath79-8m-v10', 'tplink_tl-wr841-v10-8m', {
 +	factory = false,
-+	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v8'},
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v10', 'tp-link-tl-wr841n-nd-mod-8m-ath79-v10'},
 +})
 +
 +device('tp-link-tl-wr841n-nd-mod-ath79-16m-v10', 'tplink_tl-wr841-v10-16m', {
 +	factory = false,
-+	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v8'},
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v10', 'tp-link-tl-wr841n-nd-mod-16m-ath79-v10'},
 +})
 +
 +device('tp-link-tl-wr841n-nd-mod-ath79-8m-v11', 'tplink_tl-wr841-v11-8m', {
 +	factory = false,
-+	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v8'},
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v11', 'tp-link-tl-wr841n-nd-mod-8m-ath79-v11'},
 +})
 +
 +device('tp-link-tl-wr841n-nd-mod-ath79-16m-v11', 'tplink_tl-wr841-v11-16m', {
 +	factory = false,
-+	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v8'},
++	manifest_aliases = {'tp-link-tl-wr841n-nd-mod-16m-v11', 'tp-link-tl-wr841n-nd-mod-16m-ath79-v11'},
 +})
 +
  device('tp-link-tl-wr842n-v3', 'tplink_tl-wr842n-v3', {
