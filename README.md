@@ -4,8 +4,8 @@
 |:----------------:|:----------------------:|:------------------------------------------------------------------------:|:-----------------------------:|
 |      master      |                        |                                  master                                  | nightly builds, manual builds |
 |      stable      |  mostly latest release | [See here](https://hannover.freifunk.net/wiki/Freifunk/FirmwareReleases) |    manual builds, releases    |
-| master-wireguard |                        |                                  master                                  |         manual builds         |
-| stable-wireguard | currently not used yet |                                     -                                    |    manual builds, releases    |
+| master-wireguard |    currently unused    |                                  master                                  | nightly builds, manual builds |
+| stable-wireguard |  mostly latest release | [See here](https://hannover.freifunk.net/wiki/Freifunk/FirmwareReleases) |    manual builds, releases    |
 |       next       | currently not used yet |                                   next                                   |         manual builds         |
 
 ## build a current ffh gluon
