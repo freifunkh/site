@@ -4,20 +4,20 @@ Subject: patches/openwrt: add TL-WR841ND/N 8M and 16M variants to ath79
 
 diff --git a/patches/openwrt/0013-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0013-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 new file mode 100644
-index 0000000000000000000000000000000000000000..83179400f258f2152ac2b8e88260e6879036df22
+index 0000000000000000000000000000000000000000..826663d8204cad17ef8a266f3bf6e2851c3b48bb
 --- /dev/null
 +++ b/patches/openwrt/0013-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
-@@ -0,0 +1,719 @@
+@@ -0,0 +1,809 @@
 +From: Dark4MD <github.web@manu.li>
 +Date: Thu, 5 May 2022 17:45:14 +0200
 +Subject: add TL-WR841ND/N 8M and 16M variants to ath79
 +
 +diff --git a/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..457d55122e545857fa31f6b3ba77ca8b1009116d
++index 0000000000000000000000000000000000000000..5018a727466c2c6c812d5dc1093ccd56a814f869
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts
-+@@ -0,0 +1,61 @@
++@@ -0,0 +1,93 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include "ar9341_tplink.dtsi"
@@ -26,6 +26,10 @@ index 0000000000000000000000000000000000000000..83179400f258f2152ac2b8e88260e687
 ++	model = "TP-Link TL-WR841N/ND Mod (ATH79 16M) v8";
 ++	compatible = "tplink,tl-wr841-v8-16m", "qca,ar9341";
 ++
+++	aliases {
+++		label-mac-device = &wmac;
+++	};
+++
 ++	keys {
 ++		compatible = "gpio-keys";
 ++
@@ -79,12 +83,40 @@ index 0000000000000000000000000000000000000000..83179400f258f2152ac2b8e88260e687
 ++		};
 ++	};
 ++};
+++
+++&eth0 {
+++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cell-names = "mac-address";
+++	mac-address-increment = <(-1)>;
+++};
+++
+++&eth1 {
+++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cell-names = "mac-address";
+++};
+++
+++&wmac {
+++	mtd-cal-data = <&art 0x1000>;
+++
+++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cell-names = "mac-address";
+++};
+++
+++&uboot {
+++	compatible = "nvmem-cells";
+++	#address-cells = <1>;
+++	#size-cells = <1>;
+++
+++	macaddr_uboot_1fc00: macaddr@1fc00 {
+++		reg = <0x1fc00 0x6>;
+++	};
+++};
 +diff --git a/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..dc9f48f27b92bdb2f4d4328a14efbd1603c25e92
++index 0000000000000000000000000000000000000000..8b4b13c30fce3c39735fc51b8a0b52f3cb42f9ff
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
-+@@ -0,0 +1,61 @@
++@@ -0,0 +1,93 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include "ar9341_tplink.dtsi"
@@ -93,6 +125,10 @@ index 0000000000000000000000000000000000000000..83179400f258f2152ac2b8e88260e687
 ++	model = "TP-Link TL-WR841N/ND Mod (ATH79 8M) v8";
 ++	compatible = "tplink,tl-wr841-v8-8m", "qca,ar9341";
 ++
+++	aliases {
+++		label-mac-device = &wmac;
+++	};
+++
 ++	keys {
 ++		compatible = "gpio-keys";
 ++
@@ -146,12 +182,40 @@ index 0000000000000000000000000000000000000000..83179400f258f2152ac2b8e88260e687
 ++		};
 ++	};
 ++};
+++
+++&eth0 {
+++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cell-names = "mac-address";
+++	mac-address-increment = <(-1)>;
+++};
+++
+++&eth1 {
+++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cell-names = "mac-address";
+++};
+++
+++&wmac {
+++	mtd-cal-data = <&art 0x1000>;
+++
+++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cell-names = "mac-address";
+++};
+++
+++&uboot {
+++	compatible = "nvmem-cells";
+++	#address-cells = <1>;
+++	#size-cells = <1>;
+++
+++	macaddr_uboot_1fc00: macaddr@1fc00 {
+++		reg = <0x1fc00 0x6>;
+++	};
+++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..2c6ab9d3c277e90fae4798fe9fd91e2d2accb52d
++index 0000000000000000000000000000000000000000..cefaf99bc6cc0dc79138bb0a75c395a6122a672b
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
-+@@ -0,0 +1,124 @@
++@@ -0,0 +1,137 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include "qca953x.dtsi"
@@ -262,26 +326,39 @@ index 0000000000000000000000000000000000000000..83179400f258f2152ac2b8e88260e687
 ++
 ++	phy-handle = <&swphy4>;
 ++
-++	mtd-mac-address = <&uboot 0x1fc00>;
-++	mtd-mac-address-increment = <1>;
+++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cell-names = "mac-address";
+++	mac-address-increment = <1>;
 ++};
 ++
 ++&eth1 {
-++	mtd-mac-address = <&uboot 0x1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cell-names = "mac-address";
 ++};
 ++
 ++&wmac {
 ++	status = "okay";
 ++
 ++	mtd-cal-data = <&art 0x1000>;
-++	mtd-mac-address = <&uboot 0x1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cell-names = "mac-address";
+++};
+++
+++&uboot {
+++	compatible = "nvmem-cells";
+++	#address-cells = <1>;
+++	#size-cells = <1>;
+++
+++	macaddr_uboot_1fc00: macaddr@1fc00 {
+++		reg = <0x1fc00 0x6>;
+++	};
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..81317a37b8ee5251765d6eb3033749150187cc09
++index 0000000000000000000000000000000000000000..040f7e558566ebf50d7aa5ebd57b79bff18fed6f
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
-+@@ -0,0 +1,124 @@
++@@ -0,0 +1,137 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include "qca953x.dtsi"
@@ -392,19 +469,32 @@ index 0000000000000000000000000000000000000000..83179400f258f2152ac2b8e88260e687
 ++
 ++	phy-handle = <&swphy4>;
 ++
-++	mtd-mac-address = <&uboot 0x1fc00>;
-++	mtd-mac-address-increment = <1>;
+++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cell-names = "mac-address";
+++	mac-address-increment = <1>;
 ++};
 ++
 ++&eth1 {
-++	mtd-mac-address = <&uboot 0x1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cell-names = "mac-address";
 ++};
 ++
 ++&wmac {
 ++	status = "okay";
 ++
 ++	mtd-cal-data = <&art 0x1000>;
-++	mtd-mac-address = <&uboot 0x1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cell-names = "mac-address";
+++};
+++
+++&uboot {
+++	compatible = "nvmem-cells";
+++	#address-cells = <1>;
+++	#size-cells = <1>;
+++
+++	macaddr_uboot_1fc00: macaddr@1fc00 {
+++		reg = <0x1fc00 0x6>;
+++	};
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts
 +new file mode 100644
