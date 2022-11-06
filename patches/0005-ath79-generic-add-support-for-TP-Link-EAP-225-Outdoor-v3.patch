@@ -209,7 +209,7 @@ index 0000000000000000000000000000000000000000..f6493919ff60263a559456b03f97191b
 + 	tplink,eap225-wall-v2)
 + 		caldata_extract "art" 0x5000 0x2f20
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index 6e5cd23ecb3290b0765602ba439b3346192ff9c8..0fe7102c5abaaef5c065b056b2f29f1adbd8af64 100644
+index da1742d02be64d5b33c7a408dd780e676a973588..76f36a46f774d33c6161fa66f86a4f698692b598 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
 @@ -474,6 +474,11 @@ device('tp-link-eap225-outdoor-v1', 'tplink_eap225-outdoor-v1', {
