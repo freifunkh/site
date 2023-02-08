@@ -4,7 +4,7 @@
 |:----------------:|:----------------------:|:------------------------------------------------------------------------:|:-----------------------------:|
 |      master      |                        |                                  master                                  | nightly builds, manual builds |
 |      stable      |  mostly latest release | [See here](https://hannover.freifunk.net/wiki/Freifunk/FirmwareReleases) |    manual builds, releases    |
-| master-wireguard |    currently unused    |                                  master                                  | nightly builds, manual builds |
+| master-wireguard |                        |                                  master                                  | nightly builds, manual builds |
 | stable-wireguard |  mostly latest release | [See here](https://hannover.freifunk.net/wiki/Freifunk/FirmwareReleases) |    manual builds, releases    |
 |       next       | currently not used yet |                                   next                                   |         manual builds         |
 
