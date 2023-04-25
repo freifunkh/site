@@ -1,0 +1,44 @@
+---
+name: Gluon check patches
+on:
+  push:
+    paths:
+      - 'patches/**'
+      - '.github/workflows/gluon-check-patches.yml'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'patches/**'
+      - '.github/workflows/gluon-check-patches.yml'
+permissions:
+  contents: read
+
+jobs:
+  gluon-check-patches:
+    name: Gluon check patches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone gluon repo
+        uses: actions/checkout@v3
+        with:
+          repository: freifunk-gluon/gluon
+
+      - name: Clone site repo
+        uses: actions/checkout@v3
+        with:
+          path: gluon/site
+
+      - name: apply site patches
+        working-directory: ./gluon
+        run: git -c user.name='freifunkh Patch Manager' -c user.email='freifunkh@void.example.com' -c commit.gpgsign=false am --whitespace=nowarn --committer-date-is-author-date site/patches/*
+
+
+# The following should match the last steps in gluons check-patches.yml
+      - name: Refresh patches
+        run: make refresh-patches GLUON_SITEDIR="contrib/ci/minimal-site"
+
+      - name: Show diff
+        run: git status; git diff
+
+      - name: Patch status
+        run: git diff-files --quiet
