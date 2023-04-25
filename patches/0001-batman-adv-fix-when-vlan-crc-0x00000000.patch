@@ -1,16 +1,10 @@
-From 57756bf8ff39784639fd5299a118af17cbdf5d36 Mon Sep 17 00:00:00 2001
 From: lemoer <git@irrelefant.net>
 Date: Mon, 23 Apr 2018 02:55:52 +0200
-Subject: [PATCH] batman-adv: fix when vlan crc == 0x00000000
-
----
- .../routing/0005-batman-adv-add-patch.patch        | 41 ++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
- create mode 100644 patches/packages/routing/0005-batman-adv-add-patch.patch
+Subject: batman-adv: fix when vlan crc == 0x00000000
 
 diff --git a/patches/packages/routing/0005-batman-adv-add-patch.patch b/patches/packages/routing/0005-batman-adv-add-patch.patch
 new file mode 100644
-index 00000000..7d92a1c2
+index 0000000000000000000000000000000000000000..7d92a1c2ca4a3fb0daed6b42482c1860b7de1733
 --- /dev/null
 +++ b/patches/packages/routing/0005-batman-adv-add-patch.patch
 @@ -0,0 +1,41 @@
@@ -55,6 +49,3 @@ index 00000000..7d92a1c2
 ++-- 
 ++2.11.0
 ++
--- 
-2.16.2
-
