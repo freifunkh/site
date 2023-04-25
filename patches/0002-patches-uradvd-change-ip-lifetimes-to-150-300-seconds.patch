@@ -1,16 +1,10 @@
-From 86d188616d7a03e6e7ce8312a3968d7c54687acb Mon Sep 17 00:00:00 2001
 From: lemoer <git@irrelefant.net>
 Date: Thu, 31 May 2018 23:52:48 +0200
-Subject: [PATCH] patches: uradvd: change ip lifetimes to 150/300 seconds
-
----
- ...vd-change-ip-lifetimes-to-150-300-seconds.patch | 27 ++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
- create mode 100644 patches/packages/gluon/0001-uradvd-change-ip-lifetimes-to-150-300-seconds.patch
+Subject: patches: uradvd: change ip lifetimes to 150/300 seconds
 
 diff --git a/patches/packages/gluon/0001-uradvd-change-ip-lifetimes-to-150-300-seconds.patch b/patches/packages/gluon/0001-uradvd-change-ip-lifetimes-to-150-300-seconds.patch
 new file mode 100644
-index 00000000..b6bf1cdb
+index 0000000000000000000000000000000000000000..b6bf1cdb1b89ba4fb3c13108aa6c56342bc42100
 --- /dev/null
 +++ b/patches/packages/gluon/0001-uradvd-change-ip-lifetimes-to-150-300-seconds.patch
 @@ -0,0 +1,27 @@
@@ -41,6 +35,3 @@ index 00000000..b6bf1cdb
 + 
 + /* And these in milliseconds */
 + #define MAX_RA_DELAY_TIME 500u
--- 
-2.11.0
-
