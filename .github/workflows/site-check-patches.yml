@@ -1,0 +1,36 @@
+---
+name: Site check patches
+on:
+  push:
+    paths:
+      - 'patches/**'
+      - '.github/workflows/site-check-patches.yml'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'patches/**'
+      - '.github/workflows/site-check-patches.yml'
+  schedule:
+    - cron: '16 * * * *'
+permissions:
+  contents: read
+
+jobs:
+  site-check-patches:
+    name: site check patches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone site repo
+        uses: actions/checkout@v3
+
+      - name: Run refresh_ffh_patches.sh
+        working-directory: ./
+        run: ./refresh_ffh_patches.sh
+
+# The following should match the last steps from gluons check-patches.yml
+
+      - name: Show diff
+        run: git status; git diff
+
+      - name: Patch status
+        run: git diff-files --quiet
