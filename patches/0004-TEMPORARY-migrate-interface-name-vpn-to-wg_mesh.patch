@@ -1,16 +1,10 @@
-From ff110d278d3fb32280655a7e39e3aff749c2174d Mon Sep 17 00:00:00 2001
 From: lemoer <git@irrelefant.net>
 Date: Mon, 19 Jul 2021 01:20:11 +0200
-Subject: [PATCH] TEMPORARY: migrate interface name "vpn" to "wg_mesh"!
-
----
- .../files/lib/gluon/upgrade/390-migrate-mesh-vpn-wireguard | 7 +++++++
- 1 file changed, 7 insertions(+)
- create mode 100755 package/gluon-mesh-vpn-wireguard/files/lib/gluon/upgrade/390-migrate-mesh-vpn-wireguard
+Subject: TEMPORARY: migrate interface name "vpn" to "wg_mesh"!
 
 diff --git a/package/gluon-mesh-vpn-wireguard/files/lib/gluon/upgrade/390-migrate-mesh-vpn-wireguard b/package/gluon-mesh-vpn-wireguard/files/lib/gluon/upgrade/390-migrate-mesh-vpn-wireguard
 new file mode 100755
-index 00000000..2bead80c
+index 0000000000000000000000000000000000000000..2bead80c8cfa7575a73e2af9f7437c413116e857
 --- /dev/null
 +++ b/package/gluon-mesh-vpn-wireguard/files/lib/gluon/upgrade/390-migrate-mesh-vpn-wireguard
 @@ -0,0 +1,7 @@
@@ -21,6 +15,3 @@ index 00000000..2bead80c
 +	uci rename network.vpn=wg_mesh
 +	uci commit network
 +fi
--- 
-2.34.0
-
