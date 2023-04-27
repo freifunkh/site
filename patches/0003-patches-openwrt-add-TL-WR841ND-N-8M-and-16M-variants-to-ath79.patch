@@ -1,59 +1,20 @@
-From a9986cd1f0dd548cb3edd2a7869fc520de980760 Mon Sep 17 00:00:00 2001
 From: Dark4MD <github.web@manu.li>
 Date: Thu, 5 May 2022 18:04:46 +0200
-Subject: [PATCH] patches/openwrt: add TL-WR841ND/N 8M and 16M variants to
- ath79
+Subject: patches/openwrt: add TL-WR841ND/N 8M and 16M variants to ath79
 
----
- ...841ND-N-8M-and-16M-variants-to-ath79.patch | 753 ++++++++++++++++++
- targets/ath79-generic                         |  40 +
- 2 files changed, 793 insertions(+)
- create mode 100644 patches/openwrt/0007-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
-
-diff --git a/patches/openwrt/0007-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0007-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
+diff --git a/patches/openwrt/0013-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0013-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 new file mode 100644
-index 00000000..146d9c32
+index 0000000000000000000000000000000000000000..83179400f258f2152ac2b8e88260e6879036df22
 --- /dev/null
-+++ b/patches/openwrt/0007-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
-@@ -0,0 +1,753 @@
-+From 6c0f2d1012fc90542dfd07b8ed82a8b71eddaa38 Mon Sep 17 00:00:00 2001
++++ b/patches/openwrt/0013-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
+@@ -0,0 +1,719 @@
 +From: Dark4MD <github.web@manu.li>
 +Date: Thu, 5 May 2022 17:45:14 +0200
-+Subject: [PATCH] add TL-WR841ND/N 8M and 16M variants to ath79
-+
-+---
-+ .../dts/ar9341_tplink_tl-wr841-v8-16m.dts     |  61 +++++++++
-+ .../dts/ar9341_tplink_tl-wr841-v8-8m.dts      |  61 +++++++++
-+ .../dts/qca9533_tplink_tl-wr841-16m.dtsi      | 124 ++++++++++++++++++
-+ .../ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi | 124 ++++++++++++++++++
-+ .../dts/qca9533_tplink_tl-wr841-v10-16m.dts   |  15 +++
-+ .../dts/qca9533_tplink_tl-wr841-v10-8m.dts    |  15 +++
-+ .../dts/qca9533_tplink_tl-wr841-v11-16m.dts   |   8 ++
-+ .../dts/qca9533_tplink_tl-wr841-v11-16m.dtsi  |  24 ++++
-+ .../dts/qca9533_tplink_tl-wr841-v11-8m.dts    |   8 ++
-+ .../dts/qca9533_tplink_tl-wr841-v11-8m.dtsi   |  24 ++++
-+ .../dts/qca9533_tplink_tl-wr841-v9-16m.dts    |  15 +++
-+ .../dts/qca9533_tplink_tl-wr841-v9-8m.dts     |  15 +++
-+ .../generic/base-files/etc/board.d/01_leds    |   8 ++
-+ .../generic/base-files/etc/board.d/02_network |   8 ++
-+ target/linux/ath79/image/generic-tp-link.mk   |  86 ++++++++++++
-+ 15 files changed, 596 insertions(+)
-+ create mode 100644 target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts
-+ create mode 100644 target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
-+ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
-+ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
-+ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts
-+ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-8m.dts
-+ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dts
-+ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi
-+ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dts
-+ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi
-+ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-16m.dts
-+ create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-8m.dts
++Subject: add TL-WR841ND/N 8M and 16M variants to ath79
 +
 +diff --git a/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts
 +new file mode 100644
-+index 0000000000..457d55122e
++index 0000000000000000000000000000000000000000..457d55122e545857fa31f6b3ba77ca8b1009116d
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts
 +@@ -0,0 +1,61 @@
@@ -120,7 +81,7 @@ index 00000000..146d9c32
 ++};
 +diff --git a/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
 +new file mode 100644
-+index 0000000000..dc9f48f27b
++index 0000000000000000000000000000000000000000..dc9f48f27b92bdb2f4d4328a14efbd1603c25e92
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
 +@@ -0,0 +1,61 @@
@@ -187,7 +148,7 @@ index 00000000..146d9c32
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
 +new file mode 100644
-+index 0000000000..2c6ab9d3c2
++index 0000000000000000000000000000000000000000..2c6ab9d3c277e90fae4798fe9fd91e2d2accb52d
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
 +@@ -0,0 +1,124 @@
@@ -317,7 +278,7 @@ index 00000000..146d9c32
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
 +new file mode 100644
-+index 0000000000..81317a37b8
++index 0000000000000000000000000000000000000000..81317a37b8ee5251765d6eb3033749150187cc09
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
 +@@ -0,0 +1,124 @@
@@ -447,7 +408,7 @@ index 00000000..146d9c32
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts
 +new file mode 100644
-+index 0000000000..5cffe57a03
++index 0000000000000000000000000000000000000000..5cffe57a03fc08fba8c3b2ca198a4c2fdbbab9de
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts
 +@@ -0,0 +1,15 @@
@@ -468,7 +429,7 @@ index 00000000..146d9c32
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-8m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-8m.dts
 +new file mode 100644
-+index 0000000000..7bf8871fce
++index 0000000000000000000000000000000000000000..7bf8871fce5a76f4f6a805c1a4ea50223770af2e
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-8m.dts
 +@@ -0,0 +1,15 @@
@@ -489,7 +450,7 @@ index 00000000..146d9c32
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dts
 +new file mode 100644
-+index 0000000000..220953f1be
++index 0000000000000000000000000000000000000000..220953f1be18e286cf2b3b1c3cbe4348ed9b66fa
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dts
 +@@ -0,0 +1,8 @@
@@ -503,7 +464,7 @@ index 00000000..146d9c32
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi
 +new file mode 100644
-+index 0000000000..e40621ceeb
++index 0000000000000000000000000000000000000000..e40621ceeb7c5ba40103a26e359fb6f5bd33c691
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi
 +@@ -0,0 +1,24 @@
@@ -533,7 +494,7 @@ index 00000000..146d9c32
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dts
 +new file mode 100644
-+index 0000000000..f24e069b40
++index 0000000000000000000000000000000000000000..f24e069b401d65f143ea46cfaa72c84ccac40dc5
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dts
 +@@ -0,0 +1,8 @@
@@ -547,7 +508,7 @@ index 00000000..146d9c32
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi
 +new file mode 100644
-+index 0000000000..92eab6e8da
++index 0000000000000000000000000000000000000000..92eab6e8da711804556baf6562538c00482628e0
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi
 +@@ -0,0 +1,24 @@
@@ -577,7 +538,7 @@ index 00000000..146d9c32
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-16m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-16m.dts
 +new file mode 100644
-+index 0000000000..83af5a2559
++index 0000000000000000000000000000000000000000..83af5a2559bc6731032e8775d725c7cd226b1856
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-16m.dts
 +@@ -0,0 +1,15 @@
@@ -598,7 +559,7 @@ index 00000000..146d9c32
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-8m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-8m.dts
 +new file mode 100644
-+index 0000000000..000775bbbc
++index 0000000000000000000000000000000000000000..000775bbbcfa33d0da4e743f320d04a1cdd163ec
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v9-8m.dts
 +@@ -0,0 +1,15 @@
@@ -618,10 +579,10 @@ index 00000000..146d9c32
 ++	};
 ++};
 +diff --git a/target/linux/ath79/generic/base-files/etc/board.d/01_leds b/target/linux/ath79/generic/base-files/etc/board.d/01_leds
-+index 8b4c83fd2c..b22c1d2cc0 100644
++index 0809e40137ed832b4defc18bc1ac39ab9c9cbb0b..f8bdf5e8f64e09ba92fb037d4da6b0d72e8d043b 100644
 +--- a/target/linux/ath79/generic/base-files/etc/board.d/01_leds
 ++++ b/target/linux/ath79/generic/base-files/etc/board.d/01_leds
-+@@ -344,6 +344,12 @@ tplink,archer-c6-v2-us)
++@@ -347,6 +347,12 @@ tplink,archer-c6-v2-us)
 + 	ucidef_set_led_switch "wan" "WAN" "green:wan" "switch0" "0x02"
 + 	;;
 + tplink,archer-c25-v1|\
@@ -634,7 +595,7 @@ index 00000000..146d9c32
 + tplink,tl-wr842n-v3)
 + 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth1"
 + 	ucidef_set_led_switch "lan1" "LAN1" "green:lan1" "switch0" "0x10"
-+@@ -406,6 +412,8 @@ tplink,tl-wpa8630-v1)
++@@ -409,6 +415,8 @@ tplink,tl-wpa8630-v1)
 + 	ucidef_set_led_switch "lan" "LAN" "green:lan" "switch0" "0x3c"
 + 	;;
 + tplink,tl-wr841hp-v2|\
@@ -644,10 +605,10 @@ index 00000000..146d9c32
 + 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth1"
 + 	ucidef_set_led_switch "lan1" "LAN1" "green:lan1" "switch0" "0x04"
 +diff --git a/target/linux/ath79/generic/base-files/etc/board.d/02_network b/target/linux/ath79/generic/base-files/etc/board.d/02_network
-+index 4d3296c0af..dd9a33a51d 100644
++index 8f9516b8c681fd09c37fb183a63c17cf84f94bfc..54f7e4592f5c09a396dfb1b1ec83e908e39b8a49 100644
 +--- a/target/linux/ath79/generic/base-files/etc/board.d/02_network
 ++++ b/target/linux/ath79/generic/base-files/etc/board.d/02_network
-+@@ -169,6 +169,12 @@ ath79_setup_interfaces()
++@@ -171,6 +171,12 @@ ath79_setup_interfaces()
 + 	tplink,archer-c60-v2|\
 + 	tplink,archer-c60-v3|\
 + 	tplink,tl-wdr3500-v1|\
@@ -660,7 +621,7 @@ index 00000000..146d9c32
 + 	tplink,tl-wr842n-v1|\
 + 	tplink,tl-wr842n-v3)
 + 		ucidef_set_interface_wan "eth1"
-+@@ -444,6 +450,8 @@ ath79_setup_interfaces()
++@@ -447,6 +453,8 @@ ath79_setup_interfaces()
 + 			"0@eth0" "2:lan:3" "3:lan:2" "4:lan:1" "5:lan:4"
 + 		;;
 + 	tplink,tl-wr841hp-v2|\
@@ -670,7 +631,7 @@ index 00000000..146d9c32
 + 	tplink,tl-wr941hp-v1)
 + 		ucidef_set_interface_wan "eth1"
 +diff --git a/target/linux/ath79/image/generic-tp-link.mk b/target/linux/ath79/image/generic-tp-link.mk
-+index fed572c884..3a9f2a5821 100644
++index fed572c884c75bd21081c7c22dd4652ecefdd993..3a9f2a5821d3e3729f5a0ac842b93da638baacf0 100644
 +--- a/target/linux/ath79/image/generic-tp-link.mk
 ++++ b/target/linux/ath79/image/generic-tp-link.mk
 +@@ -796,6 +796,92 @@ define Device/tplink_tl-wr841hp-v3
@@ -766,14 +727,11 @@ index 00000000..146d9c32
 + define Device/tplink_tl-wr842n-v1
 +   $(Device/tplink-8m)
 +   SOC := ar7241
-+-- 
-+2.38.0
-+
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index 417f87dc..98d17d10 100644
+index dc8849469004b1c66974f48c35c218ed17f1027a..6e5cd23ecb3290b0765602ba439b3346192ff9c8 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
-@@ -456,6 +456,46 @@ device('tp-link-tl-wdr4300-v1', 'tplink_tl-wdr4300-v1')
+@@ -497,6 +497,46 @@ device('tp-link-tl-wdr4300-v1', 'tplink_tl-wdr4300-v1')
  
  device('tp-link-tl-wr810n-v1', 'tplink_tl-wr810n-v1')
  
@@ -820,6 +778,3 @@ index 417f87dc..98d17d10 100644
  device('tp-link-tl-wr842n-v3', 'tplink_tl-wr842n-v3', {
  	manifest_aliases = {
  		'tp-link-tl-wr842n-nd-v3', -- upgrade from OpenWrt 19.07
--- 
-2.38.0
-
