@@ -2,11 +2,9 @@ From: Sebastian Schaper <openwrt@sebastianschaper.net>
 Date: Thu, 9 Mar 2023 20:26:35 +0100
 Subject: ath79-generic: add support for TP-Link EAP-225 Outdoor v3
 
-ath79-generic: don't build factory for TP-Link EAP-225 Outdoor v3
-
-needs newer version of tplink-safeloader
-
-ath79-generic: fix 5g wifi for EAP225-Outdoor v3 backport
+- don't build factory for TP-Link EAP-225 Outdoor v3
+  (needs newer version of tplink-safeloader)
+- fix 5g wifi caldata (don't use nvmem-cells)
 
 diff --git a/docs/user/supported_devices.rst b/docs/user/supported_devices.rst
 index 6838cd360e7be33b1af4038755609c0593563438..b6c931ea6a16cf99f4123dd3ad8e4466bb34ed61 100644
