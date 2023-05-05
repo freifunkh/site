@@ -818,7 +818,7 @@ index 0000000000000000000000000000000000000000..826663d8204cad17ef8a266f3bf6e285
 +   $(Device/tplink-8m)
 +   SOC := ar7241
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index dc8849469004b1c66974f48c35c218ed17f1027a..0ee9f0a0dd0c390953b906a13283cea26dc7c8b2 100644
+index dc8849469004b1c66974f48c35c218ed17f1027a..da1742d02be64d5b33c7a408dd780e676a973588 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
 @@ -497,6 +497,70 @@ device('tp-link-tl-wdr4300-v1', 'tplink_tl-wdr4300-v1')
@@ -836,7 +836,7 @@ index dc8849469004b1c66974f48c35c218ed17f1027a..0ee9f0a0dd0c390953b906a13283cea2
 +device('tp-link-tl-wr841n-nd-mod-ath79-16m-v8', 'tplink_tl-wr841-v8-16m', {
 +	factory = false,
 +	manifest_aliases = {
-+		'tp-link-tl-wr841n-nd-mod-16m-v8'.
++		'tp-link-tl-wr841n-nd-mod-16m-v8',
 +		'tp-link-tl-wr841n-nd-mod-16m-ath79-v8',
 +	},
 +})
