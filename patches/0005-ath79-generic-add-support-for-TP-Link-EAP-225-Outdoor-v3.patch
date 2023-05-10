@@ -6,12 +6,14 @@ Subject: ath79-generic: add support for TP-Link EAP-225 Outdoor v3
   (needs newer version of tplink-safeloader)
 - fix 5g wifi caldata (don't use nvmem-cells)
 
+(cherry picked from commit 77e4e11993de20311f29797464123c74f1c3e05b)
+
 diff --git a/docs/user/supported_devices.rst b/docs/user/supported_devices.rst
-index 6838cd360e7be33b1af4038755609c0593563438..b6c931ea6a16cf99f4123dd3ad8e4466bb34ed61 100644
+index dbcc2d55b9aba8f0024f35beab929f6ab30daa61..bb0936376e116dd06fb4be45caeb3dedb465d1ae 100644
 --- a/docs/user/supported_devices.rst
 +++ b/docs/user/supported_devices.rst
-@@ -115,6 +115,7 @@ ath79-generic
-   - CPE510 (v1.0, v1.1, v2.0, v3.0)
+@@ -113,6 +113,7 @@ ath79-generic
+   - CPE510 (v3.0)
    - CPE710 (v1.0)
    - EAP225-Outdoor (v1)
 +  - EAP225-Outdoor (v3)
@@ -19,7 +21,7 @@ index 6838cd360e7be33b1af4038755609c0593563438..b6c931ea6a16cf99f4123dd3ad8e4466
    - TL-WDR3500 (v1)
    - TL-WDR3600 (v1)
 diff --git a/package/gluon-core/luasrc/usr/lib/lua/gluon/platform.lua b/package/gluon-core/luasrc/usr/lib/lua/gluon/platform.lua
-index 6debe8c5dd3e6ea7c4da7f76fe163f8a2cc0400f..6f5c217448f224a14ba065b97a0148a70aad6888 100644
+index b9b90789ed1e256c1fabcdc133d12064aa03377c..430dbcfe9a78bcd1a81a91f5d42d76d6d0950d49 100644
 --- a/package/gluon-core/luasrc/usr/lib/lua/gluon/platform.lua
 +++ b/package/gluon-core/luasrc/usr/lib/lua/gluon/platform.lua
 @@ -37,6 +37,7 @@ function M.is_outdoor_device()
@@ -30,11 +32,11 @@ index 6debe8c5dd3e6ea7c4da7f76fe163f8a2cc0400f..6f5c217448f224a14ba065b97a0148a7
  		'tplink,wbs210-v1',
  		'tplink,wbs210-v2',
  		'tplink,wbs510-v1',
-diff --git a/patches/openwrt/0014-ath79-support-for-TP-Link-EAP225-Outdoor-v3.patch b/patches/openwrt/0014-ath79-support-for-TP-Link-EAP225-Outdoor-v3.patch
+diff --git a/patches/openwrt/0010-ath79-support-for-TP-Link-EAP225-Outdoor-v3.patch b/patches/openwrt/0010-ath79-support-for-TP-Link-EAP225-Outdoor-v3.patch
 new file mode 100644
 index 0000000000000000000000000000000000000000..20b8377f985fc03217a073ab6e0d2e86181b2ade
 --- /dev/null
-+++ b/patches/openwrt/0014-ath79-support-for-TP-Link-EAP225-Outdoor-v3.patch
++++ b/patches/openwrt/0010-ath79-support-for-TP-Link-EAP225-Outdoor-v3.patch
 @@ -0,0 +1,150 @@
 +From: Paul Maruhn <paulmaruhn@posteo.de>
 +Date: Tue, 22 Mar 2022 21:06:42 +0100
@@ -186,11 +188,11 @@ index 0000000000000000000000000000000000000000..20b8377f985fc03217a073ab6e0d2e86
 + define Device/tplink_eap225-v1
 +   $(Device/tplink-eap2x5)
 +   SOC := qca9563
-diff --git a/patches/openwrt/0015-ath79-fix-5g-wifi-for-eap225-outdoor-v3-backport.patch b/patches/openwrt/0015-ath79-fix-5g-wifi-for-eap225-outdoor-v3-backport.patch
+diff --git a/patches/openwrt/0011-ath79-fix-5g-wifi-for-eap225-outdoor-v3-backport.patch b/patches/openwrt/0011-ath79-fix-5g-wifi-for-eap225-outdoor-v3-backport.patch
 new file mode 100644
 index 0000000000000000000000000000000000000000..f6493919ff60263a559456b03f97191b47f92420
 --- /dev/null
-+++ b/patches/openwrt/0015-ath79-fix-5g-wifi-for-eap225-outdoor-v3-backport.patch
++++ b/patches/openwrt/0011-ath79-fix-5g-wifi-for-eap225-outdoor-v3-backport.patch
 @@ -0,0 +1,16 @@
 +From: Sebastian Schaper <openwrt@sebastianschaper.net>
 +Date: Thu, 9 Mar 2023 23:24:33 +0100
@@ -209,10 +211,10 @@ index 0000000000000000000000000000000000000000..f6493919ff60263a559456b03f97191b
 + 	tplink,eap225-wall-v2)
 + 		caldata_extract "art" 0x5000 0x2f20
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index da1742d02be64d5b33c7a408dd780e676a973588..76f36a46f774d33c6161fa66f86a4f698692b598 100644
+index 24a831813dd09f3fe8f7a1b2fb0c60811685a59f..5f92b6ca990d20aad44da89ff3847f5b672e8db1 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
-@@ -474,6 +474,11 @@ device('tp-link-eap225-outdoor-v1', 'tplink_eap225-outdoor-v1', {
+@@ -445,6 +445,11 @@ device('tp-link-eap225-outdoor-v1', 'tplink_eap225-outdoor-v1', {
  	packages = ATH10K_PACKAGES_QCA9888,
  })
  
