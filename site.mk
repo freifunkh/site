@@ -19,6 +19,7 @@ GLUON_FEATURES := \
 	setup-mode \
 	status-page \
 	web-advanced \
+	web-logging \
 	web-private-wifi \
 	web-wizard
 
