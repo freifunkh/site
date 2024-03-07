@@ -1,12 +1,20 @@
+From 8c5851c4ffa4beaadc50da41ca2fa55ebd8a10ed Mon Sep 17 00:00:00 2001
 From: Dark4MD <github.web@manu.li>
 Date: Thu, 5 May 2022 18:04:46 +0200
-Subject: patches/openwrt: add TL-WR841ND/N 8M and 16M variants to ath79
+Subject: [PATCH] patches/openwrt: add TL-WR841ND/N 8M and 16M variants to
+ ath79
 
-diff --git a/patches/openwrt/0013-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0013-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
+---
+ ...841ND-N-8M-and-16M-variants-to-ath79.patch | 809 ++++++++++++++++++
+ targets/ath79-generic                         |  64 ++
+ 2 files changed, 873 insertions(+)
+ create mode 100644 patches/openwrt/0010-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
+
+diff --git a/patches/openwrt/0010-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0010-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 new file mode 100644
-index 0000000000000000000000000000000000000000..826663d8204cad17ef8a266f3bf6e2851c3b48bb
+index 00000000..21c8e562
 --- /dev/null
-+++ b/patches/openwrt/0013-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
++++ b/patches/openwrt/0010-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 @@ -0,0 +1,809 @@
 +From: Dark4MD <github.web@manu.li>
 +Date: Thu, 5 May 2022 17:45:14 +0200
@@ -669,10 +677,10 @@ index 0000000000000000000000000000000000000000..826663d8204cad17ef8a266f3bf6e285
 ++	};
 ++};
 +diff --git a/target/linux/ath79/generic/base-files/etc/board.d/01_leds b/target/linux/ath79/generic/base-files/etc/board.d/01_leds
-+index 0809e40137ed832b4defc18bc1ac39ab9c9cbb0b..f8bdf5e8f64e09ba92fb037d4da6b0d72e8d043b 100644
++index aaa4ed94d50cfeff4da1f81dc2e74bcfcc4e0f3f..6a2673e39f140f161e417edc7960877fed7c3c6e 100644
 +--- a/target/linux/ath79/generic/base-files/etc/board.d/01_leds
 ++++ b/target/linux/ath79/generic/base-files/etc/board.d/01_leds
-+@@ -347,6 +347,12 @@ tplink,archer-c6-v2-us)
++@@ -393,6 +393,12 @@ tplink,archer-c6-v2-us)
 + 	ucidef_set_led_switch "wan" "WAN" "green:wan" "switch0" "0x02"
 + 	;;
 + tplink,archer-c25-v1|\
@@ -685,7 +693,7 @@ index 0000000000000000000000000000000000000000..826663d8204cad17ef8a266f3bf6e285
 + tplink,tl-wr842n-v3)
 + 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth1"
 + 	ucidef_set_led_switch "lan1" "LAN1" "green:lan1" "switch0" "0x10"
-+@@ -409,6 +415,8 @@ tplink,tl-wpa8630-v1)
++@@ -455,6 +461,8 @@ tplink,tl-wpa8630-v1)
 + 	ucidef_set_led_switch "lan" "LAN" "green:lan" "switch0" "0x3c"
 + 	;;
 + tplink,tl-wr841hp-v2|\
@@ -695,10 +703,10 @@ index 0000000000000000000000000000000000000000..826663d8204cad17ef8a266f3bf6e285
 + 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth1"
 + 	ucidef_set_led_switch "lan1" "LAN1" "green:lan1" "switch0" "0x04"
 +diff --git a/target/linux/ath79/generic/base-files/etc/board.d/02_network b/target/linux/ath79/generic/base-files/etc/board.d/02_network
-+index 8f9516b8c681fd09c37fb183a63c17cf84f94bfc..54f7e4592f5c09a396dfb1b1ec83e908e39b8a49 100644
++index ca35bd32236cd91d8fa3e1124cf334da7afa9a05..16ee49ad60a0912ffdabbb59073daa7751e7a5c7 100644
 +--- a/target/linux/ath79/generic/base-files/etc/board.d/02_network
 ++++ b/target/linux/ath79/generic/base-files/etc/board.d/02_network
-+@@ -171,6 +171,12 @@ ath79_setup_interfaces()
++@@ -197,6 +197,12 @@ ath79_setup_interfaces()
 + 	tplink,archer-c60-v2|\
 + 	tplink,archer-c60-v3|\
 + 	tplink,tl-wdr3500-v1|\
@@ -711,7 +719,7 @@ index 0000000000000000000000000000000000000000..826663d8204cad17ef8a266f3bf6e285
 + 	tplink,tl-wr842n-v1|\
 + 	tplink,tl-wr842n-v3)
 + 		ucidef_set_interface_wan "eth1"
-+@@ -447,6 +453,8 @@ ath79_setup_interfaces()
++@@ -495,6 +501,8 @@ ath79_setup_interfaces()
 + 			"0@eth0" "2:lan:3" "3:lan:2" "4:lan:1" "5:lan:4"
 + 		;;
 + 	tplink,tl-wr841hp-v2|\
@@ -721,10 +729,10 @@ index 0000000000000000000000000000000000000000..826663d8204cad17ef8a266f3bf6e285
 + 	tplink,tl-wr941hp-v1)
 + 		ucidef_set_interface_wan "eth1"
 +diff --git a/target/linux/ath79/image/generic-tp-link.mk b/target/linux/ath79/image/generic-tp-link.mk
-+index fed572c884c75bd21081c7c22dd4652ecefdd993..3a9f2a5821d3e3729f5a0ac842b93da638baacf0 100644
++index cfabc89b8dfe7d3b0d60e0f793e3198907b1c199..10cb62ea8a447620126df8b678d1d2c40aadad2c 100644
 +--- a/target/linux/ath79/image/generic-tp-link.mk
 ++++ b/target/linux/ath79/image/generic-tp-link.mk
-+@@ -796,6 +796,92 @@ define Device/tplink_tl-wr841hp-v3
++@@ -847,6 +847,92 @@ define Device/tplink_tl-wr841hp-v3
 + endef
 + TARGET_DEVICES += tplink_tl-wr841hp-v3
 + 
@@ -818,10 +826,10 @@ index 0000000000000000000000000000000000000000..826663d8204cad17ef8a266f3bf6e285
 +   $(Device/tplink-8m)
 +   SOC := ar7241
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index 9d44d33306b0686da84b676671e02c3dd583a976..4a4426916729f789edb849c5b432d5e9f2375903 100644
+index ca2f8cda..ec07721f 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
-@@ -474,6 +474,70 @@ device('tp-link-tl-wdr4300-v1', 'tplink_tl-wdr4300-v1')
+@@ -476,6 +476,70 @@ device('tp-link-tl-wdr4300-v1', 'tplink_tl-wdr4300-v1')
  
  device('tp-link-tl-wr810n-v1', 'tplink_tl-wr810n-v1')
  
@@ -889,6 +897,9 @@ index 9d44d33306b0686da84b676671e02c3dd583a976..4a4426916729f789edb849c5b432d5e9
 +	},
 +})
 +
- device('tp-link-tl-wr842n-v3', 'tplink_tl-wr842n-v3', {
- 	manifest_aliases = {
- 		'tp-link-tl-wr842n-nd-v3', -- upgrade from OpenWrt 19.07
+ device('tp-link-tl-wr842n-v3', 'tplink_tl-wr842n-v3')
+ 
+ device('tp-link-tl-wr902ac-v1', 'tplink_tl-wr902ac-v1', {
+-- 
+2.34.1
+
