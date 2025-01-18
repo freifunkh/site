@@ -137,51 +137,10 @@ if device({
 }
 end
 
-include_usb = true
+include_usb = false
 
--- rtl838x has no USB support as of Gluon v2023.2
-if target('realtek', 'rtl838x') then
-    include_usb = false
-end
-
--- exclude USB for ath79-generic except for a few  devices
-if target('ath79', 'generic') and not device({
-    'gl.inet-gl-ar300m-lite',
-    'gl.inet-gl-ar750',
-    'netgear-wndr3700-v2',
-    'tp-link-archer-a7-v5',
-    'tp-link-archer-c5-v1',
-    'tp-link-archer-c7-v2',
-    'tp-link-archer-c7-v5',
-    'tp-link-archer-c59-v1',
-    'tp-link-tl-wr842n-v3',
-    'tp-link-tl-wr1043nd-v4',
-}) then
-    include_usb = false
-end
-
--- 7M usable firmware space + USB port
-if device({
-    'gl-mt300n-v2',
-    'tp-link-td-w8970',
-    'tp-link-td-w8980',
-}) then
-    include_usb = false
-end
-
--- devices without usb ports
-if device({
-    'avm-fritz-box-7412',
-    'gl.inet-microuter-n300',
-    'netgear-ex3700',
-    'netgear-ex6150',
-    'netgear-r6020',
-    'ubiquiti-edgerouter-x-sfp',
-    'ubiquiti-edgerouter-x',
-    'ubiquiti-unifi-6-lr-v1',
-    'zyxel-nwa55axe',
-}) then
-    include_usb = false
+if target('x86') then
+	include_usb = true
 end
 
 if include_usb then
