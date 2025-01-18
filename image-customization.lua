@@ -56,9 +56,12 @@ pkgs_usb_storage = {
 	'kmod-usb-storage-uas', -- USB Attached SCSI (UAS/UASP)
 	'kmod-nls-base',
 	'kmod-nls-cp1250',      -- NLS Codepage 1250 (Eastern Europe)
+	'kmod-nls-cp1251',      -- NLS Codepage 1251 (Russian)
 	'kmod-nls-cp437',       -- NLS Codepage 437 (United States, Canada)
+	'kmod-nls-cp775',       -- NLS Codepage 775 (Baltic Rim)
 	'kmod-nls-cp850',       -- NLS Codepage 850 (Europe)
 	'kmod-nls-cp852',       -- NLS Codepage 852 (Europe)
+	'kmod-nls-cp866',       -- NLS Codepage 866 (Cyrillic)
 	'kmod-nls-iso8859-1',   -- NLS ISO 8859-1 (Latin 1)
 	'kmod-nls-iso8859-13',  -- NLS ISO 8859-13 (Latin 7; Baltic)
 	'kmod-nls-iso8859-15',  -- NLS ISO 8859-15 (Latin 9)
