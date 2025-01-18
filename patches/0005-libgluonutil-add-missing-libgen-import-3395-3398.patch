@@ -1,0 +1,28 @@
+From: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+Date: Thu, 19 Dec 2024 03:44:01 +0100
+Subject: libgluonutil: add missing libgen import (#3395) (#3398)
+
+The import of libgen.h required for basename() was missing. This lead to
+undesired behavior on 64 bit systems, where only the upper 32-bit of the
+returned pointer was used.
+
+On ARM64 systems such as mediatek-filogic, this lead to a signed extend
+of the 32-bit address, leading to a crash of respondd.
+
+Signed-off-by: David Bauer <mail@david-bauer.net>
+(cherry picked from commit 3654f83a1da06b9d32d339202f2a9bcf6543d433)
+
+Co-authored-by: David Bauer <mail@david-bauer.net>
+
+diff --git a/package/libgluonutil/src/libgluonutil.c b/package/libgluonutil/src/libgluonutil.c
+index 772a5b68a8fc2a90e51615036f98f45f525677ad..354f7179969460b674c63d735e8272fcfa4933c3 100644
+--- a/package/libgluonutil/src/libgluonutil.c
++++ b/package/libgluonutil/src/libgluonutil.c
+@@ -11,6 +11,7 @@
+ 
+ #include <errno.h>
+ #include <glob.h>
++#include <libgen.h>
+ #include <limits.h>
+ #include <stdio.h>
+ #include <string.h>
