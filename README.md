@@ -57,3 +57,16 @@ done
 ``` shell
 make V=s GLUON_DEBUG=1 GLUON_TARGET=x86-generic &> logs/$(date -Is)_x86-generic.log
 ```
+
+## publishing
+
+After building the firmware, go to the output dir within the gluon dir and execute some rsync commands:
+```
+version=vH39.pre
+cd output
+rsync -rva ./images/* web.ffh.zone:/var/www/domains/firmware.ffh.zone/$version -e 'ssh -p 1337'
+rsync -rva ./debug/* web.ffh.zone:/var/www/domains/firmware.ffh.zone/debug/$version -e 'ssh -p 1337'
+rsync -rva ./packages/* web.ffh.zone:/var/www/domains/firmware.ffh.zone/packages -e 'ssh -p 1337'
+```
+
+Since this is rsync, the commands can be interupted and will continue where they have been interupted.
