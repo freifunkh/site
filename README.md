@@ -64,10 +64,10 @@ After building the firmware, go to the output dir within the gluon dir and execu
 ```
 version=vH39.pre
 cd output
-rsync -rva ./images/* web.ffh.zone:/var/www/domains/firmware.ffh.zone/$version -e 'ssh -p 1337'
-rsync -rva ./debug/* web.ffh.zone:/var/www/domains/firmware.ffh.zone/debug/$version -e 'ssh -p 1337'
-rsync -rva ./packages/* web.ffh.zone:/var/www/domains/firmware.ffh.zone/packages -e 'ssh -p 1337'
-ssh -p 1337 web.ffh.zone "/var/www/domains/firmware.ffh.zone/update-file-diffs.sh"
+rsync -rva ./images/* web.ffh.zone:/var/www/domains/raw-firmware.ffh.zone/$version -e 'ssh -p 1337'
+rsync -rva ./debug/* web.ffh.zone:/var/www/domains/raw-firmware.ffh.zone/debug/$version -e 'ssh -p 1337'
+rsync -rva ./packages/* web.ffh.zone:/var/www/domains/raw-firmware.ffh.zone/packages -e 'ssh -p 1337'
+ssh -p 1337 web.ffh.zone "/var/www/domains/raw-firmware.ffh.zone/update-file-diffs.sh"
 ```
 
 Since this is rsync, the commands can be interupted and will continue where they have been interupted.
