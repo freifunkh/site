@@ -71,3 +71,8 @@ ssh -p 1337 web.ffh.zone "/var/www/domains/raw-firmware.ffh.zone/update-file-dif
 ```
 
 Since this is rsync, the commands can be interupted and will continue where they have been interupted.
+
+## FFH version numbers
+
+- E.g. vH41 is a stable release.
+- E.g. vH41~2 is the second pre-release of vH41.
