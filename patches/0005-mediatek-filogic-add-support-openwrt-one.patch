@@ -1,0 +1,73 @@
+From 354aa74c7f2dd9630f45f3241b0c97c1d08924bc Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Steffen=20F=C3=B6rster?= <nemesis@chemnitz.freifunk.net>
+Date: Wed, 5 Mar 2025 21:22:17 +0100
+Subject: [PATCH] mediatek-filogic: add support for OpenWRT One
+
+Specification:
+ - MT7981 CPU using 2.4GHz and 5GHz WiFi (both AX)
+ - 1GB RAM
+ - 16MB NOR
+ - 128MB NAND
+ - 3 LEDs (red, green, blue, white)
+ - 2 buttons (reset, user defined)
+ - 1 2.5Gbit WAN port (Airoha EN8811h)
+ - 1 1Gbit LAN ports
+ - 1 single lane M.2 SSD slot
+ - 1 mikroBus socket
+ - externel HW WDT (25s refresh time)
+ - i2c RTC (with battery backup)
+
+Serial Interface
+ - UBS-C CDC-ACM
+ - 3 Pins GND, RX, TX
+ - Settings: 115200, 8N1
+---
+ docs/user/supported_devices.rst |  4 ++++
+ targets/mediatek-filogic        | 14 ++++++++++++++
+ 2 files changed, 18 insertions(+)
+
+diff --git a/docs/user/supported_devices.rst b/docs/user/supported_devices.rst
+index aaa13d7843..3c6d28bb22 100644
+--- a/docs/user/supported_devices.rst
++++ b/docs/user/supported_devices.rst
+@@ -334,6 +334,10 @@ mediatek-filogic
+ 
+   - WAX220
+ 
++* OpenWrt
++
++  - One
++
+ * Ubiquiti
+ 
+   - UniFi 6 Plus
+diff --git a/targets/mediatek-filogic b/targets/mediatek-filogic
+index ad4b06eea9..e5611684b1 100644
+--- a/targets/mediatek-filogic
++++ b/targets/mediatek-filogic
+@@ -1,3 +1,6 @@
++config('TARGET_ROOTFS_INITRAMFS', true)
++config('TARGET_INITRAMFS_COMPRESSION_LZMA', true)
++
+ -- ASUS
+ 
+ device('asus-tuf-ax4200', 'asus_tuf-ax4200', {
+@@ -50,6 +53,17 @@ device('netgear-wax220', 'netgear_wax220', {
+ 	factory_ext = '.img',
+ })
+ 
++-- OpenWRT
++device('openwrt-one', 'openwrt_one',{
++	factory = '-factory',
++	factory_ext = '.ubi',
++	sysupgrade_ext = '.itb',
++	extra_images = {
++		{'-nor-factory', '-nor-factory', '.bin'},
++		{'-snand-factory', '-snand-factory', '.bin'},
++	},
++})
++
+ 
+ -- Ubiquiti
+ 
+
