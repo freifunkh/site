@@ -5,6 +5,7 @@ packages{
 	'gluon-segment-mover',
 	'ecdsautils',
 	'respondd-module-airtime',
+	'ffh-authorized-fingerprints',
 	'ffh-cli-scripts',
 }
 
