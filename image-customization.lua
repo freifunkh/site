@@ -7,6 +7,7 @@ packages{
 	'respondd-module-airtime',
 	'ffh-authorized-fingerprints',
 	'ffh-cli-scripts',
+	'ffh-ntpd-gluon-state-check',
 }
 
 features {
