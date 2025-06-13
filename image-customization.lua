@@ -167,3 +167,7 @@ end
 if target('bcm27xx') then
     packages(pkgs_hid)
 end
+
+if target('mediatek', 'filogic') then
+    packages {'kmod-ramoops'}
+end
