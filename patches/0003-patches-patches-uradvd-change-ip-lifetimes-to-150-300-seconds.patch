@@ -2,11 +2,11 @@ From: lemoer <git@irrelefant.net>
 Date: Sat, 13 Jan 2024 19:02:00 +0100
 Subject: patches: patches: uradvd: change ip lifetimes to 150/300 seconds
 
-diff --git a/patches/packages/packages/0002-uradvd-change-ip-lifetimes-to-150-300-seconds.patch b/patches/packages/packages/0002-uradvd-change-ip-lifetimes-to-150-300-seconds.patch
+diff --git a/patches/packages/packages/0001-patches-uradvd-change-ip-lifetimes-to-150-300-seconds.patch b/patches/packages/packages/0001-patches-uradvd-change-ip-lifetimes-to-150-300-seconds.patch
 new file mode 100644
-index 0000000000000000000000000000000000000000..13d888273563991f3abc4e67ec915ddc244e39db
+index 0000000000000000000000000000000000000000..3f8e11982de60b6c795be54ceb3dedac5e62047a
 --- /dev/null
-+++ b/patches/packages/packages/0002-uradvd-change-ip-lifetimes-to-150-300-seconds.patch
++++ b/patches/packages/packages/0001-patches-uradvd-change-ip-lifetimes-to-150-300-seconds.patch
 @@ -0,0 +1,37 @@
 +From: lemoer <git@irrelefant.net>
 +Date: Thu, 31 May 2018 23:52:48 +0200
@@ -14,7 +14,7 @@ index 0000000000000000000000000000000000000000..13d888273563991f3abc4e67ec915ddc
 +
 +diff --git a/net/uradvd/patches/0001-change-ip-lifetimes-to-150-300-seconds.patch b/net/uradvd/patches/0001-change-ip-lifetimes-to-150-300-seconds.patch
 +new file mode 100644
-+index 000000000..a1553845a
++index 0000000000000000000000000000000000000000..f7821bda5c7105ce741122ad1b0dc937f360ea81
 +--- /dev/null
 ++++ b/net/uradvd/patches/0001-change-ip-lifetimes-to-150-300-seconds.patch
 +@@ -0,0 +1,27 @@
@@ -45,4 +45,3 @@ index 0000000000000000000000000000000000000000..13d888273563991f3abc4e67ec915ddc
 ++ 
 ++ /* And these in milliseconds */
 ++ #define MAX_RA_DELAY_TIME 500u
-
