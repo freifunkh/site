@@ -1,0 +1,21 @@
+From: Jan-Niklas Burfeind <git@aiyionpri.me>
+Date: Wed, 17 Sep 2025 00:30:31 +0200
+Subject: build: Override the buildhosts hostname
+
+in the build with 'buildhost'.
+
+This allows reproducible builds even from within docker containers,
+which tend to have ids intead of fixed hostnames.
+
+diff --git a/Makefile b/Makefile
+index 550eda0b47b45e8aa1b08cb2c160267fae09f9dc..dc9da0b6d8dec22488f10ab34b3453d7cfc4aa04 100644
+--- a/Makefile
++++ b/Makefile
+@@ -198,6 +198,7 @@ config: $(LUA) FORCE
+ 
+ 	$(OPENWRTMAKE) prepare-tmpinfo
+ 	$(GLUON_ENV) $(LUA) scripts/target_config.lua > openwrt/.config
++	echo 'CONFIG_KERNEL_BUILD_DOMAIN="buildhost"' >> openwrt/.config
+ 	$(OPENWRTMAKE) defconfig
+ 	$(GLUON_ENV) $(LUA) scripts/target_config_check.lua
+ 
