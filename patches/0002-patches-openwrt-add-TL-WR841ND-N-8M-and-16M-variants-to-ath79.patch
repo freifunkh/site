@@ -4,7 +4,7 @@ Subject: patches/openwrt: add TL-WR841ND/N 8M and 16M variants to ath79
 
 diff --git a/patches/openwrt/0010-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0010-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 new file mode 100644
-index 0000000000000000000000000000000000000000..b6cce60eb365a22ab5f5d280fd47548acf5294d8
+index 0000000000000000000000000000000000000000..e0915b9dff871b708bf87a4c3487665b03d46a33
 --- /dev/null
 +++ b/patches/openwrt/0010-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 @@ -0,0 +1,809 @@
@@ -721,7 +721,7 @@ index 0000000000000000000000000000000000000000..b6cce60eb365a22ab5f5d280fd47548a
 + 	tplink,tl-wr941hp-v1)
 + 		ucidef_set_interface_wan "eth1"
 +diff --git a/target/linux/ath79/image/generic-tp-link.mk b/target/linux/ath79/image/generic-tp-link.mk
-+index 9c1cf90a9196ca0af84fe55eca2d7d26e1c196f7..397d5b9da146ecfeb2c74988b164c48d2abe251b 100644
++index 6055c724d9e3aeb37c9715cc22ce5266a839d315..2fd823ac8fb04670eb1783581ad7199cf408e8a5 100644
 +--- a/target/linux/ath79/image/generic-tp-link.mk
 ++++ b/target/linux/ath79/image/generic-tp-link.mk
 +@@ -876,6 +876,92 @@ define Device/tplink_tl-wr841hp-v3
