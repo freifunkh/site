@@ -2,11 +2,11 @@ From: Dark4MD <github.web@manu.li>
 Date: Thu, 5 May 2022 18:04:46 +0200
 Subject: patches/openwrt: add TL-WR841ND/N 8M and 16M variants to ath79
 
-diff --git a/patches/openwrt/0010-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0010-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
+diff --git a/patches/openwrt/0011-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0011-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 new file mode 100644
 index 0000000000000000000000000000000000000000..e38fa97305e11472114f46cbd6a2bdbf3503c76d
 --- /dev/null
-+++ b/patches/openwrt/0010-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
++++ b/patches/openwrt/0011-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 @@ -0,0 +1,809 @@
 +From: Dark4MD <github.web@manu.li>
 +Date: Thu, 5 May 2022 17:45:14 +0200
