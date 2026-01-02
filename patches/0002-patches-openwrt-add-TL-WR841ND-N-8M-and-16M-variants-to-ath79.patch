@@ -2,11 +2,11 @@ From: Dark4MD <github.web@manu.li>
 Date: Thu, 5 May 2022 18:04:46 +0200
 Subject: patches/openwrt: add TL-WR841ND/N 8M and 16M variants to ath79
 
-diff --git a/patches/openwrt/0011-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0011-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
+diff --git a/patches/openwrt/0014-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0014-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 new file mode 100644
-index 0000000000000000000000000000000000000000..e38fa97305e11472114f46cbd6a2bdbf3503c76d
+index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a021762200e9002ba
 --- /dev/null
-+++ b/patches/openwrt/0011-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
++++ b/patches/openwrt/0014-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 @@ -0,0 +1,809 @@
 +From: Dark4MD <github.web@manu.li>
 +Date: Thu, 5 May 2022 17:45:14 +0200
@@ -721,7 +721,7 @@ index 0000000000000000000000000000000000000000..e38fa97305e11472114f46cbd6a2bdbf
 + 	tplink,tl-wr941hp-v1)
 + 		ucidef_set_interface_wan "eth1"
 +diff --git a/target/linux/ath79/image/generic-tp-link.mk b/target/linux/ath79/image/generic-tp-link.mk
-+index b5b2ec8c7ce1b4902eda76cab786f5a6b007f43d..f44a3ccdde25f57c8d024129950b7567efbe4c50 100644
++index df6d0036fda4e6ca51d04db21c360dd6ccac983e..7441ea84a60e71a39fec60b0ec2d573083fe83dc 100644
 +--- a/target/linux/ath79/image/generic-tp-link.mk
 ++++ b/target/linux/ath79/image/generic-tp-link.mk
 +@@ -876,6 +876,92 @@ define Device/tplink_tl-wr841hp-v3
@@ -818,10 +818,10 @@ index 0000000000000000000000000000000000000000..e38fa97305e11472114f46cbd6a2bdbf
 +   $(Device/tplink-8m)
 +   SOC := ar7241
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index f9987cb8b0fa6d3964395aaceaa0a2ea4b86afa2..db6229b41ed9d5b2a162a7f98997835c54717063 100644
+index c3c1096f37c59988b0f6b359040d1f05f2510c7d..afe734a0edc074baa3739cff7780439e77377a77 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
-@@ -504,6 +504,70 @@ device('tp-link-tl-wdr4300-v1', 'tplink_tl-wdr4300-v1')
+@@ -509,6 +509,70 @@ device('tp-link-tl-wdr4300-v1', 'tplink_tl-wdr4300-v1')
  
  device('tp-link-tl-wr810n-v1', 'tplink_tl-wr810n-v1')
  
