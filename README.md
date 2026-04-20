@@ -1,12 +1,11 @@
 ## well-known branches
 
-|    Branch Name   |       Description      |                Builds Against the Following Gluon Version                |            Used For           |
-|:----------------:|:----------------------:|:------------------------------------------------------------------------:|:-----------------------------:|
-|      master      |                        |                                  master                                  | nightly builds, manual builds |
-|      stable      |  mostly latest release | [See here](https://hannover.freifunk.net/wiki/Freifunk/FirmwareReleases) |    manual builds, releases    |
-| master-wireguard |                        |                                  master                                  | nightly builds, manual builds |
-| stable-wireguard |  mostly latest release | [See here](https://hannover.freifunk.net/wiki/Freifunk/FirmwareReleases) |    manual builds, releases    |
-|       next       | currently not used yet |                                   next                                   |         manual builds         |
+- The main branch should be buildable with current gluon main branch.
+- The wireguard vpn is used in this branch.
+- Sometimes, it may happen that gluon makes breaking changes to the handling of the site conf, which make it necessary to maintain separate site branches for different gluon branches for a period of time.
+    - We will name these branches e.g. something like `gluon-v2025.1.x`.
+    - However, be aware that these branches are eventually dropped.
+    - So always push changes made on these branches also to site main if they are meant to be retained.
 
 ## build a current ffh gluon
 
