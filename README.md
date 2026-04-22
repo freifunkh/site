@@ -2,7 +2,7 @@
 
 |    Branch Name   |       Description      |                Builds Against the Following Gluon Version                |            Used For           |
 |:----------------:|:----------------------:|:------------------------------------------------------------------------:|:-----------------------------:|
-| master-wireguard |                        |                                  master                                  | nightly builds, manual builds |
+| master-wireguard |                        |                                  main| nightly builds, manual builds |
 | stable-wireguard |  mostly latest release | [See here](https://hannover.freifunk.net/wiki/Freifunk/FirmwareReleases) |    manual builds, releases    |
 |       next       | currently not used yet |                                   next                                   |         manual builds         |
 
@@ -16,7 +16,7 @@
 # clone gluon
 git clone https://github.com/freifunk-gluon/gluon
 cd gluon
-git checkout master
+git checkout main
 
 # clone site conf
 git clone https://github.com/freifunkh/site
