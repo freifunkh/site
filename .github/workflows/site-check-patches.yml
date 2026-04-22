@@ -5,11 +5,13 @@ on:
     paths:
       - 'patches/**'
       - '.github/workflows/site-check-patches.yml'
+      - 'refresh_ffh_patches.sh'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
       - 'patches/**'
       - '.github/workflows/site-check-patches.yml'
+      - 'refresh_ffh_patches.sh'
   schedule:
     - cron: '16 * * * *'
 permissions:
