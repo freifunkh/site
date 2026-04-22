@@ -6,6 +6,10 @@
 | stable-wireguard |  mostly latest release | [See here](https://hannover.freifunk.net/wiki/Freifunk/FirmwareReleases) |    manual builds, releases    |
 |       next       | currently not used yet |                                   next                                   |         manual builds         |
 
+## prerequisites
+
+- You need to have docker installed on your system.
+
 ## build a current ffh gluon
 
 ``` shell
@@ -28,23 +32,28 @@ vi site/modules
 # if you want to bump up the version number
 vi site/site.mk
 
-mkdir logs
+# Enter the container, which includes all build dependencies
+./scripts/container.sh
 
+# Obtain all "submodules" of gluon
 make update
 
-# maybe switch here to a screen session ;)
-# choose -j as numer of cores
-make -j 24 GLUON_TARGET=ath79-generic
+# List targets and pick your favorite one.
+make list-targets
 
+# maybe switch here to a screen session, if
+# you are building on a remote system ;)
+
+make -j $(nproc) GLUON_TARGET=ath79-generic
 ```
 
 ## build all targets
 
 ``` shell
-TARGETS="ar71xx-generic ar71xx-tiny ar71xx-nand ar71xx-mikrotik ath79-generic brcm2708-bcm2708 brcm2708-bcm2709 brcm2708-bcm2710 ipq40xx-generic ipq806x-generic lantiq-xrx200 lantiq-xway mpc85xx-generic mpc85xx-p1020 mvebu-cortexa9 ramips-mt7620 ramips-mt7621 ramips-mt76x8 ramips-rt305x sunxi-cortexa7 x86-64 x86-generic x86-geode"
+TARGETS=$(make list-targets)
 
 for t in $TARGETS; do
-  make V=s GLUON_TARGET=${t} &> logs/$(date -Is)_${t}.log
+  make -j $(nproc) GLUON_TARGET=${t}
 done
 ```
 
