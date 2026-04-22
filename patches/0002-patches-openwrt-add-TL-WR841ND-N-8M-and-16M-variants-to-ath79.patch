@@ -818,7 +818,7 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 +   $(Device/tplink-8m)
 +   SOC := ar7241
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index c3c1096f37c59988b0f6b359040d1f05f2510c7d..afe734a0edc074baa3739cff7780439e77377a77 100644
+index 42ad0d0df1990fac189f0ea1dc6600c988b6921b..be2f2d1bac2db798c7e3fcab04eb1173d1cf507b 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
 @@ -509,6 +509,70 @@ device('tp-link-tl-wdr4300-v1', 'tplink_tl-wdr4300-v1')
