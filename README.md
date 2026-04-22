@@ -2,8 +2,6 @@
 
 |    Branch Name   |       Description      |                Builds Against the Following Gluon Version                |            Used For           |
 |:----------------:|:----------------------:|:------------------------------------------------------------------------:|:-----------------------------:|
-|      master      |                        |                                  master                                  | nightly builds, manual builds |
-|      stable      |  mostly latest release | [See here](https://hannover.freifunk.net/wiki/Freifunk/FirmwareReleases) |    manual builds, releases    |
 | master-wireguard |                        |                                  master                                  | nightly builds, manual builds |
 | stable-wireguard |  mostly latest release | [See here](https://hannover.freifunk.net/wiki/Freifunk/FirmwareReleases) |    manual builds, releases    |
 |       next       | currently not used yet |                                   next                                   |         manual builds         |
