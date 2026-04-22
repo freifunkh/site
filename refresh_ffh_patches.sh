@@ -14,6 +14,10 @@ prefixfilename() {
 	mv $(dirname "$file")/$(basename "$file") $(dirname "$file")/${prefix}$(basename "$file")
 }
 
+gitPatchMgr() {
+	git -c user.name='Freifunkh Patch Manager' -c user.email='freifunkh@void.example.com' -c commit.gpgsign=false $@
+}
+
 # clone gluon
 git clone --depth 1 --single-branch https://github.com/freifunk-gluon/gluon.git $PATCHDIR
 
@@ -24,7 +28,7 @@ git checkout -B patched >/dev/null
 
 # apply all site patches
 for patch in "../patches"/*.patch; do
-	git -c user.name='Freifunkh Patch Manager' -c user.email='freifunkh@void.example.com' -c commit.gpgsign=false am --whitespace=nowarn --committer-date-is-author-date "$patch"
+	gitPatchMgr am --whitespace=nowarn --committer-date-is-author-date "$patch"
 	# we prefix all of the patches in our patches, such
 	# that order of gluons upstream patches does not get
 	# disturbed by our patches...
@@ -33,7 +37,7 @@ for patch in "../patches"/*.patch; do
 	done
 	make refresh-patches GLUON_SITEDIR=../
 	git add patches/
-	git commit --amend --no-edit
+	gitPatchMgr commit --amend --no-edit
 done
 
 
