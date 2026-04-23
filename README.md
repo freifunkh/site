@@ -57,6 +57,16 @@ for t in $TARGETS; do
 done
 ```
 
+## signing a firmware release
+
+The firmware release must already be uploaded to the webserver on the correct path.
+
+``` shell
+./ffh_sign.sh vH41~3
+```
+
+(If you haven't used this script before, it will guide you through it's setup steps.)
+
 ## build for debugging purposes
 
 - Debugging symbols are not stripped while building. (At least you still need to compile the package with `-g` to get the debug symbols, but they are not stripped)
