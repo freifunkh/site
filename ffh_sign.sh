@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 remote=root@web.ffh.zone
 port=1337
