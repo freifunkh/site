@@ -19,7 +19,7 @@ if ! test -f ${config}; then
 	exit 1
 fi
 
-source ${config}
+. ${config}
 if [ "$SECRET_PATH" = "" ]; then
 	echo "Error: SECRET_PATH in $config is empty."
 	echo
