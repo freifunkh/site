@@ -28,7 +28,7 @@ if [ "$SECRET_PATH" = "" ]; then
 fi
 
 if ! test -f "$SECRET_PATH"; then
-	echo "Error: The SECRET_PATH $SECRET_PATH specified in $config does not exist."
+	echo "Error: The SECRET_PATH $SECRET_PATH specified in $config is not a file."
 	echo
 	echo "Please adjust it to match where your secret lies."
 	exit 3
