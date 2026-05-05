@@ -1,23 +1,23 @@
-From: Dark4MD <github.web@manu.li>
-Date: Thu, 5 May 2022 18:04:46 +0200
+From: Dark4MD <manu@ff-steinhude.de>
+Date: Thu, 5 May 2026 23:44:46 +0200
 Subject: patches/openwrt: add TL-WR841ND/N 8M and 16M variants to ath79
 
-diff --git a/patches/openwrt/0018-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0018-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
+diff --git a/patches/openwrt/0014-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0014-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 new file mode 100644
-index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a021762200e9002ba
+index 00000000..7885767a
 --- /dev/null
-+++ b/patches/openwrt/0018-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
-@@ -0,0 +1,809 @@
++++ b/patches/openwrt/0014-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
+@@ -0,0 +1,859 @@
 +From: Dark4MD <github.web@manu.li>
 +Date: Thu, 5 May 2022 17:45:14 +0200
 +Subject: add TL-WR841ND/N 8M and 16M variants to ath79
 +
 +diff --git a/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..5018a727466c2c6c812d5dc1093ccd56a814f869
++index 0000000000000000000000000000000000000000..5384807a58814ff3a8b7f44b50094c9c47a94281
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts
-+@@ -0,0 +1,93 @@
++@@ -0,0 +1,102 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include "ar9341_tplink.dtsi"
@@ -67,6 +67,18 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				label = "u-boot";
 ++				reg = <0x000000 0x020000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					macaddr_uboot_1fc00: macaddr@1fc00 {
+++						compatible = "mac-base";
+++						reg = <0x1fc00 0x6>;
+++						#nvmem-cell-cells = <1>;
+++					};
+++				};
 ++			};
 ++
 ++			partition@20000 {
@@ -75,48 +87,45 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				reg = <0x020000 0xfd0000>;
 ++			};
 ++
-++			art: partition@ff0000 {
+++			partition@ff0000 {
 ++				label = "art";
 ++				reg = <0xff0000 0x010000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					cal_art_1000: calibration@1000 {
+++						reg = <0x1000 0x440>;
+++					};
+++				};
 ++			};
 ++		};
 ++	};
 ++};
 ++
 ++&eth0 {
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 (-1)>;
 ++	nvmem-cell-names = "mac-address";
-++	mac-address-increment = <(-1)>;
 ++};
 ++
 ++&eth1 {
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>;
 ++	nvmem-cell-names = "mac-address";
 ++};
 ++
 ++&wmac {
-++	mtd-cal-data = <&art 0x1000>;
-++
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
-++	nvmem-cell-names = "mac-address";
-++};
-++
-++&uboot {
-++	compatible = "nvmem-cells";
-++	#address-cells = <1>;
-++	#size-cells = <1>;
-++
-++	macaddr_uboot_1fc00: macaddr@1fc00 {
-++		reg = <0x1fc00 0x6>;
-++	};
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>, <&cal_art_1000>;
+++	nvmem-cell-names = "mac-address", "calibration";
 ++};
 +diff --git a/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..8b4b13c30fce3c39735fc51b8a0b52f3cb42f9ff
++index 0000000000000000000000000000000000000000..cf3beff242687a44e92eb672eb8ce7bb804668bf
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
-+@@ -0,0 +1,93 @@
++@@ -0,0 +1,102 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include "ar9341_tplink.dtsi"
@@ -166,6 +175,18 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				label = "u-boot";
 ++				reg = <0x000000 0x020000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					macaddr_uboot_1fc00: macaddr@1fc00 {
+++						compatible = "mac-base";
+++						reg = <0x1fc00 0x6>;
+++						#nvmem-cell-cells = <1>;
+++					};
+++				};
 ++			};
 ++
 ++			partition@20000 {
@@ -174,54 +195,52 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				reg = <0x020000 0x7d0000>;
 ++			};
 ++
-++			art: partition@7f0000 {
+++			partition@7f0000 {
 ++				label = "art";
 ++				reg = <0x7f0000 0x010000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					cal_art_1000: calibration@1000 {
+++						reg = <0x1000 0x440>;
+++					};
+++				};
 ++			};
 ++		};
 ++	};
 ++};
 ++
 ++&eth0 {
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 (-1)>;
 ++	nvmem-cell-names = "mac-address";
-++	mac-address-increment = <(-1)>;
 ++};
 ++
 ++&eth1 {
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>;
 ++	nvmem-cell-names = "mac-address";
 ++};
 ++
 ++&wmac {
-++	mtd-cal-data = <&art 0x1000>;
-++
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
-++	nvmem-cell-names = "mac-address";
-++};
-++
-++&uboot {
-++	compatible = "nvmem-cells";
-++	#address-cells = <1>;
-++	#size-cells = <1>;
-++
-++	macaddr_uboot_1fc00: macaddr@1fc00 {
-++		reg = <0x1fc00 0x6>;
-++	};
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>, <&cal_art_1000>;
+++	nvmem-cell-names = "mac-address", "calibration";
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..cefaf99bc6cc0dc79138bb0a75c395a6122a672b
++index 0000000000000000000000000000000000000000..83b144cf211f31ba4ccf65e16ff1775d73a5ce2d
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
-+@@ -0,0 +1,137 @@
++@@ -0,0 +1,150 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include "qca953x.dtsi"
 ++
 ++#include <dt-bindings/gpio/gpio.h>
 ++#include <dt-bindings/input/input.h>
+++#include <dt-bindings/leds/common.h>
 ++
 ++/ {
 ++	aliases {
@@ -232,7 +251,8 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++		compatible = "gpio-leds";
 ++
 ++		wifi {
-++			label = "green:wlan";
+++			function = LED_FUNCTION_WLAN;
+++			color = <LED_COLOR_ID_GREEN>;
 ++			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
 ++			linux,default-trigger = "phy0tpt";
 ++		};
@@ -243,7 +263,8 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++		};
 ++
 ++		wan {
-++			label = "green:wan";
+++			function = LED_FUNCTION_WAN;
+++			color = <LED_COLOR_ID_GREEN>;
 ++			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
 ++		};
 ++
@@ -304,6 +325,18 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				label = "u-boot";
 ++				reg = <0x000000 0x020000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					macaddr_uboot_1fc00: macaddr@1fc00 {
+++						compatible = "mac-base";
+++						reg = <0x1fc00 0x6>;
+++						#nvmem-cell-cells = <1>;
+++					};
+++				};
 ++			};
 ++
 ++			partition@20000 {
@@ -312,10 +345,20 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				reg = <0x020000 0xfd0000>;
 ++			};
 ++
-++			art: partition@ff0000 {
+++			partition@ff0000 {
 ++				label = "art";
 ++				reg = <0xff0000 0x010000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					cal_art_1000: calibration@1000 {
+++						reg = <0x1000 0x440>;
+++					};
+++				};
 ++			};
 ++		};
 ++	};
@@ -326,45 +369,34 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++
 ++	phy-handle = <&swphy4>;
 ++
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 1>;
 ++	nvmem-cell-names = "mac-address";
-++	mac-address-increment = <1>;
 ++};
 ++
 ++&eth1 {
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>;
 ++	nvmem-cell-names = "mac-address";
 ++};
 ++
 ++&wmac {
 ++	status = "okay";
 ++
-++	mtd-cal-data = <&art 0x1000>;
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
-++	nvmem-cell-names = "mac-address";
-++};
-++
-++&uboot {
-++	compatible = "nvmem-cells";
-++	#address-cells = <1>;
-++	#size-cells = <1>;
-++
-++	macaddr_uboot_1fc00: macaddr@1fc00 {
-++		reg = <0x1fc00 0x6>;
-++	};
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>, <&cal_art_1000>;
+++	nvmem-cell-names = "mac-address", "calibration";
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..040f7e558566ebf50d7aa5ebd57b79bff18fed6f
++index 0000000000000000000000000000000000000000..5b78f24bd244ef5d8d2e3fb67767dfee5a9ab518
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
-+@@ -0,0 +1,137 @@
++@@ -0,0 +1,150 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include "qca953x.dtsi"
 ++
 ++#include <dt-bindings/gpio/gpio.h>
 ++#include <dt-bindings/input/input.h>
+++#include <dt-bindings/leds/common.h>
 ++
 ++/ {
 ++	aliases {
@@ -375,7 +407,8 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++		compatible = "gpio-leds";
 ++
 ++		wifi {
-++			label = "green:wlan";
+++			function = LED_FUNCTION_WLAN;
+++			color = <LED_COLOR_ID_GREEN>;
 ++			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
 ++			linux,default-trigger = "phy0tpt";
 ++		};
@@ -386,7 +419,8 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++		};
 ++
 ++		wan {
-++			label = "green:wan";
+++			function = LED_FUNCTION_WAN;
+++			color = <LED_COLOR_ID_GREEN>;
 ++			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
 ++		};
 ++
@@ -447,6 +481,18 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				label = "u-boot";
 ++				reg = <0x000000 0x020000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					macaddr_uboot_1fc00: macaddr@1fc00 {
+++						compatible = "mac-base";
+++						reg = <0x1fc00 0x6>;
+++						#nvmem-cell-cells = <1>;
+++					};
+++				};
 ++			};
 ++
 ++			partition@20000 {
@@ -455,10 +501,20 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				reg = <0x020000 0x7d0000>;
 ++			};
 ++
-++			art: partition@7f0000 {
+++			partition@7f0000 {
 ++				label = "art";
 ++				reg = <0x7f0000 0x010000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					cal_art_1000: calibration@1000 {
+++						reg = <0x1000 0x440>;
+++					};
+++				};
 ++			};
 ++		};
 ++	};
@@ -469,32 +525,20 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++
 ++	phy-handle = <&swphy4>;
 ++
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 1>;
 ++	nvmem-cell-names = "mac-address";
-++	mac-address-increment = <1>;
 ++};
 ++
 ++&eth1 {
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>;
 ++	nvmem-cell-names = "mac-address";
 ++};
 ++
 ++&wmac {
 ++	status = "okay";
 ++
-++	mtd-cal-data = <&art 0x1000>;
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
-++	nvmem-cell-names = "mac-address";
-++};
-++
-++&uboot {
-++	compatible = "nvmem-cells";
-++	#address-cells = <1>;
-++	#size-cells = <1>;
-++
-++	macaddr_uboot_1fc00: macaddr@1fc00 {
-++		reg = <0x1fc00 0x6>;
-++	};
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>, <&cal_art_1000>;
+++	nvmem-cell-names = "mac-address", "calibration";
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts
 +new file mode 100644
@@ -554,11 +598,13 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..e40621ceeb7c5ba40103a26e359fb6f5bd33c691
++index 0000000000000000000000000000000000000000..af981e4e26837a839013895eeaee22d13cb74bde
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi
-+@@ -0,0 +1,24 @@
++@@ -0,0 +1,27 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include <dt-bindings/leds/common.h>
 ++
 ++#include "qca9533_tplink_tl-wr841-16m.dtsi"
 ++
@@ -578,7 +624,8 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++	};
 ++
 ++	wan_orange {
-++		label = "orange:wan";
+++		function = LED_FUNCTION_WAN;
+++		color = <LED_COLOR_ID_ORANGE>;
 ++		gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
 ++	};
 ++};
@@ -598,11 +645,13 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..92eab6e8da711804556baf6562538c00482628e0
++index 0000000000000000000000000000000000000000..c6aa9d57979817969ce784862d1c5874283133b3
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi
-+@@ -0,0 +1,24 @@
++@@ -0,0 +1,27 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+++
+++#include <dt-bindings/leds/common.h>
 ++
 ++#include "qca9533_tplink_tl-wr841-8m.dtsi"
 ++
@@ -622,7 +671,8 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++	};
 ++
 ++	wan_orange {
-++		label = "orange:wan";
+++		function = LED_FUNCTION_WAN;
+++		color = <LED_COLOR_ID_ORANGE>;
 ++		gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
 ++	};
 ++};
@@ -818,7 +868,7 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 +   $(Device/tplink-8m)
 +   SOC := ar7241
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index 42ad0d0df1990fac189f0ea1dc6600c988b6921b..be2f2d1bac2db798c7e3fcab04eb1173d1cf507b 100644
+index 42ad0d0d..be2f2d1b 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
 @@ -509,6 +509,70 @@ device('tp-link-tl-wdr4300-v1', 'tplink_tl-wdr4300-v1')
@@ -892,3 +942,6 @@ index 42ad0d0df1990fac189f0ea1dc6600c988b6921b..be2f2d1bac2db798c7e3fcab04eb1173
  device('tp-link-tl-wr842n-v3', 'tplink_tl-wr842n-v3')
  
  device('tp-link-tl-wr902ac-v1', 'tplink_tl-wr902ac-v1', {
+-- 
+2.47.3
+
