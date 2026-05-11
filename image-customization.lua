@@ -2,7 +2,6 @@ packages{
 	'gluon-web-autoupdater',
 	'haveged',
 	'iwinfo',
-	'gluon-segment-mover',
 	'ecdsautils',
 	'respondd-module-airtime',
 	'ffh-authorized-fingerprints',
