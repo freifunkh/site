@@ -1,0 +1,31 @@
+From: lemoer <git@irrelefant.net>
+Date: Tue, 12 May 2026 13:01:42 +0000
+Subject: patches: backport uclient fixes for http -> https redirect
+
+diff --git a/patches/openwrt/0019-fix-backport-uclient-fixes-for-http-https-redirect.patch b/patches/openwrt/0019-fix-backport-uclient-fixes-for-http-https-redirect.patch
+new file mode 100644
+index 0000000000000000000000000000000000000000..a59d463be111add2630deaaac3a14929ea962f25
+--- /dev/null
++++ b/patches/openwrt/0019-fix-backport-uclient-fixes-for-http-https-redirect.patch
+@@ -0,0 +1,21 @@
++From: lemoer <git@irrelefant.net>
++Date: Tue, 12 May 2026 12:44:08 +0000
++Subject: fix: backport uclient fixes for http -> https redirect
++
++diff --git a/package/libs/uclient/Makefile b/package/libs/uclient/Makefile
++index 065e089bdc4db3811983347ad65fd8d78054e09a..e4f7636389d4fff81f0d980ba484e7d64794cb4d 100644
++--- a/package/libs/uclient/Makefile
+++++ b/package/libs/uclient/Makefile
++@@ -5,9 +5,9 @@ PKG_RELEASE=1
++ 
++ PKG_SOURCE_PROTO:=git
++ PKG_SOURCE_URL=$(PROJECT_GIT)/project/uclient.git
++-PKG_MIRROR_HASH:=13af83ef1db3665d38d3c0cf30b5223216b05eaeca4880d7ef7494610ddd7458
++-PKG_SOURCE_DATE:=2024-10-22
++-PKG_SOURCE_VERSION:=88ae8f208dd313f69e268234f7db55956aef1cb9
+++PKG_MIRROR_HASH:=5e6efabc1eff2b971a0e6e5d24813b2820c707781a0b8a6feb6706e7bd5d001b
+++PKG_SOURCE_DATE:=2025-02-20
+++PKG_SOURCE_VERSION:=7a0aa2e4afb4993b7985094aa6847b9fcb04fae8
++ CMAKE_INSTALL:=1
++ 
++ PKG_BUILD_DEPENDS:=ustream-ssl
