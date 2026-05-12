@@ -8,6 +8,7 @@ packages{
 	'ffh-authorized-fingerprints',
 	'ffh-cli-scripts',
 	'ffh-ntpd-gluon-state-check',
+	'ffh-autoupdater-wireguard-to-stable',
 }
 
 features {
