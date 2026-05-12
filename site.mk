@@ -35,5 +35,5 @@ GLUON_LANGS ?= de en fr
 GLUON_DEPRECATED ?= upgrade
 
 # Set default branch for building custom images
-GLUON_AUTOUPDATER_BRANCH ?= wireguard
+GLUON_AUTOUPDATER_BRANCH ?= stable
 GLUON_AUTOUPDATER_ENABLED ?= 1
