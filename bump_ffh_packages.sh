@@ -20,7 +20,7 @@ fi
 log=$(git -C $packages_path log $old..$new --oneline | sed 's_^_  _')
 
 git add modules
-git commit -m "modules: bump ffh-packages commit
+git commit -m "chore(modules): bump ffh-packages commit
 
 Shortlog of changes in ffh-packages repo:
 
