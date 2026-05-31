@@ -105,7 +105,9 @@ domains = {
         "peinewest": "Peine-West"
 	  } },
     23: { "names": { "special_port": "Special Port" }, "hide": True, "port": 500 },
-    99: { "names": { "leetfeld": "Leetfeld (1337, invalid)"}, "hide": True }
+    99: { "names": {
+        "testing": "~Testrouter"
+        } }
 }
 
 
