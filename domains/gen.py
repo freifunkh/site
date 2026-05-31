@@ -107,7 +107,7 @@ domains = {
     23: { "names": { "special_port": "Special Port" }, "hide": True, "port": 500 },
     99: { "names": {
         "testing": "~Testrouter"
-        } }
+        }, "ssid": "test.ffh.zone" }
 }
 
 
@@ -136,7 +136,7 @@ def generate_domaincode_file(outpath=None):
         json.dump(outdict, json_file)
 
 
-def render(id, names, seed, hide, port, wgport):
+def render(id, names, seed, hide, port, wgport, ssid):
     from jinja2 import Environment, FileSystemLoader
 
     j2_env = Environment(loader=FileSystemLoader(THIS_DIR),
@@ -148,7 +148,8 @@ def render(id, names, seed, hide, port, wgport):
         hide=hide,
         str=str,
         port=port,
-        wgport=wgport
+        wgport=wgport,
+        ssid=ssid,
     )
 
 
@@ -178,5 +179,7 @@ if __name__ == '__main__':
         port = values.get('port', 10000 + id)
         wgport = values.get('wgport', 51800 + id)
 
+        ssid = values.get('ssid', None)
+
         with open(THIS_DIR + '/' + primary_code + '.conf', 'w') as f:
-            f.write(render(id, names, seed, hide, port, wgport))
+            f.write(render(id, names, seed, hide, port, wgport, ssid))
