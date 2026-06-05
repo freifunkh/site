@@ -1,0 +1,101 @@
+From: lemoer <git@irrelefant.net>
+Date: Fri, 5 Jun 2026 16:49:41 +0000
+Subject: fix: properly detect lan3/4 on fb7360 (and probably other fritzboxes)
+
+The issue is theoretically present up to the current mainline linux
+kernel and no fix is yet there. However, due to good luck and boot
+timing, the issue doesn't seem to occurr in OpenWrt 25.12 currently
+during the normal boot. It is still existing though and can be
+triggered by manually reloading the lantiq_gswip kernel module.
+
+As it currently seems, a proper upstream patch needs more work. So,
+we apply this fix here, since it also works.
+
+Link: https://github.com/openwrt/openwrt/issues/20629
+Link: https://lore.kernel.org/netdev/20260520151355.1371163-1-leo.moerlein@proton.me/T/#u
+
+diff --git a/patches/openwrt/0020-fix-properly-detect-lan3-4-on-fb7360-and-probably-other-fritzboxes.patch b/patches/openwrt/0020-fix-properly-detect-lan3-4-on-fb7360-and-probably-other-fritzboxes.patch
+new file mode 100644
+index 0000000000000000000000000000000000000000..fae3032f5d1f21d8ba49b6609618c1fa98040623
+--- /dev/null
++++ b/patches/openwrt/0020-fix-properly-detect-lan3-4-on-fb7360-and-probably-other-fritzboxes.patch
+@@ -0,0 +1,79 @@
++From: lemoer <leo.moerlein@proton.me>
++Date: Fri, 5 Jun 2026 18:39:25 +0200
++Subject: fix: properly detect lan3/4 on fb7360 (and probably other fritzboxes)
++
++The issue is theoretically present up to the current mainline linux
++kernel and no fix is yet there. However, due to good luck and boot
++timing, the issue doesn't seem to occurr in OpenWrt 25.12 currently
++during the normal boot. It is still existing though and can be
++triggered by manually reloading the lantiq_gswip kernel module.
++
++As it currently seems, a proper upstream patch needs more work. So,
++we apply this fix here, since it also works.
++
++Link: https://github.com/openwrt/openwrt/issues/20629
++Link: https://lore.kernel.org/netdev/20260520151355.1371163-1-leo.moerlein@proton.me/T/#u
++
++diff --git a/target/linux/lantiq/patches-6.6/0799-net-phy-mdio_bus-leave-PHY-reset-deasserted-on-unreg.patch b/target/linux/lantiq/patches-6.6/0799-net-phy-mdio_bus-leave-PHY-reset-deasserted-on-unreg.patch
++new file mode 100644
++index 0000000000000000000000000000000000000000..c424bfac4dc585174700a3e60f10d656fe046c20
++--- /dev/null
+++++ b/target/linux/lantiq/patches-6.6/0799-net-phy-mdio_bus-leave-PHY-reset-deasserted-on-unreg.patch
++@@ -0,0 +1,57 @@
+++From 5aa4cdb8f8b79b49876749395c40d8b11212ece6 Mon Sep 17 00:00:00 2001
+++From: =?UTF-8?q?Leonardo=20M=C3=B6rlein?= <me@irrelefant.net>
+++Date: Sun, 17 May 2026 15:24:38 +0200
+++Subject: [PATCH] net: phy: mdio_bus: leave PHY reset deasserted on unregister
+++MIME-Version: 1.0
+++Content-Type: text/plain; charset=UTF-8
+++Content-Transfer-Encoding: 8bit
+++
+++Some PHY devices are discovered again after the MDIO bus is torn down and
+++reprobed, for example when a parent driver first returns -EPROBE_DEFER and
+++is probed again later.
+++
+++This breaks boards where external PHYs have per-device reset lines described
+++through reset-gpios. mdiobus_register_device() acquires the reset GPIO and
+++asserts reset, mdio_probe() later deasserts it for the active device, but
+++mdiobus_unregister_device() used to release the GPIO descriptor without
+++first driving the line back to the inactive state. If that descriptor was
+++the last owner, then the PHY could remain held in reset across the next bus
+++registration and disappear from the reprobe scan.
+++
+++On a Lantiq GSWIP based FRITZ!Box 7360 v2 this left PHYs 0 and 1 missing
+++after a deferred reprobe, while PHYs without external reset lines were still
+++found. DSA then failed to attach those ports with -ENODEV.
+++
+++Before releasing optional reset resources, deassert reset again for real PHY
+++devices so the hardware stays discoverable across a later reprobe.
+++
+++Fixes: 8ea25274ebaf2 ("net: mdiobus: release reset_gpio in mdiobus_unregister_device()")
+++Signed-off-by: Leonardo Mörlein <me@irrelefant.net>
+++Assisted-by: GitHub Copilot:GPT-5.4
+++---
+++ drivers/net/phy/mdio_bus.c | 9 +++++++++
+++ 1 file changed, 9 insertions(+)
+++
+++diff --git a/drivers/net/phy/mdio_bus.c b/drivers/net/phy/mdio_bus.c
+++index a5b3d4b6ff56..2b0a6f2d2c97 100644
+++--- a/drivers/net/phy/mdio_bus.c
++++++ b/drivers/net/phy/mdio_bus.c
+++@@ -107,6 +107,15 @@ int mdiobus_unregister_device(struct mdio_device *mdiodev)
+++ 		 "unregistering from bus=%s addr=%d reset_gpio=%p reset_ctrl=%p\n",
+++ 		 mdiodev->bus->id, mdiodev->addr,
+++ 		 mdiodev->reset_gpio, mdiodev->reset_ctrl);
++++
++++	/*
++++	 * Some PHYs are rediscovered by a later bus reprobe, e.g. after a
++++	 * deferred parent probe. Leave optional reset lines deasserted before
++++	 * releasing them so they don't remain stuck in reset across that retry.
++++	 */
++++	if (mdiodev->flags & MDIO_DEVICE_FLAG_PHY)
++++		mdio_device_reset(mdiodev, 0);
++++
+++ 	gpiod_put(mdiodev->reset_gpio);
+++ 	reset_control_put(mdiodev->reset_ctrl);
+++ 
+++-- 
+++2.54.0
+++
