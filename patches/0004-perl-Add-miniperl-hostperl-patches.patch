@@ -1,0 +1,610 @@
+From: Jan-Niklas Burfeind <git@aiyionpri.me>
+Date: Sun, 21 Jun 2026 14:07:19 +0000
+Subject: perl: Add miniperl hostperl patches
+
+diff --git a/patches/packages/packages/0001-perl-replace-910-miniperl-needs-inc-dot.patch-with-smaller-scope-fix.patch b/patches/packages/packages/0001-perl-replace-910-miniperl-needs-inc-dot.patch-with-smaller-scope-fix.patch
+new file mode 100644
+index 0000000000000000000000000000000000000000..af5aa706edecac670b5222bae12f8193ca6b2139
+--- /dev/null
++++ b/patches/packages/packages/0001-perl-replace-910-miniperl-needs-inc-dot.patch-with-smaller-scope-fix.patch
+@@ -0,0 +1,90 @@
++From: Matthias Schiffer <mschiffer@universe-factory.net>
++Date: Fri, 25 Apr 2025 02:06:17 +0200
++Subject: perl: replace 910-miniperl-needs-inc-dot.patch with smaller scope fix
++
++The patch was first introduced in commit 4a94479f9652 ("perl: update to
++5.26.1") to fix the target build when the host perl has
++default_inc_excludes_dot enabled. It just added back the `-I`. to every
++call of miniperl; this solution is questionable however, as it adds `.` to
++the beginning of the search path, not as a final fallback like perl did
++before default_inc_excludes_dot (and like miniperl does).
++
++It is also not necessary - only two scripts, write_buildcustomize.pl and
++configpm, expect to be able to include a file from `.` (in both cases a
++file the script just generated). Just fix the two scripts instead.
++
++Signed-off-by: Matthias Schiffer <mschiffer@universe-factory.net>
++(cherry picked from commit 2a7dc154027503d4cdfd3aa927616d365183be12)
++
++diff --git a/lang/perl/patches/910-fix-default_inc_excludes_dot.patch b/lang/perl/patches/910-fix-default_inc_excludes_dot.patch
++new file mode 100644
++index 0000000000000000000000000000000000000000..ab3e6243bda314f137d1c328fbbf0e7f3bb34f36
++--- /dev/null
+++++ b/lang/perl/patches/910-fix-default_inc_excludes_dot.patch
++@@ -0,0 +1,22 @@
+++--- a/write_buildcustomize.pl
++++++ b/write_buildcustomize.pl
+++@@ -3,7 +3,7 @@
+++ use strict;
+++ 
+++ my $osname = $^O;
+++-my $file = 'lib/buildcustomize.pl';
++++my $file = './lib/buildcustomize.pl';
+++ 
+++ if ( @ARGV % 2 ) {
+++     my $dir = shift;
+++--- a/configpm
++++++ b/configpm
+++@@ -129,7 +129,7 @@ if ($Opts{chdir}) {
+++ my ($Config_SH, $Config_PM, $Config_heavy, $Config_POD);
+++ my $Glossary = 'Porting/Glossary';
+++ 
+++-$Config_PM = "lib/Config.pm";
++++$Config_PM = "./lib/Config.pm";
+++ $Config_POD = "lib/Config.pod";
+++ $Config_SH = "config.sh";
+++ 
++diff --git a/lang/perl/patches/910-miniperl-needs-inc-dot.patch b/lang/perl/patches/910-miniperl-needs-inc-dot.patch
++deleted file mode 100644
++index 6997f04d575e5bb92e78052cf693ae39bb464a20..0000000000000000000000000000000000000000
++--- a/lang/perl/patches/910-miniperl-needs-inc-dot.patch
+++++ /dev/null
++@@ -1,38 +0,0 @@
++---- a/Makefile.SH
++-+++ b/Makefile.SH
++-@@ -346,7 +346,7 @@ OBJ_EXT = $_o
++- # Macros to invoke a copy of miniperl during the build.  Targets which
++- # are built using these macros should depend on \$(MINIPERL_EXE)
++- MINIPERL_EXE = miniperl\$(EXE_EXT)
++--MINIPERL = \$(LDLIBPTH) ./miniperl\$(EXE_EXT) -Ilib
++-+MINIPERL = \$(LDLIBPTH) ./miniperl\$(EXE_EXT) -Ilib -I.
++- 
++- # Macros to invoke sort the MANIFEST during build
++- MANIFEST_SRT = MANIFEST.srt
++-@@ -1001,7 +1001,7 @@ lib/buildcustomize.pl: $& $(miniperl_obj
++- 	@$(RMS) miniperl.xok
++- 	$(CC) $(CLDFLAGS) $(NAMESPACEFLAGS) -o $(MINIPERL_EXE) \
++- 	    $(miniperl_objs) $(libs)
++--	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++-+	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -I. -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++- 	$(MINIPERL) -f write_buildcustomize.pl
++- !NO!SUBS!
++- 		;;
++-@@ -1012,7 +1012,7 @@ lib/buildcustomize.pl: \$& \$(miniperl_d
++- 	@\$(RMS) miniperl.xok
++- 	@\$(RMS) \$(MINIPERL_EXE)
++- 	\$(LNS) \$(HOST_PERL) \$(MINIPERL_EXE)
++--	\$(LDLIBPTH) ./miniperl\$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++-+	\$(LDLIBPTH) ./miniperl\$(HOST_EXE_EXT) -w -Ilib -I. -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++- 	\$(MINIPERL) -f write_buildcustomize.pl 'osname' "$osname"
++- !GROK!THIS!
++- 		else
++-@@ -1021,7 +1021,7 @@ lib/buildcustomize.pl: $& $(miniperl_dep
++- 	@$(RMS) miniperl.xok
++- 	$(CC) $(CLDFLAGS) -o $(MINIPERL_EXE) \
++- 	    $(miniperl_objs) $(libs)
++--	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++-+	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -I. -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++- 	$(MINIPERL) -f write_buildcustomize.pl
++- !NO!SUBS!
++- 		fi
+diff --git a/patches/packages/packages/0002-perl-drop-110-always_use_miniperl.patch.patch b/patches/packages/packages/0002-perl-drop-110-always_use_miniperl.patch.patch
+new file mode 100644
+index 0000000000000000000000000000000000000000..cd83428644e36c07ba6fde91be5660bcc5965bb8
+--- /dev/null
++++ b/patches/packages/packages/0002-perl-drop-110-always_use_miniperl.patch.patch
+@@ -0,0 +1,258 @@
++From: Matthias Schiffer <mschiffer@universe-factory.net>
++Date: Fri, 25 Apr 2025 12:35:23 +0200
++Subject: perl: drop 110-always_use_miniperl.patch
++
++The patch was introduced in commit 4c57844f0f04 ("lang/perl: Add hack to
++make perl always use miniperl during build"), but it is not actually
++necessary. By setting $perl to a non-empty value (using 'perl' as is
++common on desktop distros), the logic works as intended and selects the
++correct perl binary for host and target builds.
++
++As miniperl just symlinks to host perl for target builds, the main
++effect of this change is not unconditionally passing `-Ilib -I.`
++anymore. This seems like a good thing; host libraries should be used
++with host perl by default.
++
++Signed-off-by: Matthias Schiffer <mschiffer@universe-factory.net>
++(cherry picked from commit e7b5a35e5caa784200da32b6c6b457e20a67fd2a)
++
++diff --git a/lang/perl/files/base.config b/lang/perl/files/base.config
++index 67232b6d83e70505e7e85ad6893a2661f4571f7f..7d8b88b200f589b0efad7b301d26c6f9b77dfb33 100644
++--- a/lang/perl/files/base.config
+++++ b/lang/perl/files/base.config
++@@ -864,7 +864,7 @@ package='perl5'
++ pager='/usr/bin/less'
++ passcat='cat /etc/passwd'
++ path_sep=':'
++-perl=''
+++perl='perl'
++ perl5=''
++ perl_patchlevel=''
++ perl_static_inline='static __inline__'
++diff --git a/lang/perl/patches/110-always_use_miniperl.patch b/lang/perl/patches/110-always_use_miniperl.patch
++deleted file mode 100644
++index 806a31256b2007ee5f2c36d75261fac0d176cc21..0000000000000000000000000000000000000000
++--- a/lang/perl/patches/110-always_use_miniperl.patch
+++++ /dev/null
++@@ -1,27 +0,0 @@
++---- a/Makefile.SH
++-+++ b/Makefile.SH
++-@@ -360,22 +360,11 @@ PERL_EXE_LDFLAGS=$exeldflags
++- 	;;
++- esac
++- 
++--case "$usecrosscompile$perl" in
++--define?*)
++--	$spitshell >>$Makefile <<!GROK!THIS!
++--# Macros to invoke a copy of our fully operational perl during the build.
++--PERL_EXE = perl\$(EXE_EXT)
++--RUN_PERL = \$(LDLIBPTH) \$(RUN) $perl\$(EXE_EXT)
++--!GROK!THIS!
++--	;;
++--*)
++--	$spitshell >>$Makefile <<!GROK!THIS!
++-+$spitshell >>$Makefile <<!GROK!THIS!
++- # Macros to invoke a copy of our fully operational perl during the build.
++- PERL_EXE = perl\$(EXE_EXT)
++--RUN_PERL = \$(LDLIBPTH) \$(RUN) ./perl\$(EXE_EXT) -Ilib -I.
++-+RUN_PERL = \$(LDLIBPTH) \$(RUN) ./miniperl\$(EXE_EXT) -Ilib -I.
++- !GROK!THIS!
++--	;;
++--esac
++- 
++- $spitshell >>$Makefile <<!GROK!THIS!
++- # Macros to run our tests
++diff --git a/lang/perl/patches/900-use-rm-force.patch b/lang/perl/patches/900-use-rm-force.patch
++index 9e44f5402f184445dcf4e9c75d96d2e412e5c4e0..baff506f6427f0b16712c252b0159ad80db20243 100644
++--- a/lang/perl/patches/900-use-rm-force.patch
+++++ b/lang/perl/patches/900-use-rm-force.patch
++@@ -8,7 +8,7 @@
++  ranlib = $ranlib
++  ECHO = $echo
++  
++-@@ -791,7 +792,7 @@ bitcount.h: generate_uudmap$(HOST_EXE_EX
+++@@ -802,7 +803,7 @@ bitcount.h: generate_uudmap$(HOST_EXE_EX
++  	./generate_uudmap$(HOST_EXE_EXT) $(generated_headers)
++  
++  generate_uudmap$(HOST_EXE_EXT): generate_uudmap$(OBJ_EXT)
++@@ -17,7 +17,7 @@
++  	$(LNS) $(HOST_GENERATE) generate_uudmap$(HOST_EXE_EXT)
++  
++  !NO!SUBS!
++-@@ -896,26 +897,26 @@ mydtrace.h: $(DTRACE_H)
+++@@ -907,26 +908,26 @@ mydtrace.h: $(DTRACE_H)
++  	define)
++  		$spitshell >>$Makefile <<'!NO!SUBS!'
++  $(DTRACE_MINI_O): perldtrace.d $(miniperl_objs_nodt)
++@@ -48,7 +48,7 @@
++  
++  !NO!SUBS!
++  		;;
++-@@ -926,13 +927,13 @@ $(LIBPERL): $& $(perllib_dep) $(DYNALOAD
+++@@ -937,13 +938,13 @@ $(LIBPERL): $& $(perllib_dep) $(DYNALOAD
++  	case "$useshrplib" in
++  	true)
++  		$spitshell >>$Makefile <<'!NO!SUBS!'
++@@ -64,7 +64,7 @@
++  	mv $@ libperl$(OBJ_EXT)
++  	$(AR) qv $(LIBPERL) libperl$(OBJ_EXT)
++  !NO!SUBS!
++-@@ -941,7 +942,7 @@ $(LIBPERL): $& $(perllib_dep) $(DYNALOAD
+++@@ -952,7 +953,7 @@ $(LIBPERL): $& $(perllib_dep) $(DYNALOAD
++  		;;
++  	*)
++  		$spitshell >>$Makefile <<'!NO!SUBS!'
++@@ -73,7 +73,7 @@
++  	$(AR) rc $(LIBPERL) $(perllib_objs) $(DYNALOADER)
++  	@$(ranlib) $(LIBPERL)
++  !NO!SUBS!
++-@@ -975,7 +976,7 @@ $(MINIPERL_EXE): lib/buildcustomize.pl
+++@@ -986,7 +987,7 @@ $(MINIPERL_EXE): lib/buildcustomize.pl
++  	amigaos*)
++  		$spitshell >>$Makefile <<'!NO!SUBS!'
++  lib/buildcustomize.pl: $& $(miniperl_objs) write_buildcustomize.pl
++@@ -82,7 +82,7 @@
++  	$(CC) $(CLDFLAGS) -o $(MINIPERL_EXE) \
++  	    $(miniperl_objs) $(libs)
++  #	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++-@@ -997,7 +998,7 @@ NAMESPACEFLAGS = -force_flat_namespace
+++@@ -1008,7 +1009,7 @@ NAMESPACEFLAGS = -force_flat_namespace
++  		esac
++  		$spitshell >>$Makefile <<'!NO!SUBS!'
++  lib/buildcustomize.pl: $& $(miniperl_objs) write_buildcustomize.pl
++@@ -91,7 +91,7 @@
++  	$(CC) $(CLDFLAGS) $(NAMESPACEFLAGS) -o $(MINIPERL_EXE) \
++  	    $(miniperl_objs) $(libs)
++  	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++-@@ -1008,8 +1009,8 @@ lib/buildcustomize.pl: $& $(miniperl_obj
+++@@ -1019,8 +1020,8 @@ lib/buildcustomize.pl: $& $(miniperl_obj
++  		if test "X$hostperl" != X; then
++  			$spitshell >>$Makefile <<!GROK!THIS!
++  lib/buildcustomize.pl: \$& \$(miniperl_dep) write_buildcustomize.pl
++@@ -102,7 +102,7 @@
++  	\$(LNS) \$(HOST_PERL) \$(MINIPERL_EXE)
++  	\$(LDLIBPTH) ./miniperl\$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++  	\$(MINIPERL) -f write_buildcustomize.pl 'osname' "$osname"
++-@@ -1017,7 +1018,7 @@ lib/buildcustomize.pl: \$& \$(miniperl_d
+++@@ -1028,7 +1029,7 @@ lib/buildcustomize.pl: \$& \$(miniperl_d
++  		else
++  			$spitshell >>$Makefile <<'!NO!SUBS!'
++  lib/buildcustomize.pl: $& $(miniperl_dep) write_buildcustomize.pl
++@@ -111,7 +111,7 @@
++  	$(CC) $(CLDFLAGS) -o $(MINIPERL_EXE) \
++  	    $(miniperl_objs) $(libs)
++  	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++-@@ -1030,7 +1031,7 @@ lib/buildcustomize.pl: $& $(miniperl_dep
+++@@ -1041,7 +1042,7 @@ lib/buildcustomize.pl: $& $(miniperl_dep
++  	$spitshell >>$Makefile <<'!NO!SUBS!'
++  
++  $(PERL_EXE): $& $(perlmain_dep) $(LIBPERL) $(static_ext) ext.libs $(PERLEXPORT) write_buildcustomize.pl
++@@ -120,7 +120,7 @@
++  !NO!SUBS!
++  
++          case "$osname" in
++-@@ -1130,8 +1131,8 @@ pod/perl5400delta.pod: pod/perldelta.pod
+++@@ -1141,8 +1142,8 @@ pod/perl5400delta.pod: pod/perldelta.pod
++  	$(LNS) perldelta.pod pod/perl5400delta.pod
++  
++  extra.pods: $(MINIPERL_EXE)
++@@ -131,7 +131,7 @@
++  	-@for x in `grep -l '^=[a-z]' README.* | grep -v README.vms` ; do \
++  	    nx=`echo $$x | sed -e "s/README\.//"`; \
++  	    $(LNS) ../$$x "pod/perl"$$nx".pod" ; \
++-@@ -1330,11 +1331,11 @@ realclean:	_realcleaner _mopup
+++@@ -1341,11 +1342,11 @@ realclean:	_realcleaner _mopup
++  	@echo "Note that '$(MAKE) realclean' does not delete config.sh or Policy.sh"
++  
++  _clobber:
++@@ -148,7 +148,7 @@
++  
++  clobber:	_realcleaner _mopup _clobber
++  
++-@@ -1342,24 +1343,24 @@ distclean:	clobber
+++@@ -1353,24 +1354,24 @@ distclean:	clobber
++  
++  # Like distclean but also removes emacs backups and *.orig.
++  veryclean:	_verycleaner _mopup _clobber
++@@ -184,7 +184,7 @@
++  	-cd pod; $(LDLIBPTH) $(MAKE) $(CLEAN)
++  	-cd utils; $(LDLIBPTH) $(MAKE) $(CLEAN)
++  	-@if test -f $(MINIPERL_EXE) ; then \
++-@@ -1369,8 +1370,8 @@ _cleaner1:
+++@@ -1380,8 +1381,8 @@ _cleaner1:
++  	else \
++  	sh $(CLEAN).sh ; \
++  	fi
++@@ -195,7 +195,7 @@
++  
++  # Dear POSIX, thanks for making the default to xargs to be
++  # run once if nothing is passed in. It is such a great help.
++-@@ -1385,24 +1386,24 @@ _cleaner1:
+++@@ -1396,24 +1397,24 @@ _cleaner1:
++  # Add new rules before that line - the next line (rm -f so_locations ...) is
++  # used as a placeholder by a regen script.
++  _cleaner2:
++@@ -237,7 +237,7 @@
++  	-rmdir lib/version lib/threads lib/inc/ExtUtils lib/inc lib/encoding
++  	-rmdir lib/autodie/exception lib/autodie/Scope lib/autodie lib/XS
++  	-rmdir lib/Win32API lib/VMS lib/Unicode/Collate/Locale
++-@@ -1459,11 +1460,11 @@ _realcleaner:
+++@@ -1470,11 +1471,11 @@ _realcleaner:
++  _verycleaner:
++  	@$(LDLIBPTH) $(MAKE) _cleaner1 CLEAN=veryclean
++  	@$(LDLIBPTH) $(MAKE) _cleaner2
++@@ -251,7 +251,7 @@
++  	lint $(lintflags) -DPERL_CORE -D_REENTRANT -DDEBUGGING -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 $(c)
++  
++  cscopeflags = -Rb  # Recursive, build-only.
++-@@ -1524,7 +1525,7 @@ case "$targethost" in
+++@@ -1535,7 +1536,7 @@ case "$targethost" in
++  '') $spitshell >>$Makefile <<'!NO!SUBS!'
++  test_prep test-prep: test_prep_pre $(MINIPERL_EXE) $(unidatafiles) $(PERL_EXE) \
++  	$(dynamic_ext) $(TEST_PERL_DLL) runtests $(generated_pods) common_build
++@@ -260,7 +260,7 @@
++  
++  !NO!SUBS!
++  ;;
++-@@ -1574,7 +1575,7 @@ test_prep test-prep: test_prep_pre \$(MI
+++@@ -1585,7 +1586,7 @@ test_prep test-prep: test_prep_pre \$(MI
++  	$to config.sh
++  # --- For lib/diagnostics.t with -Duseshrplib
++  	$to \$(PERL_EXE)
++@@ -269,7 +269,7 @@
++  	$to t/\$(PERL_EXE)
++  
++  !GROK!THIS!
++-@@ -1592,7 +1593,7 @@ else
+++@@ -1603,7 +1604,7 @@ else
++  $spitshell >>$Makefile <<'!NO!SUBS!'
++  test_prep_reonly: $(MINIPERL_EXE) $(PERL_EXE) $(dynamic_ext_re) $(TEST_PERL_DLL)
++  	$(MINIPERL) make_ext.pl $(dynamic_ext_re) MAKE="$(MAKE)" LIBPERL_A=$(LIBPERL) LINKTYPE=dynamic
++@@ -278,7 +278,7 @@
++  !NO!SUBS!
++  fi
++  
++-@@ -1648,7 +1649,7 @@ minitest_prep: $(MINIPERL_EXE)
+++@@ -1659,7 +1660,7 @@ minitest_prep: $(MINIPERL_EXE)
++  	@echo "You may see some irrelevant test failures if you have been unable"
++  	@echo "to build lib/Config.pm, or the Unicode data files."
++  	@echo " "
++diff --git a/lang/perl/patches/920-Revert-perl-127606-adjust-dependency-paths-on-instal.patch b/lang/perl/patches/920-Revert-perl-127606-adjust-dependency-paths-on-instal.patch
++index e9e5688e475e810f45acbda5cd579c65e484b8b7..6436a8ea027f46a8ce1c41b13323b625cc51eb4d 100644
++--- a/lang/perl/patches/920-Revert-perl-127606-adjust-dependency-paths-on-instal.patch
+++++ b/lang/perl/patches/920-Revert-perl-127606-adjust-dependency-paths-on-instal.patch
++@@ -42,10 +42,10 @@ Signed-off-by: Georgi Valkov <gvalkov@gmail.com>
++ -	;;
++ -esac
++ -
++- $spitshell >>$Makefile <<!GROK!THIS!
++- # Macros to invoke a copy of our fully operational perl during the build.
++- PERL_EXE = perl\$(EXE_EXT)
++-@@ -1045,20 +1029,6 @@ $(PERL_EXE): $& $(perlmain_dep) $(LIBPER
+++ case "$usecrosscompile$perl" in
+++ define?*)
+++ 	$spitshell >>$Makefile <<!GROK!THIS!
+++@@ -1056,20 +1040,6 @@ $(PERL_EXE): $& $(perlmain_dep) $(LIBPER
++  	$(SHRPENV) $(CC) -o perl $(CLDFLAGS) $(CCDLFLAGS) $(perlmain_objs) $(LLIBPERL) $(static_ext) `cat ext.libs` $(libs)
++  !NO!SUBS!
++          ;;
+diff --git a/patches/packages/packages/0003-perl-do-not-set-LD_LIBRARY_PATH-for-cross-compile.patch b/patches/packages/packages/0003-perl-do-not-set-LD_LIBRARY_PATH-for-cross-compile.patch
+new file mode 100644
+index 0000000000000000000000000000000000000000..4d5939c5d02a9fe2d5d74ab3094feb4ef69d8f46
+--- /dev/null
++++ b/patches/packages/packages/0003-perl-do-not-set-LD_LIBRARY_PATH-for-cross-compile.patch
+@@ -0,0 +1,240 @@
++From: Matthias Schiffer <mschiffer@universe-factory.net>
++Date: Mon, 12 May 2025 18:42:41 +0200
++Subject: perl: do not set LD_LIBRARY_PATH for cross compile
++
++We don't want to set LD_LIBRARY_PATH to a directory filled with target
++libraries when running a host perl. When the host and target
++architecture are the same, some libraries will be loaded from this
++path, resulting in the build to break because of glibc/musl mismatch.
++
++Reported-by: John Audia <therealgraysky@proton.me>
++Fixes: e7b5a35e5caa ("perl: drop 110-always_use_miniperl.patch")
++Signed-off-by: Matthias Schiffer <mschiffer@universe-factory.net>
++(cherry picked from commit 67669398926f85796e73919974ce290eecd5d3e6)
++
++diff --git a/lang/perl/patches/101-cross-compile-ldlibpth.patch b/lang/perl/patches/101-cross-compile-ldlibpth.patch
++new file mode 100644
++index 0000000000000000000000000000000000000000..4ea0e3e4f47757daf9971e6cd6ea8c4c486c4b33
++--- /dev/null
+++++ b/lang/perl/patches/101-cross-compile-ldlibpth.patch
++@@ -0,0 +1,15 @@
+++--- a/Makefile.SH
++++++ b/Makefile.SH
+++@@ -174,6 +174,12 @@ EOT
+++ 		;;
+++ 	esac
+++ 
++++	case "$usecrosscompile$perl" in
++++	define?*)
++++	        ldlibpth=''
++++		;;
++++	esac
++++
+++ 	;;
+++ 
+++ *)	pldlflags=''
++diff --git a/lang/perl/patches/900-use-rm-force.patch b/lang/perl/patches/900-use-rm-force.patch
++index baff506f6427f0b16712c252b0159ad80db20243..2daa6fd2da179fb942a18cf85733bc89b90ed93f 100644
++--- a/lang/perl/patches/900-use-rm-force.patch
+++++ b/lang/perl/patches/900-use-rm-force.patch
++@@ -1,6 +1,6 @@
++ --- a/Makefile.SH
++ +++ b/Makefile.SH
++-@@ -289,6 +289,7 @@ LNS = $lns
+++@@ -295,6 +295,7 @@ LNS = $lns
++  # NOTE: some systems don't grok "cp -f". XXX Configure test needed?
++  CPS = $cp
++  RMS = rm -f
++@@ -8,7 +8,7 @@
++  ranlib = $ranlib
++  ECHO = $echo
++  
++-@@ -802,7 +803,7 @@ bitcount.h: generate_uudmap$(HOST_EXE_EX
+++@@ -808,7 +809,7 @@ bitcount.h: generate_uudmap$(HOST_EXE_EX
++  	./generate_uudmap$(HOST_EXE_EXT) $(generated_headers)
++  
++  generate_uudmap$(HOST_EXE_EXT): generate_uudmap$(OBJ_EXT)
++@@ -17,7 +17,7 @@
++  	$(LNS) $(HOST_GENERATE) generate_uudmap$(HOST_EXE_EXT)
++  
++  !NO!SUBS!
++-@@ -907,26 +908,26 @@ mydtrace.h: $(DTRACE_H)
+++@@ -913,26 +914,26 @@ mydtrace.h: $(DTRACE_H)
++  	define)
++  		$spitshell >>$Makefile <<'!NO!SUBS!'
++  $(DTRACE_MINI_O): perldtrace.d $(miniperl_objs_nodt)
++@@ -48,7 +48,7 @@
++  
++  !NO!SUBS!
++  		;;
++-@@ -937,13 +938,13 @@ $(LIBPERL): $& $(perllib_dep) $(DYNALOAD
+++@@ -943,13 +944,13 @@ $(LIBPERL): $& $(perllib_dep) $(DYNALOAD
++  	case "$useshrplib" in
++  	true)
++  		$spitshell >>$Makefile <<'!NO!SUBS!'
++@@ -64,7 +64,7 @@
++  	mv $@ libperl$(OBJ_EXT)
++  	$(AR) qv $(LIBPERL) libperl$(OBJ_EXT)
++  !NO!SUBS!
++-@@ -952,7 +953,7 @@ $(LIBPERL): $& $(perllib_dep) $(DYNALOAD
+++@@ -958,7 +959,7 @@ $(LIBPERL): $& $(perllib_dep) $(DYNALOAD
++  		;;
++  	*)
++  		$spitshell >>$Makefile <<'!NO!SUBS!'
++@@ -73,7 +73,7 @@
++  	$(AR) rc $(LIBPERL) $(perllib_objs) $(DYNALOADER)
++  	@$(ranlib) $(LIBPERL)
++  !NO!SUBS!
++-@@ -986,7 +987,7 @@ $(MINIPERL_EXE): lib/buildcustomize.pl
+++@@ -992,7 +993,7 @@ $(MINIPERL_EXE): lib/buildcustomize.pl
++  	amigaos*)
++  		$spitshell >>$Makefile <<'!NO!SUBS!'
++  lib/buildcustomize.pl: $& $(miniperl_objs) write_buildcustomize.pl
++@@ -82,7 +82,7 @@
++  	$(CC) $(CLDFLAGS) -o $(MINIPERL_EXE) \
++  	    $(miniperl_objs) $(libs)
++  #	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++-@@ -1008,7 +1009,7 @@ NAMESPACEFLAGS = -force_flat_namespace
+++@@ -1014,7 +1015,7 @@ NAMESPACEFLAGS = -force_flat_namespace
++  		esac
++  		$spitshell >>$Makefile <<'!NO!SUBS!'
++  lib/buildcustomize.pl: $& $(miniperl_objs) write_buildcustomize.pl
++@@ -91,7 +91,7 @@
++  	$(CC) $(CLDFLAGS) $(NAMESPACEFLAGS) -o $(MINIPERL_EXE) \
++  	    $(miniperl_objs) $(libs)
++  	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++-@@ -1019,8 +1020,8 @@ lib/buildcustomize.pl: $& $(miniperl_obj
+++@@ -1025,8 +1026,8 @@ lib/buildcustomize.pl: $& $(miniperl_obj
++  		if test "X$hostperl" != X; then
++  			$spitshell >>$Makefile <<!GROK!THIS!
++  lib/buildcustomize.pl: \$& \$(miniperl_dep) write_buildcustomize.pl
++@@ -102,7 +102,7 @@
++  	\$(LNS) \$(HOST_PERL) \$(MINIPERL_EXE)
++  	\$(LDLIBPTH) ./miniperl\$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++  	\$(MINIPERL) -f write_buildcustomize.pl 'osname' "$osname"
++-@@ -1028,7 +1029,7 @@ lib/buildcustomize.pl: \$& \$(miniperl_d
+++@@ -1034,7 +1035,7 @@ lib/buildcustomize.pl: \$& \$(miniperl_d
++  		else
++  			$spitshell >>$Makefile <<'!NO!SUBS!'
++  lib/buildcustomize.pl: $& $(miniperl_dep) write_buildcustomize.pl
++@@ -111,7 +111,7 @@
++  	$(CC) $(CLDFLAGS) -o $(MINIPERL_EXE) \
++  	    $(miniperl_objs) $(libs)
++  	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
++-@@ -1041,7 +1042,7 @@ lib/buildcustomize.pl: $& $(miniperl_dep
+++@@ -1047,7 +1048,7 @@ lib/buildcustomize.pl: $& $(miniperl_dep
++  	$spitshell >>$Makefile <<'!NO!SUBS!'
++  
++  $(PERL_EXE): $& $(perlmain_dep) $(LIBPERL) $(static_ext) ext.libs $(PERLEXPORT) write_buildcustomize.pl
++@@ -120,7 +120,7 @@
++  !NO!SUBS!
++  
++          case "$osname" in
++-@@ -1141,8 +1142,8 @@ pod/perl5400delta.pod: pod/perldelta.pod
+++@@ -1147,8 +1148,8 @@ pod/perl5400delta.pod: pod/perldelta.pod
++  	$(LNS) perldelta.pod pod/perl5400delta.pod
++  
++  extra.pods: $(MINIPERL_EXE)
++@@ -131,7 +131,7 @@
++  	-@for x in `grep -l '^=[a-z]' README.* | grep -v README.vms` ; do \
++  	    nx=`echo $$x | sed -e "s/README\.//"`; \
++  	    $(LNS) ../$$x "pod/perl"$$nx".pod" ; \
++-@@ -1341,11 +1342,11 @@ realclean:	_realcleaner _mopup
+++@@ -1347,11 +1348,11 @@ realclean:	_realcleaner _mopup
++  	@echo "Note that '$(MAKE) realclean' does not delete config.sh or Policy.sh"
++  
++  _clobber:
++@@ -148,7 +148,7 @@
++  
++  clobber:	_realcleaner _mopup _clobber
++  
++-@@ -1353,24 +1354,24 @@ distclean:	clobber
+++@@ -1359,24 +1360,24 @@ distclean:	clobber
++  
++  # Like distclean but also removes emacs backups and *.orig.
++  veryclean:	_verycleaner _mopup _clobber
++@@ -184,7 +184,7 @@
++  	-cd pod; $(LDLIBPTH) $(MAKE) $(CLEAN)
++  	-cd utils; $(LDLIBPTH) $(MAKE) $(CLEAN)
++  	-@if test -f $(MINIPERL_EXE) ; then \
++-@@ -1380,8 +1381,8 @@ _cleaner1:
+++@@ -1386,8 +1387,8 @@ _cleaner1:
++  	else \
++  	sh $(CLEAN).sh ; \
++  	fi
++@@ -195,7 +195,7 @@
++  
++  # Dear POSIX, thanks for making the default to xargs to be
++  # run once if nothing is passed in. It is such a great help.
++-@@ -1396,24 +1397,24 @@ _cleaner1:
+++@@ -1402,24 +1403,24 @@ _cleaner1:
++  # Add new rules before that line - the next line (rm -f so_locations ...) is
++  # used as a placeholder by a regen script.
++  _cleaner2:
++@@ -237,7 +237,7 @@
++  	-rmdir lib/version lib/threads lib/inc/ExtUtils lib/inc lib/encoding
++  	-rmdir lib/autodie/exception lib/autodie/Scope lib/autodie lib/XS
++  	-rmdir lib/Win32API lib/VMS lib/Unicode/Collate/Locale
++-@@ -1470,11 +1471,11 @@ _realcleaner:
+++@@ -1476,11 +1477,11 @@ _realcleaner:
++  _verycleaner:
++  	@$(LDLIBPTH) $(MAKE) _cleaner1 CLEAN=veryclean
++  	@$(LDLIBPTH) $(MAKE) _cleaner2
++@@ -251,7 +251,7 @@
++  	lint $(lintflags) -DPERL_CORE -D_REENTRANT -DDEBUGGING -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 $(c)
++  
++  cscopeflags = -Rb  # Recursive, build-only.
++-@@ -1535,7 +1536,7 @@ case "$targethost" in
+++@@ -1541,7 +1542,7 @@ case "$targethost" in
++  '') $spitshell >>$Makefile <<'!NO!SUBS!'
++  test_prep test-prep: test_prep_pre $(MINIPERL_EXE) $(unidatafiles) $(PERL_EXE) \
++  	$(dynamic_ext) $(TEST_PERL_DLL) runtests $(generated_pods) common_build
++@@ -260,7 +260,7 @@
++  
++  !NO!SUBS!
++  ;;
++-@@ -1585,7 +1586,7 @@ test_prep test-prep: test_prep_pre \$(MI
+++@@ -1591,7 +1592,7 @@ test_prep test-prep: test_prep_pre \$(MI
++  	$to config.sh
++  # --- For lib/diagnostics.t with -Duseshrplib
++  	$to \$(PERL_EXE)
++@@ -269,7 +269,7 @@
++  	$to t/\$(PERL_EXE)
++  
++  !GROK!THIS!
++-@@ -1603,7 +1604,7 @@ else
+++@@ -1609,7 +1610,7 @@ else
++  $spitshell >>$Makefile <<'!NO!SUBS!'
++  test_prep_reonly: $(MINIPERL_EXE) $(PERL_EXE) $(dynamic_ext_re) $(TEST_PERL_DLL)
++  	$(MINIPERL) make_ext.pl $(dynamic_ext_re) MAKE="$(MAKE)" LIBPERL_A=$(LIBPERL) LINKTYPE=dynamic
++@@ -278,7 +278,7 @@
++  !NO!SUBS!
++  fi
++  
++-@@ -1659,7 +1660,7 @@ minitest_prep: $(MINIPERL_EXE)
+++@@ -1665,7 +1666,7 @@ minitest_prep: $(MINIPERL_EXE)
++  	@echo "You may see some irrelevant test failures if you have been unable"
++  	@echo "to build lib/Config.pm, or the Unicode data files."
++  	@echo " "
++diff --git a/lang/perl/patches/920-Revert-perl-127606-adjust-dependency-paths-on-instal.patch b/lang/perl/patches/920-Revert-perl-127606-adjust-dependency-paths-on-instal.patch
++index 6436a8ea027f46a8ce1c41b13323b625cc51eb4d..cfe98b64220f197f02a4eff1eaf386072f50b274 100644
++--- a/lang/perl/patches/920-Revert-perl-127606-adjust-dependency-paths-on-instal.patch
+++++ b/lang/perl/patches/920-Revert-perl-127606-adjust-dependency-paths-on-instal.patch
++@@ -30,7 +30,7 @@ Signed-off-by: Georgi Valkov <gvalkov@gmail.com>
++  		;;
++  	cygwin*)
++  		shrpldflags="$shrpldflags -Wl,--out-implib=libperl.dll.a"
++-@@ -353,14 +345,6 @@ MANIFEST_SRT = MANIFEST.srt
+++@@ -359,14 +351,6 @@ MANIFEST_SRT = MANIFEST.srt
++  
++  !GROK!THIS!
++  
++@@ -45,7 +45,7 @@ Signed-off-by: Georgi Valkov <gvalkov@gmail.com>
++  case "$usecrosscompile$perl" in
++  define?*)
++  	$spitshell >>$Makefile <<!GROK!THIS!
++-@@ -1056,20 +1040,6 @@ $(PERL_EXE): $& $(perlmain_dep) $(LIBPER
+++@@ -1062,20 +1046,6 @@ $(PERL_EXE): $& $(perlmain_dep) $(LIBPER
++  	$(SHRPENV) $(CC) -o perl $(CLDFLAGS) $(CCDLFLAGS) $(perlmain_objs) $(LLIBPERL) $(static_ext) `cat ext.libs` $(libs)
++  !NO!SUBS!
++          ;;
