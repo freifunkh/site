@@ -1,12 +1,12 @@
 From: Dark4MD <manu@ff-steinhude.de>
-Date: Thu, 5 May 2026 23:44:46 +0200
+Date: Tue, 5 May 2026 23:44:46 +0200
 Subject: patches/openwrt: add TL-WR841ND/N 8M and 16M variants to ath79
 
-diff --git a/patches/openwrt/0014-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0014-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
+diff --git a/patches/openwrt/0019-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0019-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 new file mode 100644
-index 00000000..7885767a
+index 0000000000000000000000000000000000000000..7885767a33c50c2da2511bf41b7c22e9b60c7359
 --- /dev/null
-+++ b/patches/openwrt/0014-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
++++ b/patches/openwrt/0019-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 @@ -0,0 +1,859 @@
 +From: Dark4MD <github.web@manu.li>
 +Date: Thu, 5 May 2022 17:45:14 +0200
@@ -868,7 +868,7 @@ index 00000000..7885767a
 +   $(Device/tplink-8m)
 +   SOC := ar7241
 diff --git a/targets/ath79-generic b/targets/ath79-generic
-index 42ad0d0d..be2f2d1b 100644
+index 42ad0d0df1990fac189f0ea1dc6600c988b6921b..be2f2d1bac2db798c7e3fcab04eb1173d1cf507b 100644
 --- a/targets/ath79-generic
 +++ b/targets/ath79-generic
 @@ -509,6 +509,70 @@ device('tp-link-tl-wdr4300-v1', 'tplink_tl-wdr4300-v1')
@@ -942,6 +942,3 @@ index 42ad0d0d..be2f2d1b 100644
  device('tp-link-tl-wr842n-v3', 'tplink_tl-wr842n-v3')
  
  device('tp-link-tl-wr902ac-v1', 'tplink_tl-wr902ac-v1', {
--- 
-2.47.3
-
