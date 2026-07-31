@@ -306,6 +306,16 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				label = "u-boot";
 ++				reg = <0x000000 0x020000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					macaddr_uboot_1fc00: macaddr@1fc00 {
+++						reg = <0x1fc00 0x6>;
+++					};
+++				};
 ++			};
 ++
 ++			partition@20000 {
@@ -344,16 +354,6 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++	mtd-cal-data = <&art 0x1000>;
 ++	nvmem-cells = <&macaddr_uboot_1fc00>;
 ++	nvmem-cell-names = "mac-address";
-++};
-++
-++&uboot {
-++	compatible = "nvmem-cells";
-++	#address-cells = <1>;
-++	#size-cells = <1>;
-++
-++	macaddr_uboot_1fc00: macaddr@1fc00 {
-++		reg = <0x1fc00 0x6>;
-++	};
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
 +new file mode 100644
@@ -449,6 +449,16 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				label = "u-boot";
 ++				reg = <0x000000 0x020000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					macaddr_uboot_1fc00: macaddr@1fc00 {
+++						reg = <0x1fc00 0x6>;
+++					};
+++				};
 ++			};
 ++
 ++			partition@20000 {
@@ -487,16 +497,6 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++	mtd-cal-data = <&art 0x1000>;
 ++	nvmem-cells = <&macaddr_uboot_1fc00>;
 ++	nvmem-cell-names = "mac-address";
-++};
-++
-++&uboot {
-++	compatible = "nvmem-cells";
-++	#address-cells = <1>;
-++	#size-cells = <1>;
-++
-++	macaddr_uboot_1fc00: macaddr@1fc00 {
-++		reg = <0x1fc00 0x6>;
-++	};
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts
 +new file mode 100644
