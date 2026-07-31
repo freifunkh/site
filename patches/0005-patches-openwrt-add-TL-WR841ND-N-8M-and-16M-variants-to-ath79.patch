@@ -87,10 +87,20 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				reg = <0x020000 0xfd0000>;
 ++			};
 ++
-++			art: partition@ff0000 {
+++			partition@ff0000 {
 ++				label = "art";
 ++				reg = <0xff0000 0x010000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					cal_art_1000: calibration@1000 {
+++						reg = <0x1000 0x440>;
+++					};
+++				};
 ++			};
 ++		};
 ++	};
@@ -107,10 +117,8 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++};
 ++
 ++&wmac {
-++	mtd-cal-data = <&art 0x1000>;
-++
-++ 	nvmem-cells = <&macaddr_uboot_1fc00 0>;
-++	nvmem-cell-names = "mac-address";
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>, <&cal_art_1000>;
+++	nvmem-cell-names = "mac-address", "calibration";
 ++};
 +diff --git a/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
 +new file mode 100644
@@ -187,10 +195,20 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				reg = <0x020000 0x7d0000>;
 ++			};
 ++
-++			art: partition@7f0000 {
+++			partition@7f0000 {
 ++				label = "art";
 ++				reg = <0x7f0000 0x010000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					cal_art_1000: calibration@1000 {
+++						reg = <0x1000 0x440>;
+++					};
+++				};
 ++			};
 ++		};
 ++	};
@@ -207,10 +225,8 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++};
 ++
 ++&wmac {
-++	mtd-cal-data = <&art 0x1000>;
-++
-++ 	nvmem-cells = <&macaddr_uboot_1fc00 0>;
-++	nvmem-cell-names = "mac-address";
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>, <&cal_art_1000>;
+++	nvmem-cell-names = "mac-address", "calibration";
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
 +new file mode 100644
@@ -326,10 +342,20 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				reg = <0x020000 0xfd0000>;
 ++			};
 ++
-++			art: partition@ff0000 {
+++			partition@ff0000 {
 ++				label = "art";
 ++				reg = <0xff0000 0x010000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					cal_art_1000: calibration@1000 {
+++						reg = <0x1000 0x440>;
+++					};
+++				};
 ++			};
 ++		};
 ++	};
@@ -352,9 +378,8 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++&wmac {
 ++	status = "okay";
 ++
-++	mtd-cal-data = <&art 0x1000>;
-++ 	nvmem-cells = <&macaddr_uboot_1fc00 0>;
-++	nvmem-cell-names = "mac-address";
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>, <&cal_art_1000>;
+++	nvmem-cell-names = "mac-address", "calibration";
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
 +new file mode 100644
@@ -470,10 +495,20 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++				reg = <0x020000 0x7d0000>;
 ++			};
 ++
-++			art: partition@7f0000 {
+++			partition@7f0000 {
 ++				label = "art";
 ++				reg = <0x7f0000 0x010000>;
 ++				read-only;
+++
+++				nvmem-layout {
+++					compatible = "fixed-layout";
+++					#address-cells = <1>;
+++					#size-cells = <1>;
+++
+++					cal_art_1000: calibration@1000 {
+++						reg = <0x1000 0x440>;
+++					};
+++				};
 ++			};
 ++		};
 ++	};
@@ -496,9 +531,8 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++&wmac {
 ++	status = "okay";
 ++
-++	mtd-cal-data = <&art 0x1000>;
-++ 	nvmem-cells = <&macaddr_uboot_1fc00 0>;
-++	nvmem-cell-names = "mac-address";
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>, <&cal_art_1000>;
+++	nvmem-cell-names = "mac-address", "calibration";
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts
 +new file mode 100644
