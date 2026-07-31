@@ -1,23 +1,23 @@
-From: Dark4MD <github.web@manu.li>
-Date: Thu, 5 May 2022 18:04:46 +0200
+From: Dark4MD <manu@ff-steinhude.de>
+Date: Tue, 5 May 2026 23:44:46 +0200
 Subject: patches/openwrt: add TL-WR841ND/N 8M and 16M variants to ath79
 
-diff --git a/patches/openwrt/0018-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0018-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
+diff --git a/patches/openwrt/0021-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch b/patches/openwrt/0021-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
 new file mode 100644
-index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a021762200e9002ba
+index 0000000000000000000000000000000000000000..24add7bdaffff1d3a0e9a380e0f9da62698852f9
 --- /dev/null
-+++ b/patches/openwrt/0018-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
-@@ -0,0 +1,809 @@
++++ b/patches/openwrt/0021-add-TL-WR841ND-N-8M-and-16M-variants-to-ath79.patch
+@@ -0,0 +1,859 @@
 +From: Dark4MD <github.web@manu.li>
 +Date: Thu, 5 May 2022 17:45:14 +0200
 +Subject: add TL-WR841ND/N 8M and 16M variants to ath79
 +
 +diff --git a/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..5018a727466c2c6c812d5dc1093ccd56a814f869
++index 0000000000000000000000000000000000000000..5384807a58814ff3a8b7f44b50094c9c47a94281
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-16m.dts
-+@@ -0,0 +1,93 @@
++@@ -0,0 +1,102 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include "ar9341_tplink.dtsi"
@@ -122,10 +122,10 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++};
 +diff --git a/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..8b4b13c30fce3c39735fc51b8a0b52f3cb42f9ff
++index 0000000000000000000000000000000000000000..cf3beff242687a44e92eb672eb8ce7bb804668bf
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
-+@@ -0,0 +1,93 @@
++@@ -0,0 +1,102 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include "ar9341_tplink.dtsi"
@@ -230,10 +230,10 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..cefaf99bc6cc0dc79138bb0a75c395a6122a672b
++index 0000000000000000000000000000000000000000..83b144cf211f31ba4ccf65e16ff1775d73a5ce2d
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
-+@@ -0,0 +1,137 @@
++@@ -0,0 +1,150 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include "qca953x.dtsi"
@@ -386,10 +386,10 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..040f7e558566ebf50d7aa5ebd57b79bff18fed6f
++index 0000000000000000000000000000000000000000..5b78f24bd244ef5d8d2e3fb67767dfee5a9ab518
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
-+@@ -0,0 +1,137 @@
++@@ -0,0 +1,150 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include "qca953x.dtsi"
@@ -598,10 +598,10 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..e40621ceeb7c5ba40103a26e359fb6f5bd33c691
++index 0000000000000000000000000000000000000000..af981e4e26837a839013895eeaee22d13cb74bde
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-16m.dtsi
-+@@ -0,0 +1,24 @@
++@@ -0,0 +1,27 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include <dt-bindings/leds/common.h>
@@ -645,10 +645,10 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi
 +new file mode 100644
-+index 0000000000000000000000000000000000000000..92eab6e8da711804556baf6562538c00482628e0
++index 0000000000000000000000000000000000000000..c6aa9d57979817969ce784862d1c5874283133b3
 +--- /dev/null
 ++++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v11-8m.dtsi
-+@@ -0,0 +1,24 @@
++@@ -0,0 +1,27 @@
 ++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 ++
 ++#include <dt-bindings/leds/common.h>
@@ -771,7 +771,7 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 + 	tplink,tl-wr941hp-v1)
 + 		ucidef_set_interface_wan "eth1"
 +diff --git a/target/linux/ath79/image/generic-tp-link.mk b/target/linux/ath79/image/generic-tp-link.mk
-+index df6d0036fda4e6ca51d04db21c360dd6ccac983e..7441ea84a60e71a39fec60b0ec2d573083fe83dc 100644
++index df6d0036fda4e6ca51d04db21c360dd6ccac983e..7215bb6837c63230b27df02fcf6f71ab044c4358 100644
 +--- a/target/linux/ath79/image/generic-tp-link.mk
 ++++ b/target/linux/ath79/image/generic-tp-link.mk
 +@@ -876,6 +876,92 @@ define Device/tplink_tl-wr841hp-v3
