@@ -74,7 +74,9 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++					#size-cells = <1>;
 ++
 ++					macaddr_uboot_1fc00: macaddr@1fc00 {
+++						compatible = "mac-base";
 ++						reg = <0x1fc00 0x6>;
+++						#nvmem-cell-cells = <1>;
 ++					};
 ++				};
 ++			};
@@ -95,20 +97,19 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++};
 ++
 ++&eth0 {
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 (-1)>;
 ++	nvmem-cell-names = "mac-address";
-++	mac-address-increment = <(-1)>;
 ++};
 ++
 ++&eth1 {
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>;
 ++	nvmem-cell-names = "mac-address";
 ++};
 ++
 ++&wmac {
 ++	mtd-cal-data = <&art 0x1000>;
 ++
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++ 	nvmem-cells = <&macaddr_uboot_1fc00 0>;
 ++	nvmem-cell-names = "mac-address";
 ++};
 +diff --git a/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts b/target/linux/ath79/dts/ar9341_tplink_tl-wr841-v8-8m.dts
@@ -173,7 +174,9 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++					#size-cells = <1>;
 ++
 ++					macaddr_uboot_1fc00: macaddr@1fc00 {
+++						compatible = "mac-base";
 ++						reg = <0x1fc00 0x6>;
+++						#nvmem-cell-cells = <1>;
 ++					};
 ++				};
 ++			};
@@ -194,20 +197,19 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++};
 ++
 ++&eth0 {
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 (-1)>;
 ++	nvmem-cell-names = "mac-address";
-++	mac-address-increment = <(-1)>;
 ++};
 ++
 ++&eth1 {
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>;
 ++	nvmem-cell-names = "mac-address";
 ++};
 ++
 ++&wmac {
 ++	mtd-cal-data = <&art 0x1000>;
 ++
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++ 	nvmem-cells = <&macaddr_uboot_1fc00 0>;
 ++	nvmem-cell-names = "mac-address";
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-16m.dtsi
