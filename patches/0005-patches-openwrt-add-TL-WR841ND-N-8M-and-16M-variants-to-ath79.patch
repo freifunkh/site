@@ -313,7 +313,9 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++					#size-cells = <1>;
 ++
 ++					macaddr_uboot_1fc00: macaddr@1fc00 {
+++						compatible = "mac-base";
 ++						reg = <0x1fc00 0x6>;
+++						#nvmem-cell-cells = <1>;
 ++					};
 ++				};
 ++			};
@@ -338,13 +340,12 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++
 ++	phy-handle = <&swphy4>;
 ++
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 1>;
 ++	nvmem-cell-names = "mac-address";
-++	mac-address-increment = <1>;
 ++};
 ++
 ++&eth1 {
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>;
 ++	nvmem-cell-names = "mac-address";
 ++};
 ++
@@ -352,7 +353,7 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++	status = "okay";
 ++
 ++	mtd-cal-data = <&art 0x1000>;
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++ 	nvmem-cells = <&macaddr_uboot_1fc00 0>;
 ++	nvmem-cell-names = "mac-address";
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-8m.dtsi
@@ -456,7 +457,9 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++					#size-cells = <1>;
 ++
 ++					macaddr_uboot_1fc00: macaddr@1fc00 {
+++						compatible = "mac-base";
 ++						reg = <0x1fc00 0x6>;
+++						#nvmem-cell-cells = <1>;
 ++					};
 ++				};
 ++			};
@@ -481,13 +484,12 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++
 ++	phy-handle = <&swphy4>;
 ++
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 1>;
 ++	nvmem-cell-names = "mac-address";
-++	mac-address-increment = <1>;
 ++};
 ++
 ++&eth1 {
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++	nvmem-cells = <&macaddr_uboot_1fc00 0>;
 ++	nvmem-cell-names = "mac-address";
 ++};
 ++
@@ -495,7 +497,7 @@ index 0000000000000000000000000000000000000000..3165714da9d297fc0c56d05a02176220
 ++	status = "okay";
 ++
 ++	mtd-cal-data = <&art 0x1000>;
-++	nvmem-cells = <&macaddr_uboot_1fc00>;
+++ 	nvmem-cells = <&macaddr_uboot_1fc00 0>;
 ++	nvmem-cell-names = "mac-address";
 ++};
 +diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr841-v10-16m.dts
