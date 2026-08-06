@@ -51,12 +51,12 @@
 	},
 
 	wifi24 = {
-		ap = { ssid = 'hannover.freifunk.net', },
+		ap = { ssid = '{{ssid if ssid else 'hannover.freifunk.net'}}', },
 		mesh = { id = 'ffh-mesh{{ '' if id == 0 else '-' + str(id) }}', },
 	},
 
 	wifi5 = {
-		ap = { ssid = 'hannover.freifunk.net', },
+		ap = { ssid = '{{ssid if ssid else 'hannover.freifunk.net'}}', },
 		mesh = { id = 'ffh-mesh{{ '' if id == 0 else '-' + str(id) }}', },
 	},
 
